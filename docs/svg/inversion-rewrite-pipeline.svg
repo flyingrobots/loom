@@ -1,0 +1,42 @@
+<svg width="940" height="390" viewBox="0 0 940 390" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .box { fill:#fff; stroke:#000; stroke-width:2; rx:8; ry:8; }
+  .label { font-family:system-ui; font-size:13px; }
+  .title { font-family:system-ui; font-size:16px; font-weight:bold; }
+  .arrow { stroke:#000; stroke-width:2; marker-end:url(#arrowhead); }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#000"/>
+  </marker>
+</defs>
+
+<text class="title" x="470" y="30" text-anchor="middle">Inversion Rewrite Pipeline</text>
+
+<!-- Input commits -->
+<rect class="box" x="80" y="90" width="200" height="80"/>
+<text class="label" x="180" y="120" text-anchor="middle">Input Snapshot</text>
+<text class="label" x="180" y="140" text-anchor="middle">(Git commit)</text>
+
+<rect class="box" x="80" y="200" width="200" height="80"/>
+<text class="label" x="180" y="230" text-anchor="middle">Operation: merge / rebase / cpick</text>
+
+<!-- Engine -->
+<rect class="box" x="370" y="125" width="220" height="150"/>
+<text class="label title" x="480" y="150" text-anchor="middle">Inversion Engine</text>
+<text class="label" x="480" y="175" text-anchor="middle">computes mapping</text>
+<text class="label" x="480" y="195" text-anchor="middle">handles conflicts</text>
+<text class="label" x="480" y="215" text-anchor="middle">produces rewrite node</text>
+
+<!-- Output -->
+<rect class="box" x="700" y="130" width="200" height="140"/>
+<text class="label" x="800" y="160" text-anchor="middle">New Snapshot Node</text>
+<text class="label" x="800" y="180" text-anchor="middle">ref points here</text>
+<text class="label" x="800" y="200" text-anchor="middle">history preserved</text>
+
+<!-- arrows -->
+<line class="arrow" x1="280" y1="130" x2="370" y2="170"/>
+<line class="arrow" x1="280" y1="240" x2="370" y2="210"/>
+<line class="arrow" x1="590" y1="200" x2="700" y2="200"/>
+
+</svg>

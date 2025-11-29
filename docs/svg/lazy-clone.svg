@@ -1,0 +1,38 @@
+<svg width="900" height="360" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .box { fill:#fff; stroke:#000; stroke-width:2; rx:8; ry:8; }
+  .title { font-weight:bold; font-size:16px; font-family:system-ui; }
+  .label { font-size:13px; font-family:system-ui; }
+  .arrow { stroke:#000; stroke-width:2; marker-end:url(#arrowhead); }
+  .dashed { stroke-dasharray:6 5; }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#000"/>
+  </marker>
+</defs>
+
+<text class="title" x="450" y="30" text-anchor="middle">Lazy Clone Protocol</text>
+
+<!-- Server -->
+<rect class="box" x="50" y="80" width="250" height="200"/>
+<text class="label" x="175" y="110" text-anchor="middle">Remote GITD</text>
+<text class="label" x="175" y="135" text-anchor="middle">full causal graph</text>
+<text class="label" x="175" y="155" text-anchor="middle">full history</text>
+<text class="label" x="175" y="175" text-anchor="middle">ref table</text>
+
+<!-- Client -->
+<rect class="box" x="600" y="80" width="250" height="200"/>
+<text class="label" x="725" y="110" text-anchor="middle">Client GITD</text>
+<text class="label" x="725" y="135" text-anchor="middle">frontier only</text>
+<text class="label" x="725" y="155" text-anchor="middle">Materialized Head</text>
+<text class="label" x="725" y="175" text-anchor="middle">on-demand history</text>
+
+<!-- arrows -->
+<line class="arrow" x1="300" y1="150" x2="600" y2="150"/>
+<text class="label" x="450" y="140" text-anchor="middle">frontier nodes + refs</text>
+
+<line class="arrow dashed" x1="600" y1="200" x2="300" y2="200"/>
+<text class="label" x="450" y="220" text-anchor="middle">history nodes (fetched lazily)</text>
+
+</svg>

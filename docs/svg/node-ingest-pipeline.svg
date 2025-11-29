@@ -1,0 +1,59 @@
+<svg width="960" height="380" viewBox="0 0 960 380" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .box { fill:#fff; stroke:#000; stroke-width:2; rx:8; ry:8; }
+  .subbox { fill:#F4F6F7; stroke:#4A90E2; stroke-width:2; rx:8; ry:8; }
+  .label { font-family:system-ui; font-size:13px; }
+  .title { font-size:16px; font-weight:bold; font-family:system-ui; }
+  .arrow { stroke:#4A90E2; stroke-width:2; marker-end:url(#arrowhead); }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#4A90E2"/>
+  </marker>
+</defs>
+
+<text class="title" x="480" y="35" text-anchor="middle">Node Ingestion Pipeline</text>
+
+<!-- Working Dir -->
+<rect class="subbox" x="40" y="90" width="200" height="80"/>
+<text class="label" x="140" y="120" text-anchor="middle">Working Directory</text>
+<text class="label" x="140" y="140" text-anchor="middle">modified files</text>
+
+<!-- or SWS -->
+<rect class="subbox" x="40" y="200" width="200" height="80"/>
+<text class="label" x="140" y="230" text-anchor="middle">Shadow Working Set</text>
+<text class="label" x="140" y="250" text-anchor="middle">virtual edits</text>
+
+<!-- Diff engine -->
+<rect class="box" x="300" y="140" width="180" height="90"/>
+<text class="label" x="390" y="175" text-anchor="middle">Diff Engine</text>
+<text class="label" x="390" y="195" text-anchor="middle">detect changes → chunk</text>
+
+<!-- Chunk nodes -->
+<rect class="subbox" x="530" y="100" width="180" height="70"/>
+<text class="label" x="620" y="130" text-anchor="middle">File-Chunk Nodes</text>
+
+<!-- Snapshot node -->
+<rect class="subbox" x="530" y="210" width="180" height="70"/>
+<text class="label" x="620" y="240" text-anchor="middle">Snapshot Node</text>
+
+<!-- WAL -->
+<rect class="box" x="760" y="140" width="170" height="80"/>
+<text class="label" x="845" y="170" text-anchor="middle">WAL Record</text>
+<text class="label" x="845" y="190" text-anchor="middle">append-only</text>
+
+<!-- Index -->
+<rect class="box" x="760" y="250" width="170" height="80"/>
+<text class="label" x="845" y="280" text-anchor="middle">Index Update</text>
+
+<!-- arrows -->
+<line class="arrow" x1="240" y1="130" x2="300" y2="165"/>
+<line class="arrow" x1="240" y1="240" x2="300" y2="195"/>
+
+<line class="arrow" x1="480" y1="165" x2="530" y2="130"/>
+<line class="arrow" x1="480" y1="205" x2="530" y2="240"/>
+
+<line class="arrow" x1="710" y1="130" x2="760" y2="165"/>
+<line class="arrow" x1="710" y1="240" x2="760" y2="290"/>
+
+</svg>

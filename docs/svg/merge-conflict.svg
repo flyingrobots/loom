@@ -1,0 +1,43 @@
+<svg width="940" height="360" viewBox="0 0 940 360" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .box { fill:#fff; stroke:#000; stroke-width:2; rx:8; ry:8; }
+  .label { font-family:system-ui; font-size:13px; }
+  .title { font-weight:bold; font-size:16px; font-family:system-ui; }
+  .arrow { stroke:#000; stroke-width:2; marker-end:url(#arrowhead); }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#000"/>
+  </marker>
+</defs>
+
+<text class="title" x="470" y="30" text-anchor="middle">Merge Conflict Resolution (Materialized Head)</text>
+
+<!-- parents -->
+<rect class="box" x="50" y="80" width="200" height="70"/>
+<text class="label" x="150" y="110" text-anchor="middle">Parent A</text>
+
+<rect class="box" x="50" y="180" width="200" height="70"/>
+<text class="label" x="150" y="210" text-anchor="middle">Parent B</text>
+
+<!-- arrow to engine -->
+<line class="arrow" x1="250" y1="115" x2="350" y2="150"/>
+<line class="arrow" x1="250" y1="215" x2="350" y2="180"/>
+
+<!-- inversion engine -->
+<rect class="box" x="350" y="110" width="240" height="140"/>
+<text class="label title" x="470" y="135" text-anchor="middle">Inversion Engine</text>
+<text class="label" x="470" y="160" text-anchor="middle">auto-merge where possible</text>
+<text class="label" x="470" y="180" text-anchor="middle">multi-stage conflicts returned</text>
+
+<!-- arrows to index -->
+<line class="arrow" x1="590" y1="180" x2="720" y2="180"/>
+
+<!-- tree index -->
+<rect class="box" x="720" y="120" width="200" height="160"/>
+<text class="label" x="820" y="150" text-anchor="middle">Materialized Head</text>
+<text class="label" x="820" y="170" text-anchor="middle">tree-index</text>
+<text class="label" x="820" y="190" text-anchor="middle">multi-stage entries</text>
+<text class="label" x="820" y="210" text-anchor="middle">conflict markers on disk</text>
+
+</svg>

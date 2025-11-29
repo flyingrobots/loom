@@ -1,0 +1,40 @@
+<svg width="880" height="330" viewBox="0 0 880 330" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .box { fill:#fff; stroke:#000; stroke-width:2; rx:8; ry:8; }
+  .title { font-weight:bold; font-size:16px; font-family:system-ui; }
+  .label { font-size:13px; font-family:system-ui; }
+  .arrow { stroke:#000; stroke-width:2; marker-end:url(#arrowhead); }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#000"/>
+  </marker>
+</defs>
+
+<text class="title" x="440" y="30" text-anchor="middle">WAL Replay: Crash Recovery Sequence</text>
+
+<!-- WAL -->
+<rect class="box" x="50" y="80" width="220" height="180"/>
+<text class="label" x="160" y="110" text-anchor="middle">Write-Ahead Log</text>
+<text class="label" x="160" y="135" text-anchor="middle">append-only records</text>
+<text class="label" x="160" y="155" text-anchor="middle">deterministic ops</text>
+<text class="label" x="160" y="175" text-anchor="middle">logical clocks</text>
+
+<!-- Replay -->
+<rect class="box" x="330" y="110" width="220" height="120"/>
+<text class="label" x="440" y="135" text-anchor="middle">Replay Engine</text>
+<text class="label" x="440" y="160" text-anchor="middle">reconstruct node/index state</text>
+<text class="label" x="440" y="180" text-anchor="middle">apply ops in order</text>
+
+<!-- Rebuilt state -->
+<rect class="box" x="610" y="100" width="220" height="140"/>
+<text class="label" x="720" y="130" text-anchor="middle">Recovered GITD State</text>
+<text class="label" x="720" y="155" text-anchor="middle">node index rebuilt</text>
+<text class="label" x="720" y="175" text-anchor="middle">Materialized Head restored</text>
+<text class="label" x="720" y="195" text-anchor="middle">SWS rehydrated</text>
+
+<!-- arrows -->
+<line class="arrow" x1="270" y1="170" x2="330" y2="170"/>
+<line class="arrow" x1="550" y1="170" x2="610" y2="170"/>
+
+</svg>

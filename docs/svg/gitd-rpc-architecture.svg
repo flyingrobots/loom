@@ -1,0 +1,49 @@
+<svg width="940" height="360" viewBox="0 0 940 360" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .box { fill:#fff; stroke:#000; stroke-width:2; rx:8; ry:8; }
+  .subbox { fill:#F4F6F7; stroke:#9B59B6; stroke-width:2; rx:8; ry:8; }
+  .label { font-family:system-ui; font-size:13px; }
+  .title { font-family:system-ui; font-size:16px; font-weight:bold; }
+  .arrow { stroke:#9B59B6; stroke-width:2; marker-end:url(#arrowhead); }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#9B59B6"/>
+  </marker>
+</defs>
+
+<text class="title" x="470" y="35" text-anchor="middle">GITD RPC Architecture</text>
+
+<!-- CLI -->
+<rect class="box" x="40" y="60" width="200" height="70"/>
+<text class="label" x="140" y="90" text-anchor="middle">Git CLI / IDE</text>
+
+<!-- AGENTS -->
+<rect class="box" x="40" y="170" width="200" height="70"/>
+<text class="label" x="140" y="200" text-anchor="middle">Agents / LLM / CI</text>
+
+<!-- Protocol shim -->
+<rect class="subbox" x="300" y="100" width="200" height="100"/>
+<text class="label" x="400" y="135" text-anchor="middle">Protocol Shim</text>
+<text class="label" x="400" y="155" text-anchor="middle">Git wire → RPC ops</text>
+
+<!-- GITD -->
+<rect class="box" x="550" y="60" width="200" height="200"/>
+<text class="label title" x="650" y="90" text-anchor="middle">GITD</text>
+<text class="label" x="650" y="120" text-anchor="middle">• Materialized Head</text>
+<text class="label" x="650" y="140" text-anchor="middle">• SWS Manager</text>
+<text class="label" x="650" y="160" text-anchor="middle">• Inversion Engine</text>
+<text class="label" x="650" y="180" text-anchor="middle">• Sync / RPC</text>
+
+<!-- GATOS -->
+<rect class="subbox" x="800" y="110" width="130" height="100"/>
+<text class="label" x="865" y="150" text-anchor="middle">GATOS-Core</text>
+
+<!-- arrows -->
+<line class="arrow" x1="240" y1="95" x2="300" y2="130"/>
+<line class="arrow" x1="240" y1="205" x2="300" y2="150"/>
+
+<line class="arrow" x1="500" y1="150" x2="550" y2="150"/>
+<line class="arrow" x1="750" y1="150" x2="800" y2="150"/>
+
+</svg>

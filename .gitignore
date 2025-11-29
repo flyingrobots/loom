@@ -1,0 +1,34 @@
+# Knowledge base
+.obsidian/
+
+# macOS cruft
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r
+.Spotlight-V100
+.Trashes
+._*
+.fseventsd
+
+# Xcode build artifacts
+DerivedData/
+build/
+*.xcworkspace
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+
+# IDE settings
+.vscode/
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Editor swap/backup files
+*~
+*.swp
+*.swo

@@ -1,0 +1,47 @@
+<svg width="780" height="260" viewBox="0 0 780 260" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .box { fill:#ffffff; stroke:#000000; stroke-width:2; rx:8; ry:8; }
+    .label { font-family: system-ui, -apple-system, sans-serif; font-size:14px; }
+    .title { font-weight:bold; font-size:16px; }
+    .arrow { stroke:#000000; stroke-width:2; marker-end:url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#000000" />
+    </marker>
+  </defs>
+
+  <!-- Git CLI -->
+  <rect class="box" x="20" y="40" width="160" height="80"/>
+  <text class="label title" x="100" y="70" text-anchor="middle">Git CLI / IDE</text>
+  <text class="label" x="100" y="95" text-anchor="middle">human workflows</text>
+
+  <!-- GITD -->
+  <rect class="box" x="260" y="30" width="230" height="140"/>
+  <text class="label title" x="375" y="55" text-anchor="middle">GITD (jit daemon)</text>
+  <text class="label" x="375" y="80" text-anchor="middle">• Git protocol emulation</text>
+  <text class="label" x="375" y="100" text-anchor="middle">• Materialized Head</text>
+  <text class="label" x="375" y="120" text-anchor="middle">• Shadow Working Sets</text>
+  <text class="label" x="375" y="140" text-anchor="middle">• Inversion + Provenance</text>
+
+  <!-- GATOS -->
+  <rect class="box" x="560" y="40" width="200" height="120"/>
+  <text class="label title" x="660" y="70" text-anchor="middle">GATOS-Core</text>
+  <text class="label" x="660" y="95" text-anchor="middle">causal node store</text>
+  <text class="label" x="660" y="115" text-anchor="middle">append-only DAG</text>
+
+  <!-- Agents box -->
+  <rect class="box" x="260" y="195" width="230" height="55"/>
+  <text class="label title" x="375" y="215" text-anchor="middle">Agents / LLMs / CI</text>
+  <text class="label" x="375" y="235" text-anchor="middle">shadow working sets via RPC</text>
+
+  <!-- Arrows -->
+  <line class="arrow" x1="180" y1="80" x2="260" y2="80"/>
+  <text class="label" x="220" y="70" text-anchor="middle">Git protocol</text>
+
+  <line class="arrow" x1="490" y1="100" x2="560" y2="100"/>
+  <text class="label" x="525" y="90" text-anchor="middle">nodes / refs</text>
+
+  <line class="arrow" x1="375" y1="195" x2="375" y2="170"/>
+  <text class="label" x="395" y="182" text-anchor="start">SWS RPC</text>
+</svg>
