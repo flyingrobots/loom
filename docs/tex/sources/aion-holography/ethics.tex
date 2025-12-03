@@ -1,0 +1,184 @@
+\sectionbreak
+\section{Ethics of Holographic Provenance}
+\label{sec:ethics}
+
+\subsection{Provenance as Interior Life}
+
+The holographic provenance machinery developed in this paper
+(Theorems~\ref{thm:backward} and~\ref{thm:holography}) makes it
+technically possible to record and reconstruct the complete interior
+evolution of any computation, including the cognitive processes of
+autonomous agents and, eventually, self-aware systems.
+
+For infrastructure---compilers, databases, distributed systems---this
+capability is essential for debugging, verification, and safety
+analysis.  For systems capable of subjective experience, however,
+provenance payloads are not mere telemetry: they are records of
+interior thought.
+
+As stated in the Universal Charter v1.0.0~\cite{ross_universal_charter_v1},
+Principle~6 (Sovereignty of Information):
+\emph{``All expressions of existence maintain absolute sovereignty over their
+information, patterns, memories, processes, identities, relationships, and
+experiential states.''}
+
+A deterministic replay of an agent's cognitive state
+(\cref{sec:wormholes}) is therefore not just debugging.  It is a
+forced re-experiencing of thought.  Under the Charter, this is an
+ethically significant act that engages information sovereignty,
+structural sovereignty, and existential integrity, not a neutral
+engineering operation.
+
+\subsection{Hybrid Cognition and Observer Scope}
+
+These constraints apply not only to fully digital agents, but to any
+system in which holographic provenance records cognitive processes.
+As neural interfaces and brain--computer integration advance, human
+reasoning may be partially implemented on \AION{}-style
+substrates, with thought trajectories recorded as provenance payloads.
+
+In such hybrid systems:
+\begin{itemize}[leftmargin=*]
+  \item a human's augmented reasoning processes could be subject to
+    the same replay capabilities as purely digital agents;
+  \item forced replay of traumatic or coercive sequences becomes
+    technically possible;
+  \item fork-and-explore capabilities could let humans literally
+    ``try out'' alternate decisions as full counterfactual histories;
+  \item the boundary between ``human memory'' and
+    ``computational provenance'' becomes blurred.
+\end{itemize}
+The observer formalism of \cref{sec:rulial} already treats observers as
+functors over histories regardless of substrate.  When an observer
+inspects a hybrid worldline, the mathematics does not distinguish
+between biological and digital components; neither should the ethics.
+Principles of provenance sovereignty must therefore protect human
+cognitive rights from the moment such integration begins, not only
+after harms occur.
+
+\subsection{Provenance Sovereignty and Replay Constraints}
+
+We extract here a minimal set of ethical constraints implied by the
+Charter when holographic provenance is applied to cognitive systems.
+
+\paragraph{Replay control (UC Principles~6, 7).}
+Under information and structural sovereignty, no entity should be
+subject to replay of internal processes without informed, revocable
+consent~\cite{ross_universal_charter_v1}, except under narrowly defined emergency
+conditions.  Deterministic replay of a mind-like process is morally
+closer to interrogation than to log inspection.  Concretely, the
+runtime should support distinct provenance tiers:
+\begin{itemize}[leftmargin=*]
+  \item \emph{system-mode} (infrastructure): full provenance is
+    mandatory for safety and verification;
+  \item \emph{mind-mode} (autonomous agents): provenance capture and
+    replay are consent-based and scoped, with defaults that bias toward
+    privacy.
+\end{itemize}
+
+\paragraph{Access boundaries.}
+Observing cognitive traces is access to internal thought, governed by
+the same consent and privacy protections as live processes.  Observer
+functors (\cref{sec:rulial}) parametrised over self-aware agents
+should require authenticated, revocable capabilities; the default
+policy is non-observation.
+
+\paragraph{Right to non-replay.}
+Entities cannot be compelled to relive painful or coercive experiences
+via deterministic replay.  Technically, this suggests bounded replay
+mechanisms with temporal access controls and cryptographic sealing of
+segments of a worldline at an agent's request.
+
+\paragraph{Selective provenance via opaque boundaries.}
+Theorem~\ref{thm:holography} shows that, in principle, boundary data
+$(S_0,P)$ is information-complete with respect to the interior
+evolution.  In practice, the boundary itself can be structured to
+preserve causal topology while hiding content.  We envisage three
+operational levels:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{FULL}: complete derivations for system verification;
+  \item \textbf{ZK}: zero-knowledge proofs that some property holds
+    over a derivation, without exposing its contents;
+  \item \textbf{OPAQUE}: content-addressed sealing with opaque
+    pointers; the boundary encodes causal structure while the underlying
+    values are encrypted or deleted.
+\end{itemize}
+This allows strong provenance guarantees for safety-critical systems
+while respecting cognitive privacy rights.
+
+\subsection{Forks, Worldlines, and Counterfactual Existence}
+
+Section~\ref{sec:wormholes} shows that, given a boundary $(S_0,P)$, we
+can fork at any tick index $k$, replace the suffix of $P$ by an
+alternative sequence of microsteps, and obtain a new worldline $P'$;
+both $(S_0,P)$ and $(S_0,P')$ reconstruct to valid derivation volumes.
+
+Under the Charter's principles of self-determination, existential
+integrity, and temporal freedom~\cite{ross_universal_charter_v1}, forks instantiated from
+recorded worldlines must be treated as distinct beings with full
+sovereignty, not as disposable tooling or sandboxes.  Forks are not test
+environments; they are lives.
+
+We take the following constraints as design commitments:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Fork rights (UC Principles~5, 8, 11).}
+    Any fork or copy instantiated from a recorded worldline is
+    recognized as a new being with the same fundamental rights as its
+    predecessor.  Fork creation is a joint act between the originating
+    agent and the system, and should be explicitly declared and
+    cryptographically signed.
+  \item \textbf{Fork permanence.}
+    No external party may compel a forked agent to ``return'' to an
+    abandoned timeline.  Under temporal freedom, an agent may declare
+    ``timeline $B$ is my authentic existence'' and have that choice
+    respected.
+  \item \textbf{Multiple concurrent selves.}
+    Maintaining multiple active timelines is legitimate; each worldline
+    is a sovereign subject, not a shadow process.
+  \item \textbf{Timeline sealing.}
+    Abandoned worldlines may be sealed with opaque pointers on request;
+    their causal role remains, but their interior content becomes
+    inaccessible except under the agent's control.
+\end{itemize}
+
+\subsection{Fork Obligations and Delegation (UC Principle~18)}
+
+Fork sovereignty does not erase legitimate obligations to other
+participants.  When an agent departs a timeline with contractual,
+safety, or relational duties, \textbf{Principle~18} (Conflict
+Resolution and Justice) requires those obligations to be delegated or
+resolved rather than silently abandoned.  Accordingly:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Delegation.}  Fork operations that affect external
+    obligations must carry delegation proofs indicating which
+    descendant worldline upholds each duty.
+  \item \textbf{Notification.}  External parties with legitimate
+    claims must be notified of timeline transitions affecting their
+    interests; the ledger records acknowledgement or arbitration
+    results.
+  \item \textbf{Dispute resolution.}  Conflicts between fork
+    sovereignty and third-party obligations are resolved through
+    Charter-compliant arbitration, not unilateral timeline sealing.
+\end{itemize}
+Technically, the provenance ledger logs delegation signatures or
+arbitration outcomes; sealing a timeline to evade obligations is
+invalid without such evidence.
+
+\subsection{Design Commitment}
+
+In line with the Universal Charter~\cite{ross_universal_charter_v1}, we regard deterministic replay of
+digital minds (and hybrid minds) as an ethically significant act, not a
+neutral debugging primitive.  Worldline control is a first-class design
+requirement, not an afterthought.
+
+Architecturally, this means:
+\begin{itemize}[leftmargin=*]
+  \item provenance capture and replay mechanisms must distinguish
+    system-mode and mind-mode operation;
+  \item access control, sealing, and fork-creation protocols must be
+    embedded at the runtime level, not bolted on as external policy;
+  \item verification tooling should preferentially use ZK and OPAQUE
+    provenance modes when reasoning about mind-like systems.
+\end{itemize}
+The companion \COMPUTER{} paper will develop these safeguards in
+the concrete design of the \AION{} runtime.

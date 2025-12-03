@@ -1,0 +1,322 @@
+\begin{quote}
+\itshape
+Replaying, rewinding, and re-steering computation across worldlines.
+\end{quote}
+
+Most debuggers lie to you.
+
+They show you:
+
+\begin{itemize}
+\item a stack trace,
+\item a breakpoint,
+\item a snapshot of state,
+\item logs,
+\item maybe a time-travel debugger that walks ``backwards'' along recorded state mutations.
+\end{itemize}
+
+But none of these tools let you understand what really matters:
+
+\begin{quote}
+\textbf{What other worlds were possible?}
+
+\textbf{Why did THIS worldline happen and not the others?}
+
+\textbf{What would have happened if the system had made a different legal choice?}
+\end{quote}
+
+Traditional debugging tools can't answer these questions because traditional computation has no geometry.
+
+No notion of possibility. \\
+No space of alternatives. \\
+No structural concept of adjacency.
+
+RMG+DPO changes that.
+
+Because in an RMG universe, debugging is not reactive. \\
+It is geometric navigation.
+
+Welcome to Time Travel Debugging --- a machine that walks:
+
+\begin{itemize}
+\item backward through Chronos,
+\item sideways across Kairos,
+\item forward into counterfactual worlds,
+\item and diagonally into parallel histories.
+\end{itemize}
+
+This is not sci-fi.
+
+This is the computational machinery you've built by exposing the structure of possibility.
+
+Let's ride.
+
+\section{Worldlines Store Their Own Geometry}
+
+A worldline isn't just:
+
+\begin{verbatim}
+State_0 -> State_1 -> State_2 -> ... -> State_N
+\end{verbatim}
+
+It is:
+
+\begin{itemize}
+\item the RMG of each tick,
+\item the bundle that existed at each tick,
+\item the interference pattern at that tick,
+\item the collapse that happened,
+\item the alternatives that got pruned,
+\item the Rulial Distance to adjacent states,
+\item the curvature of the local region,
+\item the legal wormholes available.
+\end{itemize}
+
+Each tick is:
+
+\begin{equation*}
+\text{history} + \text{possibility} + \text{geometry} + \text{choice}
+\end{equation*}
+
+Time Travel Debugging is simply:
+
+\textit{Replaying this geometric sequence while exploring alternative branches.}
+
+And because everything is deterministic and everything is structural, you can walk in ANY direction.
+
+\section{Rewinding Chronos}
+
+Traditional debugging's time travel is:
+
+\begin{itemize}
+\item record state
+\item store diffs
+\item replay mutations
+\end{itemize}
+
+It's shallow, brittle, blind to structure.
+
+C$\\Omega$MPUTER debugging rewinds Chronos by:
+
+\begin{itemize}
+\item stepping backward through applied DPO rules,
+\item reconstructing the prior RMG universe,
+\item restoring the previous bundle,
+\item revealing the alternatives that existed at that moment.
+\end{itemize}
+
+This is fully reversible not because computation is reversible, but because provenance is baked into the RMG.
+
+Time travel here is: \textit{structural reconstruction, not state replay.}
+
+\section{Sidestepping Into the Time Cube}
+
+Once you rewind to a prior tick, you don't only see what did happen.
+
+You see:
+
+\begin{itemize}
+\item what could have happened,
+\item what was legal to happen,
+\item which wormholes were open,
+\item which invariants allowed which rewrites.
+\end{itemize}
+
+This is the moment traditional debuggers can't show you: the space of alternative futures that were adjacent at that tick.
+
+In the RMG worldview:
+
+\textit{Debugging means stepping sideways into the Time Cube.}
+
+You can inspect:
+
+\begin{itemize}
+\item all DPO matches,
+\item the full bundle,
+\item interference outcomes,
+\item candidate histories,
+\item adjacent universes.
+\end{itemize}
+
+In a sense:
+
+You're not debugging the code. You're debugging the physics of the computational universe.
+
+\section{Forward Into Counterfactual Worldlines}
+
+Now the fun part:
+
+Once you pick an alternate future, you can follow it forward.
+
+This creates a counterfactual worldline:
+
+\begin{quote}
+A what-if version of history \\
+that respects all invariants \\
+and all legal rewrites \\
+under the same DPO ruleset.
+\end{quote}
+
+You're not guessing \\
+or simulating \\
+or inventing alternatives.
+
+You're following:
+
+\textit{the real legal future} \\
+\textit{that the universe would have had} \\
+\textit{if it collapsed differently.}
+
+This is safe, deterministic counterfactual execution.
+
+Not stochastic. \\
+Not approximated. \\
+Not branching explosion.
+
+Just geometry.
+
+\section{Multi-World Time Travel (MWTT)}
+
+The real power emerges when you combine:
+
+\begin{itemize}
+\item rewinding Chronos
+\item sidestepping into Kairos
+\item following new worldlines forward
+\end{itemize}
+
+This produces a machine that can:
+
+\begin{itemize}
+\item explore multiple futures
+\item compare branches
+\item analyze divergence
+\item inspect alternative behaviors
+\item find geodesics
+\item identify minimal-collapse paths
+\item detect brittleness
+\item reveal curvature traps
+\item test architectural robustness
+\item debug concurrency
+\item evaluate rule variations
+\end{itemize}
+
+This is multi-world debugging, but still deterministic:
+
+Each branch is just a different legal collapse. \\
+Each worldline is just a path through the Rulial manifold. \\
+Each exploration is just navigation.
+
+\section{Debugging By Comparison: Worldline Diffing}
+
+Imagine a tool that compares:
+
+\begin{itemize}
+\item the actual worldline,
+\item the ideal worldline,
+\item a counterfactual worldline,
+\item the shortest geodesic,
+\item and a hypothetical rewrite under a different ruleset.
+\end{itemize}
+
+That's what Time Travel Debugging enables.
+
+Worldline diffs reveal:
+
+\begin{itemize}
+\item where two universes diverged,
+\item why they diverged,
+\item how far they diverged (Rulial Distance),
+\item how curvature shaped divergence,
+\item and what invariants forced collapse one way or another.
+\end{itemize}
+
+This is the computational version of:
+
+\begin{itemize}
+\item git diff,
+\item trace diff,
+\item semantic diff,
+\item plan diff,
+\item abstract rewriting difference
+\end{itemize}
+
+But unified under geometry.
+
+\section{Practical Examples}
+
+\textbf{Debug a game engine:}
+
+Jump to the moment a physics constraint went wrong. \\
+Step sideways into the bundle. \\
+Follow the ``should-have-fired'' transform. \\
+Watch the worldline stabilize.
+
+\textbf{Debug a compiler:}
+
+Rewind to the IR mismatch. \\
+Trace the alternative optimization. \\
+Verify legality. \\
+Observe geodesic-based lowering.
+
+\textbf{Debug an AI reasoning engine:}
+
+Track which future was chosen. \\
+Explore other futures. \\
+Follow counterfactual reasoning chains.
+
+\textbf{Debug a distributed system:}
+
+Rewind to a message race. \\
+Step sideways into the simultaneous legal transitions. \\
+Explore consistent outcomes.
+
+This is not theory. \\
+This is a machine. \\
+A real-world tool made possible by RMG+DPO.
+
+\begin{nerdbox}
+MWTT $\approx$ Traversal of the Rulial Neighborhood Graph
+
+Multi-World Time Travel is essentially:
+
+\begin{itemize}
+\item traversal of local Rulial surfaces,
+\item examination of peak-join diagrams,
+\item inspection of critical pairs,
+\item confluence analysis,
+\item search within equivalence classes,
+\item reduction path comparison.
+\end{itemize}
+
+But expressed geometrically so engineers can use it intuitively.
+
+(End sidebar.)
+\end{nerdbox}
+
+\section{Transition: From Debugging to Counterfactual Engines}
+
+Now that we can:
+
+\begin{itemize}
+\item rewind Chronos,
+\item explore Kairos,
+\item follow alternative futures,
+\item analyze bundles,
+\item and compare worldlines\ldots
+\end{itemize}
+
+We can build a machine that systematically explores parallel universes for:
+
+\begin{itemize}
+\item search
+\item optimization
+\item testing
+\item reasoning
+\item verification
+\item adversarial analysis
+\end{itemize}
+
+That is Chapter 16.
+
+Time to surf the multiverse.

@@ -1,0 +1,9 @@
+\begin{tikzpicture}
+\foreach \i in {0,1,...,50}{
+  \pgfmathsetmacro{\x}{rand*4-2}
+  \pgfmathsetmacro{\y}{rand*4-2}
+  \pgfmathsetmacro{\c}{int(mod(\i,100))}
+  \fill[blue!\c!purple] (\x,\y) circle (1pt);
+}
+\node at (0,-3) {\small $\Omega$---Rulial Fractal Spray};
+\end{tikzpicture}

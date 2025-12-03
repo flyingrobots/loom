@@ -1,0 +1,110 @@
+\sectionbreak
+\section{Multiway Systems and the Ruliad}
+\label{sec:multiway}
+
+We briefly relate RMG rewriting to multiway systems and the Ruliad in
+the sense of Wolfram~\cite{Wolfram2020}.
+
+A DPOI rule set $R$ on $\OGraph_T$ induces a multiway system whose
+nodes are RMG states and whose edges are individual rewrite steps.  The
+derivation bicategory of such a system is naturally a multiway graph:
+from any state there may be many distinct outgoing rewrites, and
+different paths can later merge.
+
+Our determinism discipline restricts to rule packs and scheduler
+policies for which, once the inputs, rule set, and scheduling policy are
+fixed, there is a unique worldline.  Forks then arise only when we
+deliberately vary these ingredients: for example, by spawning adversarial
+or optimized rule packs, or by choosing different initial data.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      state/.style={circle,draw=gray!60,fill=gray!5,thick,minimum size=5mm,inner sep=0pt},
+      det/.style={circle,draw=blue!70!black,fill=blue!10,thick,minimum size=5mm,inner sep=0pt},
+      arrow/.style={-Latex,thick,gray!60},
+      detarrow/.style={-Latex,ultra thick,blue!70!black},
+      >=Latex
+    ]
+
+    % Initial state
+    \node[det] (S0) at (0,0) {$S_0$};
+
+    % Level 1
+    \node[state] (A1) at (-1.5,1.5) {};
+    \node[det] (A2) at (0,1.5) {};
+    \node[state] (A3) at (1.5,1.5) {};
+
+    \draw[arrow] (S0) -- (A1);
+    \draw[detarrow] (S0) -- (A2);
+    \draw[arrow] (S0) -- (A3);
+
+    % Level 2
+    \node[state] (B1) at (-2.5,3.0) {};
+    \node[state] (B2) at (-1.5,3.0) {};
+    \node[state] (B3) at (-0.5,3.0) {};
+    \node[det] (B4) at (0.5,3.0) {};
+    \node[state] (B5) at (1.5,3.0) {};
+    \node[state] (B6) at (2.5,3.0) {};
+
+    \draw[arrow] (A1) -- (B1);
+    \draw[arrow] (A1) -- (B2);
+    \draw[arrow] (A2) -- (B3);
+    \draw[detarrow] (A2) -- (B4);
+    \draw[arrow] (A3) -- (B5);
+    \draw[arrow] (A3) -- (B6);
+
+    % Level 3
+    \node[state] (C1) at (-1.0,4.5) {};
+    \node[det] (C2) at (0.5,4.5) {};
+    \node[state] (C3) at (2.0,4.5) {};
+
+    \draw[arrow] (B2) -- (C1);
+    \draw[arrow] (B3) -- (C1);
+    \draw[detarrow] (B4) -- (C2);
+    \draw[arrow] (B5) -- (C3);
+    \draw[arrow] (B6) -- (C3);
+
+    % Annotation
+    \node[anchor=west,align=left] at (3.5,2.25)
+      {\scriptsize multiway space:\\[-1pt]
+       \scriptsize all possible rewrites};
+    \node[anchor=west,align=left,blue!70!black] at (3.5,1.0)
+      {\scriptsize deterministic worldline:\\[-1pt]
+       \scriptsize unique path for fixed\\[-1pt]
+       \scriptsize rule pack \& scheduler};
+
+  \end{tikzpicture}
+  \caption{A deterministic worldline (blue) through the multiway space
+  of all possible RMG rewrites.  Under the tick-level confluence
+  discipline, fixing the rule set, initial state, and scheduling policy
+  yields a unique path; alternative branches represent different
+  choices of rule pack or inputs.}
+  \label{fig:multiway-slice}
+\end{figure}
+
+The class of all possible such worldlines, across all rule sets and
+inputs, forms a large multiway object akin to the Ruliad.  The rulial
+distance from \cref{sec:rulial} equips this space of observers with a
+geometry, and the Chronos, Kairos, Aion time model described below
+(see \cref{subsec:chronos-kairos-aion}) gives a temporal structure on
+branches and merges.
+
+The RMG worldlines defined here thus embed naturally into the broader
+Ruliad framework.
+
+A more detailed study of this correspondence is left for future work,
+and will be taken up in the companion \COMPUTER{} paper, where we
+explicitly model fork/merge operators and the Time Cone (Chronos,
+Kairos, Aion) at the level of operational semantics.  Intuitively, the
+Time Cone is the forward ``light-cone'' of computation: Chronos gives
+the linear worldline, Kairos marks branch points, and Aion is the
+surrounding space of possible RMG histories.
+
+\subsection{Chronos, Kairos, Aion: a three-layer time model}
+\label{subsec:chronos-kairos-aion}
+Chronos is the linear ordering of events inside a tick (ledger kernel).
+Kairos marks branch points such as schema changes, DPO conflicts, or
+rule-pack switches.  Aion is the total multiway possibility space
+$\Hist(\mathcal{U}, R)$ ranging over all schedules, rule packs, and inputs,
+supporting multiverse debugging and counterfactual replay.

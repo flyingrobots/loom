@@ -1,0 +1,138 @@
+\documentclass[11pt,openany]{book}
+\usepackage{styles/jitos-dark}
+
+% Load AION-specific macros (must be in preamble)
+\input{sources/aion-holography/macros}
+
+% AION uses \sectionbreak for page breaks between sections
+\newcommand{\sectionbreak}{\clearpage}
+
+\title{JITOS: The Complete Works}
+\author{James Ross}
+\date{2025}
+
+\begin{document}
+
+\frontmatter
+
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  \computerwordmark[8cm]
+  \vspace{1.5cm}
+  {\Huge\bfseries JITOS\par}
+  \vspace{0.5cm}
+  {\Large\itshape The Complete Works\par}
+  \vspace{2cm}
+  {\Large James Ross\par}
+  \vspace{1cm}
+  {\large Flying Robots\par}
+  \vspace{3cm}
+  {\large 2025\par}
+  \vfill
+  {\small Compilation of Whitepaper, Architecture, C$\Omega$MPUTER, ADRs, and RFCs\par}
+\end{titlepage}
+
+\tableofcontents
+
+\mainmatter
+
+% =============================================================================
+% WHITEPAPER
+% =============================================================================
+\part{JITOS Whitepaper}
+\chapter{Whitepaper}
+\input{sources/whitepaper/whitepaper}
+
+% =============================================================================
+% ARCHITECTURE
+% =============================================================================
+\part{The Architecture of JITOS}
+\input{sources/arch/ARCH-0000-intro}
+\input{sources/arch/ARCH-0001}
+\input{sources/arch/ARCH-0002}
+\input{sources/arch/ARCH-0003}
+\input{sources/arch/ARCH-0004}
+\input{sources/arch/ARCH-0005}
+\input{sources/arch/ARCH-0006}
+
+% =============================================================================
+% COMPUTER
+% =============================================================================
+% Computer is massive, it has its own Parts. In LaTeX book class, parts inside parts isn't standard.
+% We will treat C$\Omega$MPUTER as a major section, maybe just use the chapters.
+% Or we can promote C$\Omega$MPUTER's Parts to just huge blocks of chapters.
+% Let's keep the headings.
+
+\part{C$\Omega$MPUTER: A Computational Cosmology}
+
+\chapter*{Introduction}
+\input{sources/computer/002-introduction}
+
+\section*{The Universe as Rewrite}
+\input{sources/computer/003-chapter-001}
+\input{sources/computer/004-chapter-002}
+\input{sources/computer/005-chapter-003}
+\input{sources/computer/006-chapter-004}
+
+\section*{The Geometry of Thought}
+\input{sources/computer/007-part-2-intro}
+\input{sources/computer/008-chapter-005}
+\input{sources/computer/009-chapter-006}
+\input{sources/computer/010-chapter-007}
+\input{sources/computer/011-chapter-008}
+
+\section*{The Physics of C$\Omega$MPUTER}
+\input{sources/computer/012-part-3-intro}
+\input{sources/computer/013-chapter-009}
+\input{sources/computer/014-chapter-010}
+\input{sources/computer/015-chapter-011}
+\input{sources/computer/016-chapter-012}
+\input{sources/computer/017-chapter-013}
+\input{sources/computer/018-chapter-014}
+
+\section*{Machines That Span Universes}
+\input{sources/computer/019-part-4-intro}
+\input{sources/computer/020-chapter-015}
+\input{sources/computer/021-chapter-016}
+\input{sources/computer/022-chapter-017}
+\input{sources/computer/023-chapter-018}
+\input{sources/computer/024-chapter-019}
+
+% =============================================================================
+% ADRs
+% =============================================================================
+\part{Architecture Decision Records}
+\input{build/adrs_manifest}
+
+% =============================================================================
+% RFCs
+% =============================================================================
+\part{Request for Comments}
+\input{build/rfcs_manifest}
+
+% =============================================================================
+% AION HOLOGRAPHY
+% =============================================================================
+\part{AI$\Omega$N Holography: Formal Foundations}
+\chapter{Computational Holography}
+
+% Include the AION paper sections (without its own title/abstract/TOC)
+\input{sources/aion-holography/assumptions}
+\input{sources/aion-holography/intro}
+\input{sources/aion-holography/rmg}
+\input{sources/aion-holography/dpo_rmg}
+\input{sources/aion-holography/determinism_confluence}
+\input{sources/aion-holography/holography}
+\input{sources/aion-holography/wormholes}
+\input{sources/aion-holography/rulial_distance}
+\input{sources/aion-holography/multiway_ruliad}
+\input{sources/aion-holography/ethics}
+\input{sources/aion-holography/discussion}
+
+\bibliographystyle{alpha}
+\bibliography{sources/aion-holography/references}
+
+\backmatter
+
+\end{document}

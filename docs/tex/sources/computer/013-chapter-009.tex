@@ -1,0 +1,430 @@
+\section{\texorpdfstring{\textbf{Chapter 9 --- Curvature in
+MRMW}}{Chapter 9 --- Curvature in MRMW}}\label{chapter-9-curvature-in-mrmw}
+
+\subsection{\texorpdfstring{\textbf{Why some systems feel smooth, and
+others feel like broken
+glass.}}{Why some systems feel smooth, and others feel like broken glass.}}\label{why-some-systems-feel-smooth-and-others-feel-like-broken-glass.}
+
+In ordinary programming, the experience of building, debugging,
+refactoring, or optimizing a system often feels\ldots{} emotional.
+
+Some systems feel ``friendly.'' Some feel ``hostile.'' Some feel
+``predictable.'' Some feel like trying to juggle glass cats in a
+hurricane.
+
+Engineers describe codebases as:
+
+\begin{itemize}
+\tightlist
+\item
+  brittle
+\item
+  robust
+\item
+  flexible
+\item
+  rigid
+\item
+  forgiving
+\item
+  hellish
+\item
+  fragile
+\item
+  elegant
+\item
+  spaghetti
+\item
+  cursed
+\end{itemize}
+
+All vibes. No math. Until now.
+
+In an RMG+DPO universe, these feelings aren't psychological. They come
+from \textbf{geometry} --- specifically, from \textbf{rulial curvature}.
+This chapter is about that curvature.
+
+Why it exists. What it means. How it affects computation. How it affects
+engineering. Why some worlds are ``smooth'' and some are ``jagged.'' Why
+small changes sometimes matter \emph{a lot}. Why optimization feels like
+gravity. Why debugging feels like climbing out of a pit.
+
+Curvature is the invisible shape of your universe. Let's make it
+visible.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9.1 --- What Curvature Means (Without
+Physics)}}{9.1 --- What Curvature Means (Without Physics)}}\label{what-curvature-means-without-physics}
+
+Let's be clear and grounded up front:
+
+\begin{quote}
+\textbf{\emph{This is NOT physical curvature.}}
+\end{quote}
+
+\textbf{\emph{Not}} spacetime. \textbf{\emph{Not}} Einstein.
+\textbf{\emph{Not}} quantum. \textbf{\emph{Not}} metaphysics.
+
+This is \emph{computational curvature}:
+
+\begin{quote}
+\textbf{How quickly Rulial Distance expands as you move away from a
+given worldline.}
+\end{quote}
+
+That's it. Think of it like this:
+
+\begin{itemize}
+\tightlist
+\item
+  If every small change produces small structural differences {\textrightarrow}
+  \textbf{low curvature}
+\item
+  If some small changes blow up into huge structural differences {\textrightarrow}
+  \textbf{high curvature}
+\end{itemize}
+
+Curvature is the sensitivity of a system to small transformations. In
+other words:
+
+\begin{quote}
+\textbf{Curvature = how hard it is to ``stay near'' your worldline.}
+\end{quote}
+
+This is the missing concept behind every conversation engineers have
+ever had about ``complexity'' or ``tech debt'' or ``brittleness.'' Now
+we can describe it formally.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9.2 --- Low Curvature: Smooth,
+Friendly, Forgiving
+Systems}}{9.2 --- Low Curvature: Smooth, Friendly, Forgiving Systems}}\label{low-curvature-smooth-friendly-forgiving-systems}
+
+A system is \textbf{low curvature} if:
+
+\begin{itemize}
+\tightlist
+\item
+  nearby Time Cubes overlap a lot\\
+\item
+  many rewrites lead to similar worlds
+\item
+  legal transforms cascade gently
+\item
+  structural invariants don't fight you
+\item
+  small divergences reconverge naturally
+\item
+  optimization paths feel intuitive
+\item
+  refactors don't explode
+\item
+  debugging feels like ``walking downhill''
+\end{itemize}
+
+In other words: \#\# \textbf{The universe around your worldline is
+smooth.}
+
+You take a step left or right --- you're still basically in the same
+neighborhood. Examples in engineering terms:
+
+\begin{itemize}
+\tightlist
+\item
+  ECS systems\\
+\item
+  well-designed FRP architectures
+\item
+  languages with strong normalization properties
+\item
+  pure functional pipelines
+\item
+  linear algebra code
+\item
+  SQL query transforms
+\item
+  MLIR lowering
+\item
+  SIMD-friendly IRs
+\item
+  declarative build systems
+\item
+  simple physics solvers
+\end{itemize}
+
+These systems have natural gradients. The cone points downhill a lot.
+You can ``feel'' the geodesic.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9.3 --- High Curvature: Jagged,
+Brittle, Spiky
+Universes}}{9.3 --- High Curvature: Jagged, Brittle, Spiky Universes}}\label{high-curvature-jagged-brittle-spiky-universes}
+
+A system is \textbf{high curvature} if:
+
+\begin{itemize}
+\tightlist
+\item
+  small changes produce huge divergences\\
+\item
+  many DPO rules block each other
+\item
+  invariants fight
+\item
+  the Time Cube is narrow
+\item
+  legal next steps vanish abruptly
+\item
+  adjacent universes behave wildly differently
+\item
+  debugging feels uphill
+\item
+  optimization feels like bushwhacking
+\item
+  refactoring feels like disarming a bomb
+\end{itemize}
+
+This is when the geometry is jagged. Examples:
+
+\begin{itemize}
+\tightlist
+\item
+  tangled imperative control flow\\
+\item
+  ad-hoc stateful systems
+\item
+  circular dependencies
+\item
+  inconsistent schemas
+\item
+  type systems with corner-case rules
+\item
+  legacy code with mixed paradigms
+\item
+  game engines built over 20 years
+\item
+  unbounded mutation
+\item
+  RPC networks with partial consistency
+\item
+  ``stringly-typed'' anything
+\end{itemize}
+
+These systems have \emph{spikes} in the rulial manifold. You move one
+tick sideways and fall into a pit. Engineers call these ``cursed.'' Now
+you know why.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9.4 --- How Curvature Shapes
+Worldlines}}{9.4 --- How Curvature Shapes Worldlines}}\label{how-curvature-shapes-worldlines}
+
+Curvature fundamentally affects:
+
+\subsection{\texorpdfstring{\textbf{Debugging}}{Debugging}}\label{debugging}
+
+\begin{itemize}
+\tightlist
+\item
+  Low curvature: mistakes stay near the intended worldline
+\item
+  High curvature: a tiny divergence can take the universe into an
+  entirely alien region
+\end{itemize}
+
+\subsection{\texorpdfstring{\textbf{Optimization}}{Optimization}}\label{optimization}
+
+\begin{itemize}
+\tightlist
+\item
+  Low curvature: straightening paths is intuitive
+\item
+  High curvature: wrong doors lead to labyrinths
+\end{itemize}
+
+\subsection{\texorpdfstring{\textbf{Refactoring}}{Refactoring}}\label{refactoring}
+
+\begin{itemize}
+\tightlist
+\item
+  Low curvature: safe transformations abound
+\item
+  High curvature: invariants snap under minor edits
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{Design}}{Design}}\label{design}
+
+\begin{itemize}
+\tightlist
+\item
+  Low curvature: rules reinforce each other
+\item
+  High curvature: rules cross-cut and fight at boundaries
+\end{itemize}
+
+Curvature is the difference between:
+
+\begin{itemize}
+\tightlist
+\item
+  a system that feels like it wants to work
+\item
+  a system that feels like it wants to die
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9.5 --- Curvature and the Time
+Cube}}{9.5 --- Curvature and the Time Cube}}\label{curvature-and-the-time-cube}
+
+Remember the Time Cube: the cone of legal next futures. Curvature
+changes how that cone behaves.
+
+\subsubsection{\texorpdfstring{\textbf{Low
+curvature:}}{Low curvature:}}\label{low-curvature}
+
+The cone is wide. Options are many. Nearby worlds are similar. Turning
+sideways feels natural.
+
+\subsubsection{\texorpdfstring{\textbf{High
+curvature:}}{High curvature:}}\label{high-curvature}
+
+The cone is narrow. Options are few. Nearby worlds aren't similar.
+Turning at all feels catastrophic.
+
+This is exactly why tech debt feels ``heavy'' --- you're operating in a
+region of high curvature.
+
+It's not that the system is angry. It's that the geometry resists
+change.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9.6 --- Curvature Across Multiple
+Models (MR
+Axis)}}{9.6 --- Curvature Across Multiple Models (MR Axis)}}\label{curvature-across-multiple-models-mr-axis}
+
+This is where curvature spills into \textbf{MRMW}: Changing rules (MR)
+changes the shape of the manifold.
+
+A slight tweak to DPO invariants might:
+
+\begin{itemize}
+\tightlist
+\item
+  flatten curvature,
+\item
+  make everything smoother,
+\item
+  open the cone,
+\item
+  or increase jaggedness.
+\end{itemize}
+
+This is why \textbf{language design} and \textbf{architecture} matter so
+much. You aren't deciding what computation \emph{does}. You're deciding
+what \textbf{curvature} computation will live inside.
+
+\begin{itemize}
+\tightlist
+\item
+  DSLs flatten curvature
+\item
+  Type systems constrain curvature
+\item
+  API design shapes curvature
+\item
+  Compiler passes straighten worldlines
+\item
+  Runtime semantics bend the manifold
+\item
+  Data models sculpt neighborhoods
+\end{itemize}
+
+You're not writing code. You're \textbf{curating geometry.}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9.7 --- Curvature Is Why NP Sometimes
+Collapses
+Locally}}{9.7 --- Curvature Is Why NP Sometimes Collapses Locally}}\label{curvature-is-why-np-sometimes-collapses-locally}
+
+This is the teaser for Chapter 10: In low-curvature regions, problems
+that are normally exponential explode less.
+
+Why?
+
+Because the rulial manifold has structural shortcuts --- legal rewrites
+that ``fold space,'' shortening paths inside the Time Cube.
+
+This is \textbf{local NP collapse}.
+
+\textbf{\emph{Not}} global. \textbf{\emph{Not}} magical.
+\textbf{\emph{Not}} anti-Turing. \textbf{\emph{Not}} physics.
+
+Just:
+
+\begin{quote}
+\textbf{When structure is strong enough, search becomes navigation.}
+\end{quote}
+
+Chapter 10 is where we drop this hammer.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{FOR THE NERDS{\texttrademark}}\label{for-the-nerds}
+
+\subsection{Curvature \ensuremath{\approx} Sensitivity of the Rulial Metric
+Tensor}\label{curvature-sensitivity-of-the-rulial-metric-tensor}
+
+\emph{(but we don't need tensors to use it)}
+
+\textbf{Curvature in Rulial Space is the second derivative of Rulial
+Distance with respect to local rewrites.}
+
+But you don't need differential geometry to use this idea.
+
+Just know:
+
+\begin{itemize}
+\tightlist
+\item
+  high curvature = sensitive regions\\
+\item
+  low curvature = stable regions
+\item
+  curvature emerges from rule-structure interaction
+\end{itemize}
+
+\emph{(End sidebar.)}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9.8 --- Transition: From Curvature to
+Collapse}}{9.8 --- Transition: From Curvature to Collapse}}\label{transition-from-curvature-to-collapse}
+
+Now that we understand curvature, we can tackle one of the most
+fascinating consequences of this geometry:
+
+\begin{quote}
+\textbf{Regions where computation becomes exponentially easier because
+the worldline has many shortcuts.}
+\end{quote}
+
+This isn't breaking NP.
+
+It's recognizing that in structured manifolds, search collapses under
+geometry.
+
+Chapter 10 is the ``oh shit'' moment of Part III.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

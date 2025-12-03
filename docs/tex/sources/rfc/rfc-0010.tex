@@ -1,0 +1,482 @@
+\section{JIT RFC-0010}\label{jit-rfc-0010}
+
+\subsection{Ref Management \& Branch Semantics (RBS
+v1.0)}\label{ref-management-branch-semantics-rbs-v1.0}
+
+\subsubsection{The Truth Pointers of the Inversion
+Kernel}\label{the-truth-pointers-of-the-inversion-kernel}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Summary}\label{summary}
+
+This RFC defines:
+
+\begin{itemize}
+\tightlist
+\item
+  the ontology of references (``refs'')
+\item
+  how branches behave
+\item
+  how tags are represented
+\item
+  how HEAD operates
+\item
+  how reference mutation occurs
+\item
+  how SWS and commits update refs
+\item
+  how distributed sync applies ref updates
+\item
+  the invariants refs MUST obey
+\end{itemize}
+
+Refs are the names humans give to points in the causal DAG. Branches are
+pointers to worldline frontiers. Tags are semantic anchors. HEAD is a
+lens, not a truth. This RFC defines how pointers to the universe behave.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Motivation}\label{motivation}
+
+Without refs you have:
+
+\begin{itemize}
+\tightlist
+\item
+  an infinite DAG
+\item
+  no landmarks
+\item
+  no naming
+\item
+  no identification
+\item
+  no ``current state''
+\item
+  no way to express intent
+\end{itemize}
+
+Refs provide the symbolic layer that makes:
+
+\begin{itemize}
+\tightlist
+\item
+  collaboration
+\item
+  navigation
+\item
+  tooling
+\item
+  UX
+\item
+  agents
+\item
+  CI
+\item
+  possible.
+\end{itemize}
+
+But refs MUST NOT mutate truth. Refs must point into truth.
+
+Thus:
+
+\textbf{\emph{Refs are illusions, DAG is reality.}}
+
+This RFC defines how those illusions function.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Definitions}\label{definitions}
+
+\subsubsection{3.1 Reference (Ref)}\label{reference-ref}
+
+A ref is:
+
+\begin{lstlisting}
+Ref {
+    name: string
+    target: NodeID
+    metadata: map<string,string>
+}
+\end{lstlisting}
+
+Refs MUST be stored in LMDB and versioned through WAL.
+
+Refs MUST be human-readable, but truth is the NodeID.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.2 Branch}\label{branch}
+
+A branch is a ref representing a living timeline.
+
+Typical examples:
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!main!}
+\item
+  \passthrough{\lstinline!dev!}
+\item
+  \passthrough{\lstinline!feature/x!}
+\item
+  \passthrough{\lstinline!experiment/y!}
+\end{itemize}
+
+Requirements:
+
+\begin{itemize}
+\tightlist
+\item
+  branch ref MUST always point to a snapshot node
+\item
+  commits update branch target
+\item
+  branch semantics MUST be deterministic
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3.3 Tag}\label{tag}
+
+A \textbf{tag} is a ref that MUST NOT move.
+
+Used for:
+
+\begin{itemize}
+\tightlist
+\item
+  releases
+\item
+  checkpoints
+\item
+  semantic anchors
+\item
+  temporal anchors
+\item
+  analysis states
+\end{itemize}
+
+Tags MUST reference:
+
+\begin{itemize}
+\tightlist
+\item
+  snapshot nodes
+\item
+  rewrite nodes
+\item
+  provenance nodes
+\end{itemize}
+
+Tags are immutable pointers to events in the universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3.4 HEAD}\label{head}
+
+HEAD is:
+
+\begin{itemize}
+\tightlist
+\item
+  a human-facing pointer
+\item
+  ephemeral
+\item
+  local-only
+\item
+  specific to Materialized Head
+\item
+  MUST NOT appear in the DAG
+\end{itemize}
+
+HEAD indicates current projection, not objective truth.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Reference Invariants}\label{reference-invariants}
+
+These MUST hold at all times:
+
+\subsubsection{Invariant 1 --- Ref target MUST exist in
+DAG}\label{invariant-1-ref-target-must-exist-in-dag}
+
+No ref may point to non-existent nodes.
+
+\subsubsection{Invariant 2 --- Branch updates MUST be
+atomic}\label{invariant-2-branch-updates-must-be-atomic}
+
+Ref update MUST be written LAST during commit.
+
+\subsubsection{Invariant 3 --- Branch ref changes MUST be
+WAL-logged}\label{invariant-3-branch-ref-changes-must-be-wal-logged}
+
+Ensures replay consistency.
+
+\subsubsection{Invariant 4 --- Tag ref MUST NOT
+change}\label{invariant-4-tag-ref-must-not-change}
+
+Immutable forever.
+
+\subsubsection{Invariant 5 --- No ref may violate causal
+ordering}\label{invariant-5-no-ref-may-violate-causal-ordering}
+
+A branch MUST NOT point ``backwards'' in violation of DAG invariants.
+
+\subsubsection{Invariant 6 --- HEAD is not
+truth}\label{invariant-6-head-is-not-truth}
+
+HEAD may be detached or point to MH state.
+
+\subsubsection{Invariant 7 --- Fast-forward rules MUST be
+deterministic}\label{invariant-7-fast-forward-rules-must-be-deterministic}
+
+Conflicting branch updates MUST involve inversion engine.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Operations}\label{operations}
+
+\subsubsection{5.1 ref.get}\label{ref.get}
+
+\begin{lstlisting}
+op: "ref.get"
+payload: { name }
+result: { target: NodeID }
+\end{lstlisting}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{5.2 ref.set (Branch only)}\label{ref.set-branch-only}
+
+\begin{lstlisting}
+op: "ref.set"
+payload: { name, new_target }
+result: { updated: bool }
+\end{lstlisting}
+
+Rules:
+
+\begin{itemize}
+\tightlist
+\item
+  MUST be atomic
+\item
+  MUST appear after snapshot+rewrite nodes in WAL
+\item
+  MUST update MH
+\item
+  MUST invalidate outdated SWS
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{5.3 ref.create\_branch}\label{ref.create_branch}
+
+\begin{lstlisting}
+op: "ref.create_branch"
+payload: { name, target }
+\end{lstlisting}
+
+Branch MUST begin at an existing node.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{5.4 ref.create\_tag}\label{ref.create_tag}
+
+\begin{lstlisting}
+op: "ref.create_tag"
+payload: { name, target }
+\end{lstlisting}
+
+Tag MUST be immutable.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{5.5 ref.delete}\label{ref.delete}
+
+Allowed only for branches.
+
+Tags MUST NOT be deleted except by explicit override.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Branch Update Semantics}\label{branch-update-semantics}
+
+Commits MUST update branch target as:
+
+\begin{lstlisting}
+branch -> new_snapshot_node
+\end{lstlisting}
+
+Merge semantics MUST be:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic
+\item
+  mediated by Inversion Engine
+\item
+  logged via WAL
+\item
+  projection applied to MH
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Rebase Semantics}\label{rebase-semantics}
+
+Rebase MUST NOT mutate branch history.
+
+Instead:
+
+\begin{itemize}
+\tightlist
+\item
+  inversion-rewrite node created
+\item
+  branch updated to rewritten snapshot
+\item
+  original lineage preserved
+\end{itemize}
+
+Branch ``moves'' but truth remains immutable.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{8. Distributed Sync}\label{distributed-sync}
+
+Ref sync MUST obey:
+
+\begin{itemize}
+\tightlist
+\item
+  last-writer-wins
+\item
+  mediated by inversion
+\item
+  no destructive pushes
+\item
+  rewrite required for divergence
+\end{itemize}
+
+Distributed push/pull MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  verify node existence
+\item
+  validate rewrite rules
+\item
+  enforce invariant ordering
+\end{itemize}
+
+Remote branch updates MUST be replayed deterministically.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{9. HEAD Semantics}\label{head-semantics}
+
+HEAD is:
+
+\begin{itemize}
+\tightlist
+\item
+  local
+\item
+  advisory
+\item
+  non-authoritative
+\item
+  ephemeral
+\item
+  tied to Materialized Head
+\end{itemize}
+
+HEAD MUST NOT appear in DAG or WAL.
+
+HEAD MAY:
+
+\begin{itemize}
+\tightlist
+\item
+  point to SWS
+\item
+  point to snapshot
+\item
+  be detached
+\item
+  be symbolic
+\end{itemize}
+
+HEAD is simply a lens.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{10. Security}\label{security}
+
+Reference operations MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  validate user permissions
+\item
+  require signatures (future)
+\item
+  reject invalid pointers
+\item
+  disallow backward ref changes
+\item
+  log all updates via WAL
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{11. Why Ref Semantics
+Matter}\label{why-ref-semantics-matter}
+
+Refs are:
+
+\begin{itemize}
+\tightlist
+\item
+  the human interface
+\item
+  the names of time
+\item
+  the symbols for worldlines
+\item
+  the navigational layer
+\item
+  the external interface for distributed tooling
+\item
+  the bridge between the cave wall and the causal universe
+\end{itemize}
+
+Refs don't define truth. Refs point to truth.
+
+This RFC formalizes naming in a world without filenames.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{12. Status \& Next Steps}\label{status-next-steps}
+
+\subsubsection{Next RFC to write:}\label{next-rfc-to-write}
+
+\href{./RFC-0011.md}{RFC-0011} --- Distributed Sync: Frontier
+Negotiation \& Subgraph Transfer
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

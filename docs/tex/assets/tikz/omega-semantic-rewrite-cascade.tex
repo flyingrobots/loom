@@ -1,0 +1,15 @@
+\begin{tikzpicture}[
+    delta/.style={rectangle,draw=blue!60,rounded corners,minimum width=1.8cm,minimum height=0.6cm},
+    arrow/.style={->, thick}
+]
+
+\node[delta] (D1) at (0,0) {$\Delta$$_1$};
+\node[delta] (D2) at (2,-0.7) {$\Delta$$_2$};
+\node[delta] (D3) at (4,-1.4) {$\Delta$$_3$};
+
+\draw[arrow] (D1)--(D2);
+\draw[arrow] (D2)--(D3);
+
+\node at (2,-2.5) {\small $\Omega$---Semantic Cascade};
+
+\end{tikzpicture}

@@ -1,0 +1,497 @@
+\section{JIT RFC-0003 --- Shadow Working Set Semantics (SWS
+v1.0)}\label{jit-rfc-0003-shadow-working-set-semantics-sws-v1.0}
+
+\subsection{The Observer Model, Epistemic Isolation, and the Collapse
+Operator}\label{the-observer-model-epistemic-isolation-and-the-collapse-operator}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines the semantics of Shadow Working Sets (SWS) --- the
+foundational abstraction for:
+
+\begin{itemize}
+\tightlist
+\item
+  agent-level processes
+\item
+  parallel worldlines
+\item
+  speculative computation
+\item
+  observer-relative state
+\item
+  distributed editing
+\item
+  LLM/autonomous agent collaboration
+\item
+  safe local mutation
+\item
+  deterministic collapse into the global DAG
+\end{itemize}
+
+Shadow Working Sets represent local, subjective views of the universe
+--- projections of the causal DAG --- which remain isolated until
+resolved through a commit collapse event.
+
+SWS is to JIT what ``process'' was to Unix --- except properly grounded
+in physics, causality, and distributed truth.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Motivation}\label{motivation}
+
+Modern computation is multi-agent, distributed, asynchronous, and
+subject to the limits of:
+
+\begin{itemize}
+\tightlist
+\item
+  latency
+\item
+  CAP theorem
+\item
+  causality
+\item
+  local knowledge
+\item
+  observer frames
+\end{itemize}
+
+Traditional operating systems expose a global mutable filesystem,
+creating illusions of simultaneity and absolute state that are neither
+true nor safe.
+
+JIT acknowledges physical and epistemic reality:
+
+No agent ever sees the whole universe. All views are subjective. Reality
+is append-only.
+
+Shadow Working Sets formalize this truth as a computational primitive.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Definition
+\end{enumerate}
+
+A Shadow Working Set (SWS) is a temporary, isolated, agent-relative
+projection of the causal DAG.
+
+It includes:
+
+\begin{lstlisting}
+ShadowSet {
+    id: uuid
+    base_ref: string
+    base_node: NodeID
+    overlay_nodes: list<NodeID>
+    virtual_tree_index: map<Path, NodeID>
+    metadata: map<string,string>
+}
+\end{lstlisting}
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!base\_node!} = the snapshot node the Shadow
+  branches from
+\item
+  \passthrough{\lstinline!overlay\_nodes!} = ephemeral nodes
+  representing edits
+\item
+  \passthrough{\lstinline!virtual\_tree\_index!} = projected filesystem
+  view for the agent
+\end{itemize}
+
+All fields MUST be maintained in LMDB or equivalent.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Formal Semantics}\label{formal-semantics}
+
+Below are the rules governing SWS behavior.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.1 SWS Isolated Worldline}\label{sws-isolated-worldline}
+
+An SWS is an epistemically isolated worldline which MUST NOT affect the
+global DAG until committed.
+
+\begin{itemize}
+\tightlist
+\item
+  overlays exist only within the SWS
+\item
+  overlays cannot mutate the past
+\item
+  overlays cannot commit without collapsing
+\item
+  SWS cannot introduce new parents into the DAG
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.2 SWS Causal Anchoring}\label{sws-causal-anchoring}
+
+Each SWS MUST anchor to a single base node.
+
+This ensures:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic diffs
+\item
+  deterministic rewrite potential
+\item
+  clear causal ancestry
+\item
+  unambiguous commit behavior
+\end{itemize}
+
+The base node MUST be a valid snapshot node.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.3 Local Consistency}\label{local-consistency}
+
+Within an SWS:
+
+\begin{itemize}
+\tightlist
+\item
+  all edits must form a locally consistent graph
+\item
+  overlay nodes MUST obey RFC-0001 and RFC-0002 invariants
+\item
+  ordering must be deterministic within the SWS
+\end{itemize}
+
+Overlay graph is an internal micro-DAG, not merged with the global DAG.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.4 No Cross-SWS
+Interference}\label{no-cross-sws-interference}
+
+Two SWS MUST NOT observe each other's edits unless explicitly merged.
+
+This enforces true agent isolation.
+
+Agents operate in separate worldlines until collapse.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.5 Subjective Filesystem
+Projection}\label{subjective-filesystem-projection}
+
+SWS must maintain a virtual tree index for filesystem-like interactions.
+
+This projection MUST be deterministic:
+
+\begin{lstlisting}
+virtual_tree_index[path] = most recent overlay node OR inherited from base snapshot
+\end{lstlisting}
+
+No real files need exist; this is an in-memory projection.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.6 Allowed Operations}\label{allowed-operations}
+
+Operations permitted inside an SWS:
+
+\begin{itemize}
+\tightlist
+\item
+  patch application
+\item
+  diff computation
+\item
+  linting
+\item
+  refactoring
+\item
+  build computations
+\item
+  semantic agents (LLMs) modifying content
+\item
+  structural rewrites
+\item
+  preview merges
+\item
+  pattern-matches for rewrites
+\end{itemize}
+
+These operations MUST NOT modify the global DAG.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Collapse Operator
+(Commit)}\label{collapse-operator-commit}
+
+The commit is the most important concept:
+
+Commit collapses a subjectively computed SWS into an objectively real
+DAG event.
+
+The collapse operator:
+
+\begin{lstlisting}
+collapse(sws, global_dag) $\rightarrow$ new_snapshot_node
+\end{lstlisting}
+
+Collapse MUST obey:
+
+\begin{itemize}
+\tightlist
+\item
+  determinism
+\item
+  reproducibility
+\item
+  inversion semantics (via Inversion Engine)
+\item
+  causal ordering
+\item
+  full validation of overlays
+\item
+  merge conflict resolution
+\item
+  topological soundness
+\end{itemize}
+
+Collapse also MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  generate a new snapshot node
+\item
+  discard the SWS afterward
+\item
+  update the ref target
+\item
+  log the event to WAL
+\item
+  advance the universe
+\end{itemize}
+
+SWS death is required:
+
+Once committed, a Shadow can no longer exist. Potential becomes reality.
+Superposition collapses into truth.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Merge \& Conflict
+Semantics}\label{merge-conflict-semantics}
+
+If SWS collapse encounters divergence from
+\passthrough{\lstinline!base\_node!}:
+
+\begin{itemize}
+\tightlist
+\item
+  the Inversion Engine MUST integrate changes
+\item
+  conflicts MUST be represented as multi-stage entries
+\item
+  merge MUST be deterministic
+\item
+  if unresolvable, commit MUST fail
+\end{itemize}
+
+Conflicts do not mutate the global DAG. They exist only during collapse
+evaluation.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Parallel Shadows}\label{parallel-shadows}
+
+Multiple SWS may exist atop the same base\_node or different base nodes.
+
+Rules:
+
+\begin{itemize}
+\tightlist
+\item
+  parallel SWS are independent
+\item
+  commit order provides serialization
+\item
+  later SWS commit must resolve against updated reality
+\item
+  deterministic merge rules must apply
+\end{itemize}
+
+This captures:
+
+\begin{itemize}
+\tightlist
+\item
+  concurrency
+\item
+  distributed editing
+\item
+  eventual consistency through collapse
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{8. Deletion \& Failure
+Semantics}\label{deletion-failure-semantics}
+
+SWS MAY be:
+
+\begin{itemize}
+\tightlist
+\item
+  discarded by agent
+\item
+  timed out
+\item
+  destroyed by system
+\item
+  invalidated by upstream commits
+\end{itemize}
+
+Invalidation MUST occur if:
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!base\_node!} no longer matches HEAD (or ref
+  target)
+\item
+  collapse produces inconsistency
+\item
+  SWS violates invariants
+\end{itemize}
+
+In all cases:
+
+Discarding an SWS must not affect the global DAG.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{9. Lifecycle}\label{lifecycle}
+
+\subsubsection{I. Creation}\label{i.-creation}
+
+\begin{lstlisting}
+shadow.create(ref)
+\end{lstlisting}
+
+Creates new SWS anchored to ref's snapshot.
+
+\subsubsection{II. Mutation}\label{ii.-mutation}
+
+Edits accumulate in overlay nodes.
+
+\subsubsection{III. Computation}\label{iii.-computation}
+
+Agents synthesize new states.
+
+\subsubsection{IV. Collapse}\label{iv.-collapse}
+
+\begin{lstlisting}
+shadow.commit(id)
+\end{lstlisting}
+
+Converts overlays $\rightarrow$ new snapshot.
+
+\subsubsection{V. Death}\label{v.-death}
+
+SWS is destroyed. Truth is updated.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{10. Security \& Isolation}\label{security-isolation}
+
+\begin{itemize}
+\tightlist
+\item
+  SWS cannot tamper with DAG
+\item
+  cannot impersonate global nodes
+\item
+  cannot bypass collapse
+\item
+  collapse validates signature/authorship
+\item
+  each SWS owner is tracked in metadata
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{11. Why SWS Is Foundational}\label{why-sws-is-foundational}
+
+SWS solves:
+
+\begin{itemize}
+\tightlist
+\item
+  distributed agent concurrency
+\item
+  local-only mutation
+\item
+  parallel universes
+\item
+  speculative worlds
+\item
+  conflict-free workflows
+\item
+  deterministic collapse
+\item
+  reproducible builds
+\item
+  multi-agent coordination
+\item
+  physics-consistent computation
+\end{itemize}
+
+Without SWS, JIT would revert to Git-like semantics and lose the
+physics.
+
+This RFC defines the heart of the inversion computation model.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{12. Status \& Next Steps}\label{status-next-steps}
+
+This RFC precedes:
+
+\begin{itemize}
+\tightlist
+\item
+  \href{./RFC-0004.md}{RFC-0004} (Materialized Head)
+\item
+  \href{./RFC-0005.md}{RFC-0005} (Inversion Engine Semantics)
+\item
+  \href{./RFC-0006.md}{RFC-0006} (WAL Format \& Replay)
+\item
+  \href{./RFC-0007.md}{RFC-0007} (JIT RPC API)
+\item
+  \href{./RFC-0008.md}{RFC-0008} (Message Plane Integration)
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

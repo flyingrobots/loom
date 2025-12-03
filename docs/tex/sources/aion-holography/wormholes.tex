@@ -1,0 +1,77 @@
+\sectionbreak
+\section{Wormholes: Collapsing Derivations into a Single Edge}
+\label{sec:wormholes}
+
+From the perspective of the ambient RMG, an Aion State Packet (ASP; see
+\cref{sec:holography}) provides a single edge $S_0 \Rewrite S_n$
+labelled by a payload $P$.  Internally, $P$ encodes a whole derivation.
+
+We refer to such a provenance-labelled edge as an \emph{RMG wormhole}.
+
+\subsection{Edge-level compression}
+
+This encapsulation step is central to \AION{}'s compression semantics.
+
+Given a derivation
+\[
+  S_0 \Rewrite^{\mu_0} S_1 \Rewrite^{\mu_1} \dots \Rewrite^{\mu_{n-1}} S_n,
+\]
+we form the payload $P = (\mu_0,\dots,\mu_{n-1})$ and replace the path by a
+single wormhole edge $S_0 \Rewrite^P S_n$ in the outer graph.  The
+computational holography theorem (\cref{thm:holography}) ensures that
+nothing is lost: the path can be reconstructed on demand.
+
+This provides a powerful compression mechanism on the RMG:
+
+\begin{itemize}[leftmargin=*]
+  \item graph-level complexity is reduced (two nodes, one edge);
+  \item historical information is pushed into payload metadata;
+  \item higher-level rewrites can treat the wormhole as an atomic step.
+\end{itemize}
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      state/.style={circle,draw=blue!70!black,fill=blue!8,thick,minimum size=7mm,inner sep=1pt,font=\small},
+      arrow/.style={-Latex,thick,blue!70!black},
+      worm/.style={-Latex,ultra thick,red!70!black}
+    ]
+    % expanded microsteps
+    \node[state] (S0) {$S_0$};
+    \node[state,right=17mm of S0] (S1) {$S_1$};
+    \node[state,right=17mm of S1] (S2) {$S_2$};
+    \node[state,right=17mm of S2] (S3) {$S_3$};
+
+    \draw[arrow] (S0) -- node[above]{\scriptsize $\mu_0$} (S1);
+    \draw[arrow] (S1) -- node[above]{\scriptsize $\mu_1$} (S2);
+    \draw[arrow] (S2) -- node[above]{\scriptsize $\mu_2$} (S3);
+
+    % collapsed wormhole edge
+    \draw[worm] (S0.south) .. controls +(0,-1.0) and +(0,-1.0) ..
+                 node[below,align=center,inner sep=1pt]
+                 {\scriptsize wormhole label\\[-1pt]
+                  \scriptsize $P=(\mu_0,\mu_1,\mu_2)$}
+                 (S3.south);
+  \end{tikzpicture}
+  \caption{Collapsing a sequence of microsteps into a single wormhole:
+  the interior evolution $S_0\Rewrite S_1\Rewrite S_2\Rewrite S_3$
+  is represented by a single edge from $S_0$ to $S_3$ carrying payload
+  $P=(\mu_0,\mu_1,\mu_2)$.}
+  \label{fig:wormhole-collapse}
+\end{figure}
+
+\subsection{Forking at the boundary}
+
+Because the boundary encodes the interior sequence, we can fork
+computations \emph{at the boundary}.  Given a payload
+$P = (\mu_0,\dots,\mu_{n-1})$, we can form a modified payload $P'$
+that agrees with $P$ on a prefix $(\mu_0,\dots,\mu_k)$ for some
+$0 \le k < n$ and then takes an alternative sequence of microsteps
+that still forms a valid RMG derivation from the intermediate state
+$S_k$.  Under the same hypotheses as in \cref{thm:holography},
+$\Recon(S_0,P')$ is therefore well-defined and yields a distinct, but
+compatible, volume.  Because reconstruction is guaranteed by the same
+determinism discipline, forking preserves semantic soundness.  This
+underlies the multiverse execution model used in the \AION{}
+\COMPUTER{}, where adversarial, optimized, and safety universes are
+spawned by varying payloads while sharing prefixes.

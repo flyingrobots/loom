@@ -1,0 +1,136 @@
+\documentclass[11pt]{article}
+
+% Load minimal base packages BEFORE jitos-dark to avoid conflicts
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% Load AION-specific math packages
+\let\Bbbk\relax
+\usepackage{amsmath,amsthm,mathtools}
+\usepackage{newtxmath}
+\usepackage{bm}
+\let\mathbb\varmathbb
+\let\openbox\relax
+\usepackage{array}
+
+\usepackage{stmaryrd}
+\DeclareFontFamily{U}{stmry}{}
+\AtBeginDocument{%
+  \DeclareFontShape{U}{stmry}{m}{n}{%
+    <5> stmary5
+    <5.5> stmary5
+    <6> stmary6
+    <7> stmary7
+    <8> stmary8
+    <9> stmary9
+    <10> stmary10
+    <10.5> stmary10
+    <10.95> stmary10
+    <12> stmary10
+    <14.4> stmary10
+    <17.28> stmary10
+    <20.74> stmary10
+    <24.88> stmary10
+  }{}
+}
+\usepackage{tikz-cd}
+\usetikzlibrary{positioning,decorations.pathreplacing}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+% Now load Dracula colors and listings (not full jitos-dark to avoid conflicts)
+\usepackage{xcolor}
+\usepackage{styles/draculatheme}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage[nameinlink,capitalise]{cleveref}
+
+% Code listing style with Dracula theme
+\lstset{
+  basicstyle=\ttfamily\small\color{draculafg},
+  backgroundcolor=\color{draculabg},
+  frame=single,
+  rulecolor=\color{draculacl},
+  breaklines=true,
+  columns=flexible,
+  keepspaces=true,
+  commentstyle=\color{draculacomment}\itshape,
+  keywordstyle=\color{draculapink}\bfseries,
+  stringstyle=\color{draculayellow},
+  numberstyle=\tiny\color{draculacomment},
+  identifierstyle=\color{draculacyan},
+  showstringspaces=false
+}
+
+\newcommand{\sectionbreak}{\clearpage}
+
+\input{sources/aion-holography/macros}
+
+\title{Computational Holography\\[0.4em]
+  \large Recursive Metagraphs, Deterministic Rewriting,\\
+  and a Metric Geometry of Rulial Space}
+
+\author{James Ross\\
+  \small Independent Researcher\\
+  \small \texttt{james@flyingrobots.dev}}
+
+\date{November 2025}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\pagenumbering{roman}
+\input{sources/aion-holography/titlepage}
+
+\begin{abstract}
+This paper develops a formal model of \emph{computational holography}:
+representing a computation so that its entire interior evolution
+is encoded on the boundary—specifically, the provenance payload of
+a single recursive metagraph edge. We build on double-pushout (DPO) graph
+rewriting in adhesive categories to define Recursive Metagraphs (RMGs),
+give a deterministic concurrent operational semantics, and prove
+tick-level confluence together with a two-plane commutation theorem.
+We also identify conditions for global confluence. Incorporating
+provenance payloads yields an information-complete, holographic
+encoding of computational history. Finally, we define an MDL-based
+\emph{rulial distance} between observers, relate RMG dynamics to multiway
+systems and the Ruliad, and outline how this structure supports the
+AI$\Omega$N C$\Omega$MPUTER: a provenance-native computational model with
+deterministic tick semantics and a quasi-pseudometric
+geometry on observers.
+\end{abstract}
+
+\clearpage
+\tableofcontents
+
+\clearpage
+\hypersetup{pageanchor=true}
+\pagenumbering{arabic}
+
+\input{sources/aion-holography/assumptions}
+\input{sources/aion-holography/intro}
+\input{sources/aion-holography/rmg}
+\input{sources/aion-holography/dpo_rmg}
+\input{sources/aion-holography/determinism_confluence}
+\input{sources/aion-holography/holography}
+\input{sources/aion-holography/wormholes}
+\input{sources/aion-holography/rulial_distance}
+\input{sources/aion-holography/multiway_ruliad}
+\input{sources/aion-holography/ethics}
+\input{sources/aion-holography/discussion}
+
+\bibliographystyle{alpha}
+\bibliography{sources/aion-holography/references}
+
+\appendix
+\section*{Author's Note}
+This paper provides the formal backbone of the AI$\Omega$N C$\Omega$MPUTER
+project: a provenance-native machine model implemented in the Echo
+engine.  The informal motivation---recursive structure in nature,
+Romanesco cauliflowers, and all---is developed elsewhere; here we focus
+on the mathematics.
+
+\end{document}

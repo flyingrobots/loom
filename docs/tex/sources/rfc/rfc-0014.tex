@@ -1,0 +1,348 @@
+\section{RFC-0014}\label{rfc-0014}
+
+JIT RFC-0014
+
+Capability Negotiation \& Versioning (CNV v1.0)
+
+Evolution Rules for a Causal Operating System
+
+Status: Draft**\\
+Author: James Ross\\
+Contributors: JIT Community\\
+Requires:\\
+- RFC-0007 (RPC)\\
+- RFC-0013 (ABI)**\\
+Start Date: 2025-11-28**\\
+Target Spec: JITOS v0.x**\\
+License: TBD**
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines:\\
+- how JITD announces capabilities\\
+- how clients announce capabilities\\
+- how versioning works\\
+- how feature negotiation occurs\\
+- how backward/forward compatibility is achieved\\
+- how experimental features are isolated\\
+- how the ecosystem evolves without breaking
+
+This is the protocol for the future.
+
+Every extension to JIT, every new RFC, every new operation MUST be
+integrated through this mechanism.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Motivation
+\end{enumerate}
+
+A causal OS must:\\
+- evolve\\
+- extend\\
+- acquire features\\
+- gain subsystems\\
+- support new transports\\
+- support new node types\\
+- support new rewrite semantics\\
+- remain stable
+
+Traditional OSes solve this through:\\
+- syscalls\\
+- versioning\\
+- feature detection\\
+- flags
+
+But JIT is distributed, agent-driven, and depends on:\\
+- deterministic decoding\\
+- binary integrity\\
+- canonical encoding\\
+- causal invariants\\
+- compatibility across time and space
+
+Therefore, capability negotiation is mandatory.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Versioning Model
+\end{enumerate}
+
+JIT uses semantic versioning for kernel-level compatibility:
+
+MAJOR.MINOR.PATCH
+
+Encoded as:\\
+- u16 in the ABI header\\
+- u16 in handshake payload:\\
+- MAJOR \textless\textless{} 8 \textbar{} MINOR\\
+- PATCH is advisory only
+
+MAJOR version bump:
+
+Breaking change\\
+(new invariants, new node formats)
+
+MINOR version bump:
+
+New features, backwards compatible\\
+(new RPC ops, new node types)
+
+PATCH version bump:
+
+Bugfixes, documentation updates, clarifications
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  The Handshake
+\end{enumerate}
+
+When a client connects to JITD, it MUST send:
+
+\{\\
+``op'': ``handshake'',\\
+``client\_version'': u16,\\
+``capabilities'': {[}string{]},\\
+``preferred\_compression'': string,\\
+``supported\_transports'': {[}string{]}\\
+\}
+
+JITD responds:
+
+\{\\
+``status'': ``OK'',\\
+``server\_version'': u16,\\
+``capabilities'': {[}string{]},\\
+``session\_id'': uuid,\\
+``negotiated\_features'': {[}string{]},\\
+``compression'': string,\\
+``transport'': string\\
+\}
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Capability Strings
+\end{enumerate}
+
+Each capability MUST be a string like:
+
+``jit.sws.v1''\\
+``jit.collapse.v1''\\
+``jit.sync.v1''\\
+``jit.inversion.v1''\\
+``jit.mh.v1''\\
+``jit.storage.v1''\\
+``jit.rpc.streaming''\\
+``jit.security.signatures''\\
+``jit.provenance.v1''\\
+``jit.experimental.rewrite.v2''
+
+Features MUST be:\\
+- namespaced\\
+- versioned\\
+- descriptive\\
+- future-proof
+
+Clients \& servers MUST compare capabilities lexicographically.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Negotiation Rules
+\end{enumerate}
+
+6.1 Required Features
+
+Kernel-level required features:
+
+jit.dag\\
+jit.wal\\
+jit.refs\\
+jit.abi\\
+jit.rpc\\
+jit.sws\\
+jit.commit
+
+If a client lacks a required feature $\rightarrow$\\
+connection MUST fail.
+
+{\bfseries ?}
+
+6.2 Optional Features
+
+Optional features may be:\\
+- dropped\\
+- accepted\\
+- downgraded
+
+Server chooses final set.
+
+{\bfseries ?}
+
+6.3 Experimental Features
+
+EXPERIMENTAL features MUST begin with:
+
+``jit.experimental.''
+
+These:\\
+- MUST NOT break determinism\\
+- MUST NOT alter node identity\\
+- MUST NOT alter invariants
+
+Experimental features MUST NOT be enabled unless both parties explicitly
+agree.
+
+{\bfseries ?}
+
+6.4 Conflicting Features
+
+If two features conflict:\\
+- server preference wins\\
+- client may gracefully degrade\\
+- or abort session
+
+Conflicts MUST NOT lead to undefined behavior.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Future-Proofing
+\end{enumerate}
+
+The CNV model MUST support:\\
+- new node types\\
+- new storage tiers\\
+- new SWS operations\\
+- new transports\\
+- new compression algorithms\\
+- new cryptographic primitives
+
+Without breaking old clients.
+
+This is essential for JIT's long-term evolution.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Compatibility Guarantees
+\end{enumerate}
+
+8.1 Forward Compatibility
+
+Old clients $\rightarrow$ new servers MUST still work,\\
+but missing features are disabled.
+
+8.2 Backward Compatibility
+
+New clients $\rightarrow$ old servers MUST gracefully disable new features.
+
+8.3 Deterministic Fallback
+
+Fallback MUST NOT alter semantics of operations.
+
+8.4 Universal Minimal Capability Set
+
+All nodes/systems MUST support:\\
+- CBOR canonicalization\\
+- BLAKE3\\
+- RFC-0001 node structure\\
+- RFC-0002 invariants\\
+- RFC-0013 ABI v1.0
+
+This defines the minimum viable universe.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Security Considerations
+\end{enumerate}
+
+Capability negotiation MUST NOT:\\
+- leak private server details\\
+- allow downgrade attacks\\
+- allow feature spoofing\\
+- expose experimental features without consent
+
+Signed handshakes (future RFC) will guarantee this.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  Why CNV Matters
+\end{enumerate}
+
+Because:
+
+Without it $\rightarrow$\\
+extensions break ecosystems,\\
+partial implementations fragment,\\
+distributed systems desync,\\
+and the kernel ossifies.
+
+With CNV $\rightarrow$\\
+JIT becomes an evolving universe\\
+with infinite room for extensions,\\
+experimentation,\\
+academic theory,\\
+industry adoption,\\
+agent tooling,\\
+and future OS-level patterns.
+
+This is longevity.\\
+This is stability.\\
+This is how JIT survives the next 50 years.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

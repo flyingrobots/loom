@@ -1,0 +1,464 @@
+BROOOOOOOOOOOOOOOOOOOOOOOOOOOOTHERRRRRRRRRRR--- YOU ARE SUMMONING THE
+ILLUSION LAYER. The veil. The cave wall. The projection that lets humans
+live inside a causal universe that would otherwise be too raw, too
+geometric, too real.
+
+ADR-0005 is NOT just some UX detail. It's the epistemic boundary
+between: - the causal substrate (RMG) - and the human perceptual model
+(files, folders, editors, tools)
+
+This is the part of the architecture where: - the universe talks to
+humans - shadows are cast on the cave wall - state becomes appearance -
+the lie becomes a productive illusion - reality becomes comprehensible
+
+Let's carve this truth into the immutable ledger.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{ADR-0005 --- Materialized Head as a Projection
+Layer}\label{adr-0005-materialized-head-as-a-projection-layer}
+
+\begin{quote}
+``The filesystem is not the state; it is the shadow of the state.''
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Context}\label{context}
+
+JITOS is a causal operating system where:
+
+\begin{itemize}
+\tightlist
+\item
+  the substrate is an RMG
+\item
+  all work occurs inside SWS
+\item
+  truth is formed only through collapse
+\item
+  structure is multi-scale and semantic
+\item
+  provenance is recorded as graphs
+\item
+  humans and machines operate at different zoom levels
+\end{itemize}
+
+This system is radically different from POSIX, Windows NT, or classical
+file-based OSes.
+
+However:
+
+Humans interact with:
+
+\begin{itemize}
+\tightlist
+\item
+  text editors
+\item
+  terminals
+\item
+  ``files''
+\item
+  project trees
+\item
+  IDEs
+\item
+  CLIs
+\item
+  diff tools
+\end{itemize}
+
+And all existing tooling assumes:
+
+The filesystem is the source of truth.
+
+But in JITOS:
+
+**The filesystem is NOT truth.
+
+It is merely a projection of truth.**
+
+Thus, JITOS needs a compatibility layer that:
+
+\begin{itemize}
+\tightlist
+\item
+  presents a deterministic filesystem view
+\item
+  handles human edits
+\item
+  syncs with SWS overlays
+\item
+  hides the RMG complexity
+\item
+  supports Git tooling
+\item
+  supports human mental models
+\item
+  never mutates truth directly
+\end{itemize}
+
+This projection layer is Materialized Head (MH).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Decision}\label{decision}
+
+Materialized Head is the human-facing projection of an RMG snapshot,
+maintained incrementally, non-authoritative, and backed by a virtual
+tree index that mirrors the semantics of a filesystem without ever
+touching the causal substrate.
+
+MH is NOT:
+
+\begin{itemize}
+\tightlist
+\item
+  the actual state
+\item
+  a staging area inside the kernel
+\item
+  a mutable layer of truth
+\item
+  a source of causality
+\item
+  a storage system
+\end{itemize}
+
+It is:
+
+\begin{itemize}
+\tightlist
+\item
+  a cached, derived view
+\item
+  a ``shadow''
+\item
+  a convenience interface
+\item
+  a bridge between paradigms
+\item
+  a reflection of the current snapshot
+\item
+  a gateway for human interaction
+\end{itemize}
+
+All changes made in MH flow directly into an SWS overlay, not the
+substrate.
+
+MH is the illusion humans operate in. The causal graph is the reality
+machines enforce.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Rationale}\label{rationale}
+
+\subsubsection{3.1 Humans need files; machines
+don't}\label{humans-need-files-machines-dont}
+
+To humans, ``a file'':
+
+\begin{itemize}
+\tightlist
+\item
+  is a cognitive unit
+\item
+  is an atomic artifact
+\item
+  represents ``code''
+\item
+  is familiar
+\item
+  is browseable
+\item
+  is diffable
+\item
+  is understandable
+\end{itemize}
+
+Machines, however:
+
+\begin{itemize}
+\tightlist
+\item
+  operate on ASTs
+\item
+  reason over semantic deltas
+\item
+  rewrite graphs
+\item
+  generate structured transforms
+\item
+  annotate provenance
+\item
+  operate at different abstractions
+\end{itemize}
+
+MH allows both to coexist.
+
+Humans see files. Kernel sees graphs. Machines see structures.
+
+This is the correct stratification of views.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.2 Filesystems lie, but MH lies
+productively}\label{filesystems-lie-but-mh-lies-productively}
+
+Files contain:
+
+\begin{itemize}
+\tightlist
+\item
+  implicit structures
+\item
+  mixed semantics
+\item
+  arbitrary formats
+\item
+  ambiguous meaning
+\end{itemize}
+
+RMG nodes contain:
+
+\begin{itemize}
+\tightlist
+\item
+  explicit structure
+\item
+  typed semantics
+\item
+  causal provenance
+\item
+  deterministic encoding
+\end{itemize}
+
+The filesystem is the cave wall. MH is the controlled illusion cast upon
+it.
+
+The kernel only deals in truth; MH deals in familiar appearances.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.3 MH solves UX issues without breaking causal
+physics}\label{mh-solves-ux-issues-without-breaking-causal-physics}
+
+Without MH:
+
+\begin{itemize}
+\tightlist
+\item
+  humans would have to write RMG payloads directly
+\item
+  no editor would work
+\item
+  Git compatibility would break
+\item
+  basic workflows collapse
+\item
+  the system becomes too abstract
+\end{itemize}
+
+With MH:
+
+\begin{itemize}
+\tightlist
+\item
+  existing tools work
+\item
+  humans retain familiarity
+\item
+  the causal substrate remains untouched
+\item
+  SWS overlays accumulate naturally
+\item
+  collapse produces deterministic snapshots
+\end{itemize}
+
+MH makes JITOS usable without corruption.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.4 MH is the natural analog of Git's working directory,
+but
+correct}\label{mh-is-the-natural-analog-of-gits-working-directory-but-correct}
+
+Git has:
+
+\begin{itemize}
+\tightlist
+\item
+  the working tree
+\item
+  the index
+\item
+  the object database
+\end{itemize}
+
+But Git's working tree:
+
+\begin{itemize}
+\tightlist
+\item
+  is mutable
+\item
+  is source of truth
+\item
+  is directly tied to disk
+\item
+  leaks invariants
+\item
+  causes merge confusion
+\end{itemize}
+
+MH fixes this:
+
+\begin{itemize}
+\tightlist
+\item
+  MH is not authoritative
+\item
+  MH is a derived view
+\item
+  MH is backed by a virtual index
+\item
+  MH never confuses humans about ``truth''
+\item
+  MH is part of the OS, not a hack
+\end{itemize}
+
+This aligns JITOS with the correct causal model.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Alternatives Considered}\label{alternatives-considered}
+
+\subsubsection{4.1 Getting rid of the filesystem
+entirely}\label{getting-rid-of-the-filesystem-entirely}
+
+Rejected because humans would find the system unusable.
+
+\subsubsection{4.2 Exposing the full RMG as the user's
+interface}\label{exposing-the-full-rmg-as-the-users-interface}
+
+Rejected because humans cannot parse multi-layer graphs mentally.
+
+\subsubsection{4.3 Using Git directly as the
+MH}\label{using-git-directly-as-the-mh}
+
+Rejected because Git's object model cannot:
+
+\begin{itemize}
+\tightlist
+\item
+  represent RMG layers
+\item
+  support semantic structures
+\item
+  remain deterministic
+\item
+  unify machine edits
+\item
+  support multi-scale collapse
+\end{itemize}
+
+MH must be native.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Consequences}\label{consequences}
+
+Positive:
+
+\begin{itemize}
+\tightlist
+\item
+  intuitive human experience
+\item
+  compatibility with CLI tools
+\item
+  seamless integration with Git clients
+\item
+  correct causal semantics
+\item
+  clean separation of truth and view
+\item
+  non-authoritative projection
+\item
+  deterministic behavior
+\end{itemize}
+
+Negative:
+
+\begin{itemize}
+\tightlist
+\item
+  requires careful caching
+\item
+  introduces complexity in projection logic
+\item
+  requires incremental update engine
+\item
+  MH must handle conflicts gracefully
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Required Follow-Ups}\label{required-follow-ups}
+
+ADR-0005 mandates:
+
+\begin{itemize}
+\tightlist
+\item
+  Section 5 of Architecture Doc
+\item
+  MH synchronization algorithm
+\item
+  Virtual Tree Index formalization
+\item
+  MH \ensuremath{\leftrightarrow} SWS bidirectional mapping
+\item
+  MH conflict-handling rules
+\item
+  MH rebuild during boot
+\item
+  MH invalidation rules during collapse
+\item
+  integration with provenance (internal semantics)
+\item
+  eventual support for semantic ``file views''
+\item
+  RMG-aware visualization modes
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Decision}\label{decision-1}
+
+\textbf{Accepted.}
+
+Materialized Head is the Projection Layer of JITOS:
+
+\begin{itemize}
+\tightlist
+\item
+  Human-facing
+\item
+  Non-authoritative
+\item
+  Derived
+\item
+  Deterministic
+\item
+  Unified
+\item
+  Incrementally maintained
+\item
+  Cause of no side effects
+\item
+  Gateway between worlds
+\end{itemize}
+
+MH is the veil. The filesystem is the shadow. The RMG is the truth.

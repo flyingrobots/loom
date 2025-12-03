@@ -1,0 +1,42 @@
+<svg width="720" height="230" viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .box { fill:#ffffff; stroke:#000000; stroke-width:2; rx:8; ry:8; }
+    .label { font-family: system-ui, -apple-system, sans-serif; font-size:13px; }
+    .title { font-weight:bold; font-size:15px; }
+    .arrow { stroke:#000000; stroke-width:2; marker-end:url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#000000" />
+    </marker>
+  </defs>
+
+  <!-- Hot -->
+  <rect class="box" x="40" y="70" width="180" height="90"/>
+  <text class="label title" x="130" y="95" text-anchor="middle">Hot Tier</text>
+  <text class="label" x="130" y="115" text-anchor="middle">SSD • recent nodes</text>
+  <text class="label" x="130" y="135" text-anchor="middle">LMDB indexes</text>
+
+  <!-- Warm -->
+  <rect class="box" x="270" y="70" width="180" height="90"/>
+  <text class="label title" x="360" y="95" text-anchor="middle">Warm Tier</text>
+  <text class="label" x="360" y="115" text-anchor="middle">compressed chunks</text>
+  <text class="label" x="360" y="135" text-anchor="middle">slower disk</text>
+
+  <!-- Cold -->
+  <rect class="box" x="500" y="70" width="180" height="90"/>
+  <text class="label title" x="590" y="95" text-anchor="middle">Cold Tier</text>
+  <text class="label" x="590" y="115" text-anchor="middle">object storage</text>
+  <text class="label" x="590" y="135" text-anchor="middle">S3 / GCS / ZFS</text>
+
+  <!-- Arrows -->
+  <line class="arrow" x1="220" y1="115" x2="270" y2="115"/>
+  <line class="arrow" x1="450" y1="115" x2="500" y2="115"/>
+  <text class="label" x="245" y="105" text-anchor="middle">evict</text>
+  <text class="label" x="475" y="105" text-anchor="middle">evict</text>
+
+  <line class="arrow" x1="270" y1="150" x2="220" y2="150"/>
+  <line class="arrow" x1="500" y1="150" x2="450" y2="150"/>
+  <text class="label" x="245" y="165" text-anchor="middle">rehydrate</text>
+  <text class="label" x="475" y="165" text-anchor="middle">rehydrate</text>
+</svg>

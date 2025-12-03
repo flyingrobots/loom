@@ -1,0 +1,578 @@
+\section{\texorpdfstring{\textbf{ADR-0001 --- JIT as a Causal Operating
+System
+Kernel}}{ADR-0001 --- JIT as a Causal Operating System Kernel}}\label{adr-0001-jit-as-a-causal-operating-system-kernel}
+
+\textbf{Status:} Proposed \textbf{Date:} 2025-11-30 \textbf{Owner:}
+James Ross \textbf{Related:} JIT Whitepaper, RFC-0001--0006, CFL
+(C\ensuremath{\Omega}MPUTER Fusion Layer)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{1.
+Context}}{1. Context}}\label{context}
+
+We have developed a deeply coherent conceptual framework and RFC set
+describing:
+
+\begin{itemize}
+\tightlist
+\item
+  An \textbf{immutable, append-only causal DAG} as the ground truth for
+  state (RFC-0001, RFC-0002).
+\item
+  \textbf{Shadow Working Sets (SWS)} as isolated, observer-relative
+  process abstractions (RFC-0003, RFC-0019).
+\item
+  A \textbf{collapse operator} (commit) that turns subjective shadow
+  states into objective events (RFC-0005).
+\item
+  A \textbf{Materialized Head (MH)} that exposes a filesystem-like
+  projection for humans (RFC-0004).
+\item
+  A \textbf{Write-Ahead Log (WAL)} as the temporal backbone for
+  deterministic replay and crash recovery (RFC-0006, RFC-0012).
+\item
+  An \textbf{Inversion Engine} that resolves merges, rewrites, and
+  history integration without mutating past events (RFC-0005).
+\item
+  \textbf{RPC + ABI} giving a syscall-like interface to the Causal
+  Kernel (RFC-0007, RFC-0013).
+\item
+  \textbf{Identity, provenance, security, sync, and federation}
+  (RFC-0011, 0016, 0017, 0020, 0021).
+\item
+  A fusion with \textbf{C\ensuremath{\Omega}MPUTER's metaphysical model} where computation
+  is geometry and causality (CFL, RFC-0024).
+\end{itemize}
+
+Up to now, this has been presented as:
+
+\begin{itemize}
+\tightlist
+\item
+  ``A Git inversion layer''
+\item
+  ``A causal database that speaks Git''
+\item
+  ``A provenance engine''
+\item
+  ``A post-file compute substrate''
+\end{itemize}
+
+But all of these are underselling what the design actually describes.
+
+The architecture that has emerged isn't ``a better VCS.''
+
+It is structurally, functionally, and philosophically equivalent to an
+\textbf{operating system kernel}, with:
+
+\begin{itemize}
+\tightlist
+\item
+  process isolation $\rightarrow$ SWS
+\item
+  memory model $\rightarrow$ causal DAG + SWS memory model
+\item
+  filesystem $\rightarrow$ MH projection
+\item
+  syscalls $\rightarrow$ JIT RPC + ABI
+\item
+  scheduler \& consistency $\rightarrow$ Inversion Engine + Message Plane
+\item
+  logging \& time $\rightarrow$ WAL
+\item
+  identity \& permissions $\rightarrow$ AIS + Security Model
+\item
+  boot \& recovery $\rightarrow$ JITOS boot RFC
+\item
+  multi-node \& federation $\rightarrow$ sync + MUFP
+\end{itemize}
+
+This ADR decides:
+
+\begin{quote}
+\textbf{We will explicitly treat JIT not as a library or protocol, but
+as a full-blown OS kernel --- JITOS.}
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{2.
+Decision}}{2. Decision}}\label{decision}
+
+We formally decide:
+
+\begin{quote}
+\textbf{JIT (Git Inversion Tech) is the kernel of a new causal operating
+system: JITOS.}
+\end{quote}
+
+\subsubsection{\texorpdfstring{\textbf{This
+implies:}}{This implies:}}\label{this-implies}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{JITD is the Kernel Process (jitd / jitosd)}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    It is long-running, privileged, and authoritative over:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      The DAG (truth)
+    \item
+      SWS lifecycle
+    \item
+      Collapse/commit
+    \item
+      MH consistency
+    \item
+      WAL replay
+    \item
+      Ref management
+    \item
+      Sync and federation
+    \item
+      Security enforcement
+    \end{itemize}
+  \end{itemize}
+\item
+  \textbf{SWS are Processes}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Every meaningful ``unit of work'' (human or machine) executes inside
+    a Shadow Working Set.
+  \item
+    SWS becomes the primary process abstraction of JITOS.
+  \end{itemize}
+\item
+  \textbf{The DAG is Unified Memory + History}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The causal DAG is not ``just a log.''
+  \item
+    It is the \textbf{canonical memory model} of JITOS:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      immutable state
+    \item
+      perfect replay
+    \item
+      cross-cutting history
+    \item
+      global source of truth
+    \end{itemize}
+  \end{itemize}
+\item
+  \textbf{Materialized Head is the Filesystem Projection}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The filesystem is \emph{not} the state.
+  \item
+    It is a derived projection of the DAG for human tooling and
+    compatibility.
+  \end{itemize}
+\item
+  \textbf{JIT RPC + ABI is the Syscall Surface}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    All external tools (CLIs, agents, IDEs, services) interact with
+    JITOS via:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      structured RPC
+    \item
+      stable binary ABI
+    \item
+      versioned capabilities
+    \end{itemize}
+  \end{itemize}
+\item
+  \textbf{JITOS Is The Primary Runtime Environment}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This is not ``just infra'' under another OS layer.
+  \item
+    JITOS is meant to be:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      hostable on conventional OSes (Linux/macOS/Windows) initially
+    \item
+      but architected as a \textbf{kernel in its own right} for future
+      more-native deployment.
+    \end{itemize}
+  \end{itemize}
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{3.
+Rationale}}{3. Rationale}}\label{rationale}
+
+\subsubsection{\texorpdfstring{\textbf{3.1 Conceptual
+Integrity}}{3.1 Conceptual Integrity}}\label{conceptual-integrity}
+
+The system we designed has all the properties of an OS kernel:
+
+\begin{itemize}
+\tightlist
+\item
+  It provides isolation (SWS).
+\item
+  It mediates state changes (Inversion Engine).
+\item
+  It defines a memory model (DAG + SWS-MM).
+\item
+  It defines execution semantics (collapse, Message Plane).
+\item
+  It mediates I/O and views (MH, RPC).
+\item
+  It boots, replays, and recovers (WAL, boot RFC).
+\item
+  It enforces security and identity (AIS, security RFC).
+\item
+  It syncs distributed state (Sync, MUFP).
+\end{itemize}
+
+Calling it ``a service'' or ``a library'' underdescribes it and weakens
+the design.
+
+Naming it what it truly is --- a kernel --- clarifies:
+
+\begin{itemize}
+\tightlist
+\item
+  how subsystems relate
+\item
+  what guarantees must be provided
+\item
+  how tools should integrate
+\item
+  how future extensions should be framed
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{3.2 Evolution \&
+Adoption}}{3.2 Evolution \& Adoption}}\label{evolution-adoption}
+
+By framing JIT as:
+
+\begin{quote}
+\textbf{``The kernel of a causal OS that also speaks Git''}
+\end{quote}
+
+\ldots we get:
+
+\begin{itemize}
+\tightlist
+\item
+  A path to adopt it \textbf{incrementally}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    First as a Git backend
+  \item
+    Then as a provenance/logging substrate
+  \item
+    Then as an execution \& agent orchestration layer
+  \item
+    Then as the foundation for new apps/languages
+  \end{itemize}
+\item
+  A clear mental model for ecosystem builders:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    ``This is my OS for agent-native, causal, multi-tenant compute.''
+  \end{itemize}
+\item
+  A better alignment with C\ensuremath{\Omega}MPUTER's cosmology:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    C\ensuremath{\Omega}MPUTER = theory of computation as causal geometry
+  \item
+    JITOS = practical instantiation of that theory
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{3.3 Strategic
+Positioning}}{3.3 Strategic Positioning}}\label{strategic-positioning}
+
+This decision:
+
+\begin{itemize}
+\tightlist
+\item
+  differentiates JITOS from:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    databases
+  \item
+    message buses
+  \item
+    VCS-only tools
+  \item
+    simple logs
+  \end{itemize}
+\item
+  positions it as:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    the \textbf{substrate} for post-file, agent-native computing
+  \item
+    a ``Linux for the causal age''
+  \end{itemize}
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{4. Alternatives
+Considered}}{4. Alternatives Considered}}\label{alternatives-considered}
+
+\subsubsection{\texorpdfstring{\textbf{4.1 ``JIT as a Git Backend
+Only''}}{4.1 ``JIT as a Git Backend Only''}}\label{jit-as-a-git-backend-only}
+
+\begin{itemize}
+\tightlist
+\item
+  Pros:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Easier story
+  \item
+    Less intimidating
+  \end{itemize}
+\item
+  Cons:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Severely underrepresents the capabilities
+  \item
+    Confuses architecture (where ``kernel-like'' features come from)
+  \item
+    Undermines the OS-level abstractions like SWS, WAL, MH
+  \end{itemize}
+\end{itemize}
+
+Rejected because it misframes the system.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{\texorpdfstring{\textbf{4.2 ``JIT as a Database +
+Framework''}}{4.2 ``JIT as a Database + Framework''}}\label{jit-as-a-database-framework}
+
+\begin{itemize}
+\tightlist
+\item
+  JIT as ``a causal DB with a nice API for agents + Git support''
+\item
+  Pros:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Comfortable mental model for many developers
+  \end{itemize}
+\item
+  Cons:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Fails to emphasize:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      process model
+    \item
+      memory model
+    \item
+      boot \& recovery semantics
+    \item
+      security as a systemic property
+    \end{itemize}
+  \item
+    Leads to misuse as ``just another DB'' instead of \textbf{defining
+    the runtime}.
+  \end{itemize}
+\end{itemize}
+
+Rejected because it hides its true role.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{\texorpdfstring{\textbf{4.3 ``JIT as a Pure Library /
+SDK''}}{4.3 ``JIT as a Pure Library / SDK''}}\label{jit-as-a-pure-library-sdk}
+
+\begin{itemize}
+\tightlist
+\item
+  Provides types, clients, protocols
+\item
+  Leaves everything else up to the host app
+\end{itemize}
+
+Rejected because:
+
+\begin{itemize}
+\tightlist
+\item
+  We need a \textbf{single authoritative kernel} to enforce causal
+  invariants.
+\item
+  Library approaches cannot reliably enforce:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    WAL ordering
+  \item
+    global DAG integrity
+  \item
+    multi-agent isolation
+  \item
+    collapse semantics
+  \end{itemize}
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{5.
+Consequences}}{5. Consequences}}\label{consequences}
+
+\subsubsection{\texorpdfstring{\textbf{5.1
+Positive}}{5.1 Positive}}\label{positive}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Clarity:} Everyone understands JIT as a kernel.
+\item
+  \textbf{Coherence:} All subsystems align with OS semantics.
+\item
+  \textbf{Extensibility:} Future features (scheduler, agent economy,
+  etc.) fit naturally.
+\item
+  \textbf{Research Value:} JITOS becomes an explicit research target
+  (Causal OS).
+\item
+  \textbf{Developer Understanding:} It becomes easier to teach and
+  document.
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{5.2 Negative /
+Tradeoffs}}{5.2 Negative / Tradeoffs}}\label{negative-tradeoffs}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Increased Ambition:} This is harder than ``a Git backend.''
+\item
+  \textbf{Expectations:} Calling it an OS kernel implies a high bar of
+  robustness and rigor.
+\item
+  \textbf{Adoption Path:} Some will be intimidated by the ``OS''
+  framing.
+\item
+  \textbf{Formal Verification Pressure:} The more ``foundational'' it
+  is, the more pressure for proofs.
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{5.3 Required
+Follow-Ups}}{5.3 Required Follow-Ups}}\label{required-follow-ups}
+
+This ADR implies:
+
+\begin{itemize}
+\tightlist
+\item
+  The Architecture Doc \textbf{MUST} be structured \textbf{as a kernel
+  design doc}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Processes (SWS)
+  \item
+    Memory model (DAG + SWS-MM)
+  \item
+    I/O model (MH, RPC)
+  \item
+    Execution model (collapse + inversion)
+  \item
+    Scheduling/coordination (Message Plane, future scheduler)
+  \item
+    Storage model (tiering, isolation)
+  \item
+    Security model (AIS, permissions)
+  \item
+    Boot sequence
+  \item
+    Federation
+  \end{itemize}
+\item
+  RFCs should be grouped under these kernel subsystems in the Arch Doc.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{6.
+Decision}}{6. Decision}}\label{decision-1}
+
+\textbf{Accepted.}
+
+From this point forward:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{JIT is referred to as the kernel of JITOS}, the causal
+  operating system.
+\item
+  All further ADRs and Architecture Doc sections are written under that
+  framing.
+\item
+  The JITOS Architecture Document will treat JITD as the kernel, not as
+  a ``service'' or ``tool.''
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

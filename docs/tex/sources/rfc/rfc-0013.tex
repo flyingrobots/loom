@@ -1,0 +1,278 @@
+JIT RFC-0013
+
+JIT Syscall ABI (JS-ABI v1.0)
+
+Binary Encoding, Wire Format, and Low-Level Interface to the Inversion
+Kernel
+
+Status: Draft\textbf{ Author: James Ross Contributors: JIT Community
+Requires: {\textbullet} RFC-0007 (JIT RPC API) {\textbullet} RFC-0001, RFC-0002, RFC-0006
+(Identity, Invariants, WAL)} Start Date: 2025-11-28 Target Spec: JITOS
+v0.x\textbf{ License: TBD}
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines the binary interface and wire protocol that: {\textbullet} the CLI
+{\textbullet} editors {\textbullet} agents {\textbullet} remote daemons {\textbullet} plugins {\textbullet} runtime components {\textbullet} and
+future languages/tools
+
+use to communicate with GITD --- the JIT Inversion Kernel.
+
+This ABI is to JIT what: {\textbullet} syscalls are to Linux {\textbullet} the VM ABI is to the
+JVM {\textbullet} the wire protocol is to Git {\textbullet} the POSIX API is to Unix
+
+BUT:
+
+Instead of manipulating files or memory, the JIT ABI manipulates: {\textbullet}
+nodes {\textbullet} shadows {\textbullet} causal structure {\textbullet} time (via WAL) {\textbullet} projection layers
+{\textbullet} ref pointers {\textbullet} storage tiers {\textbullet} agent contexts
+
+This is the low-level truth of the JIT universe.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Motivation
+\end{enumerate}
+
+To ensure: {\textbullet} cross-language compatibility {\textbullet} cross-platform determinism {\textbullet}
+wire-stable interoperability {\textbullet} long-term future-proofing {\textbullet} consistent
+semantics {\textbullet} binary safety {\textbullet} remote invocation {\textbullet} agent swarm coordination
+
+\ldots JIT must define a precise, binary-level ABI.
+
+This ABI becomes the universal interface contract for all tools that
+speak JIT.
+
+It must be: {\textbullet} stable {\textbullet} extensible {\textbullet} secure {\textbullet} deterministic {\textbullet} canonical {\textbullet}
+easy to parse {\textbullet} impossible to misinterpret
+
+This is the heart of interoperability.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Transport Layer
+\end{enumerate}
+
+3.1 Supported Transports {\textbullet} Unix domain sockets (primary) {\textbullet} TCP + TLS
+(remote) {\textbullet} QUIC (optional/future)
+
+All transports MUST implement: {\textbullet} binary framing {\textbullet} capability negotiation
+{\textbullet} versioning {\textbullet} checksums
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Message Framing
+\end{enumerate}
+
+Every message consists of:
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 0\tabcolsep) * \real{0.4861}}@{}}
+\toprule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+MAGIC (4 bytes): ``JIT!'' \\
+VERSION (u16) \\
+FLAGS (u16) \\
+LENGTH (u32) \\
+PAYLOAD (bytes{[}LENGTH{]}) \\
+CHECKSUM (blake3-256, 32 bytes) \\
+\end{longtable}
+}
+
+Notes: {\textbullet} MAGIC identifies valid packets {\textbullet} VERSION = major.minor (encoded
+0xMMmm) {\textbullet} FLAGS = compression, streaming, async markers {\textbullet} LENGTH = byte
+length of CBOR payload {\textbullet} PAYLOAD = canonical CBOR {\textbullet} CHECKSUM = BLAKE3
+hash
+
+If checksum fails $\rightarrow$ packet rejected.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Operation Encoding
+\end{enumerate}
+
+Inside the payload:
+
+\{ ``op'': string, ``ts'': logical\_timestamp, ``payload'': CBOR-encoded
+struct \}
+
+Operation names MUST match RFC-0007.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Error Codes
+\end{enumerate}
+
+JIT MUST standardize error codes:
+
+E\_INVALID\_OP = 1 E\_BAD\_PAYLOAD = 2 E\_CHECKSUM\_FAIL = 3
+E\_INVARIANT\_VIOLATION = 4 E\_NOT\_FOUND = 5 E\_REF\_CONFLICT = 6
+E\_REWRITE\_ERROR = 7 E\_ACCESS\_DENIED = 8 E\_SWS\_INVALID = 9
+E\_COLLAPSE\_FAIL = 10 E\_INTERNAL\_ERROR = 500
+
+Errors MUST NOT leak kernel-internal details and MUST preserve
+determinism.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Capability Negotiation
+\end{enumerate}
+
+At connection start:
+
+client $\rightarrow$ server: \{ ``op'': ``handshake'', ``capabilities'':
+{[}strings{]}, ``client\_version'': u16 \}
+
+Server responds:
+
+server $\rightarrow$ client: \{ ``status'': ``OK'', ``server\_version'': u16,
+``capabilities'': {[}strings{]}, ``session\_id'': uuid \}
+
+Capabilities MUST include: {\textbullet} compression formats {\textbullet} extension ops {\textbullet}
+streaming support {\textbullet} future-proof features
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Compression
+\end{enumerate}
+
+Payloads MAY be compressed.
+
+Supported: {\textbullet} none {\textbullet} zstd {\textbullet} gzip {\textbullet} Brotli (optional)
+
+Compression MUST NOT affect semantics.
+
+Compression flags stored in FLAGS.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Streaming Mode
+\end{enumerate}
+
+Certain operations (e.g., sync.pull) may require streaming.
+
+Streaming packets use: {\textbullet} FLAG\_STREAM\_BEGIN {\textbullet} FLAG\_STREAM\_CONT {\textbullet}
+FLAG\_STREAM\_END
+
+Streaming MUST maintain: {\textbullet} order {\textbullet} integrity {\textbullet} checksum per packet
+
+This is essential for large subgraph transfers.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  ABI Stability Guarantees
+\end{enumerate}
+
+JIT MUST guarantee: {\textbullet} Forward compatibility: Old clients $\rightarrow$ new servers
+MUST NOT break functionality. {\textbullet} Backward compatibility: New clients $\rightarrow$
+old servers MUST fallback gracefully. {\textbullet} Deterministic decoding: No
+ambiguous CBOR structures allowed. {\textbullet} Future extensions: New ops MUST not
+break existing tooling.
+
+This ABI must remain stable across: {\textbullet} architectures {\textbullet} OSes {\textbullet} compilers {\textbullet}
+languages {\textbullet} time
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{10}
+\tightlist
+\item
+  Security Layer
+\end{enumerate}
+
+ABI-level security MUST include: {\textbullet} TLS for TCP {\textbullet} agent identity tokens {\textbullet}
+SWS-scoped authorization {\textbullet} optional signed messages {\textbullet} replay attack
+prevention
+
+Session IDs MUST be checked with logical timestamp progression.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{11}
+\tightlist
+\item
+  Why ABI Matters
+\end{enumerate}
+
+Because:
+
+Without ABI $\rightarrow$ agents can't talk to JIT. IDEs can't talk to JIT. Git
+can't talk to JIT. CI can't talk to JIT. Remote sync can't happen.
+Distributed systems fail. Future tools fracture.
+
+With ABI $\rightarrow$ JIT becomes a platform, not a tool.
+
+This is the layer that makes JIT: {\textbullet} universal {\textbullet} programmable {\textbullet}
+language-independent {\textbullet} future-proof
+
+Unix had syscalls. The Web had HTTP. Git had packfile protocols. JIT has
+JS-ABI.
+
+{\bfseries ?}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

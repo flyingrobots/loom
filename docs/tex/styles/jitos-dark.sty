@@ -1,0 +1,158 @@
+\ProvidesPackage{jitos-dark}
+
+% ========================================
+% FULL DRACULA DARK MODE VERSION
+% ========================================
+
+% Package Imports (same as base jitos.sty)
+
+% Typography and fonts (Reverted to pdflatex compatible)
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% Math and symbols
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Graphics and colors
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{styles/draculatheme}  % FULL DARK MODE - sets page colors
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,arrows.meta,positioning,calc,automata,decorations.pathreplacing,decorations.markings,shapes.geometric,fit,matrix,patterns,mindmap,trees,backgrounds,circuits.logic.US}
+\usepackage{tikz-cd}
+
+% SVG support (requires Inkscape installed)
+\usepackage{svg}
+\svgpath{{assets/images/}}
+
+% Tables and Captions
+\usepackage{array}
+\usepackage{calc}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{caption}
+
+% Layout and spacing
+\usepackage[
+  paperwidth=6in,
+  paperheight=9in,
+  top=1in,
+  bottom=1in,
+  inner=0.75in,
+  outer=0.75in
+]{geometry}
+\usepackage{setspace}
+\usepackage{enumitem}
+
+% Remove paragraph indentation and add spacing between paragraphs
+\usepackage{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5\baselineskip plus 2pt}
+
+% Headers and footers
+\usepackage{fancyhdr}
+\setlength{\headheight}{26pt}
+
+% Hyperlinks - Dracula colors
+\usepackage[
+  colorlinks=true,
+  linkcolor=draculapurple,
+  urlcolor=draculacyan,
+  citecolor=draculagreen,
+  bookmarks=true,
+  bookmarksnumbered=true
+]{hyperref}
+
+% Cleveref for cross-references (must load AFTER hyperref)
+\usepackage[nameinlink,capitalise]{cleveref}
+
+% Code listings
+\usepackage{listings}
+\usepackage{verbatim}
+
+% Quotations and blocks
+\usepackage{csquotes}
+
+% Title formatting
+\usepackage{titlesec}
+
+% ========================================
+% Custom Styling
+% ========================================
+
+% Custom theorem environments
+\theoremstyle{definition}
+% Use section for article class, chapter for book class
+\@ifundefined{chapter}{%
+  \newtheorem{definition}{Definition}[section]
+  \newtheorem{theorem}{Theorem}[section]
+  \newtheorem{lemma}{Lemma}[section]
+  \newtheorem{example}{Example}[section]
+}{%
+  \newtheorem{definition}{Definition}[chapter]
+  \newtheorem{theorem}{Theorem}[chapter]
+  \newtheorem{lemma}{Lemma}[chapter]
+  \newtheorem{example}{Example}[chapter]
+}
+
+% Custom block quote style
+\newenvironment{partintro}
+  {\begin{quote}\itshape\color{draculacomment}}
+  {\end{quote}}
+
+% Code listing style - DARK MODE
+\lstset{
+  basicstyle=\ttfamily\small\color{draculafg},
+  backgroundcolor=\color{draculacl},  % Slightly lighter than page bg
+  frame=single,
+  rulecolor=\color{draculapurple},
+  breaklines=true,
+  columns=flexible,
+  keepspaces=true,
+  commentstyle=\color{draculacomment}\itshape,
+  keywordstyle=\color{draculapink}\bfseries,
+  stringstyle=\color{draculayellow},
+  numberstyle=\tiny\color{draculacomment},
+  identifierstyle=\color{draculacyan},
+  showstringspaces=false
+}
+
+% Custom section styling for "FOR THE NERDS"
+\newenvironment{nerdbox}
+  {\par\vspace{0.5em}\noindent\textcolor{draculapurple}{\hrulefill}\newline\textbf{\textcolor{draculapink}{FOR THE NERDS™}}\newline\textcolor{draculapurple}{\hrulefill}\par\vspace{0.3em}\small}
+  {\par\vspace{0.3em}\noindent\textcolor{draculapurple}{\hrulefill}\par\vspace{0.5em}}
+
+% Pandoc compatibility macros
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\newcommand{\passthrough}[1]{#1}
+
+% Workaround for pandoc longtable "No counter 'none' defined" error
+\newcounter{none}
+
+% ========================================
+% Macros
+% ========================================
+
+% Define Omega command for CΩMPUTER
+\newcommand{\COmega}{C$\Omega$MPUTER}
+\newcommand{\JITOS}{JITOS}
+
+% Wordmark commands - use SVG logos
+\newcommand{\computerwordmark}[1][4cm]{\includesvg[width=#1]{CΩMPUTER (4).svg}}
+\newcommand{\codexwordmark}[1][3cm]{\includesvg[width=#1]{CΩDEX.svg}}
+\newcommand{\partwordmark}[2][5cm]{\includesvg[width=#1]{#2}}
+
+% Custom chapter opening with optional wordmark
+\newcommand{\chapterwithwordmark}[2]{
+  \chapter{#1}
+  \vspace{-1em}
+  \begin{center}
+  \includesvg[width=5cm]{#2}
+  \end{center}
+  \vspace{1em}
+}

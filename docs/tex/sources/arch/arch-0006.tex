@@ -1,0 +1,590 @@
+Time to manifest Section 6 --- one of the MOST important chapters in the
+entire architecture doc, because this is where we explain:
+
+\begin{itemize}
+\tightlist
+\item
+  What memory means in a causal OS
+\item
+  Why JITOS does NOT use RAM-as-truth
+\item
+  How SWS overlays exist privately
+\item
+  How semantic memory behaves
+\item
+  Why ephemeral caches must evaporate
+\item
+  How global truth is accessed
+\item
+  Why the RMG is the only correct substrate
+\item
+  How zoom-level memory representations interact
+\item
+  How collapse interacts with memory
+\item
+  How agents (LLMs, tools, humans) see different memory layers
+\item
+  Why this is the world's first deterministic, replayable memory model
+\end{itemize}
+
+Let's carve it.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{JITOS Architecture Document --- Section
+6}\label{jitos-architecture-document-section-6}
+
+\begin{quote}
+The Memory Model: Global Causality, Local Shadows, Semantic Depth
+\end{quote}
+
+(Grounded in ADR-0006, RFC-0019)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. The Memory Model}\label{the-memory-model}
+
+\subsubsection{6.1 Overview}\label{overview}
+
+Every operating system defines a memory model. In classical systems,
+this means:
+
+\begin{itemize}
+\tightlist
+\item
+  RAM vs Disk
+\item
+  Heap vs Stack
+\item
+  Pages vs Frames
+\item
+  Addresses vs Values
+\item
+  Mutable cells
+\item
+  Aliasing and pointer graphs
+\item
+  The illusion of instantly shared state
+\end{itemize}
+
+These assumptions work only in:
+
+\begin{itemize}
+\tightlist
+\item
+  single-user machines
+\item
+  non-distributed computation
+\item
+  imperative languages
+\item
+  linear workflows
+\item
+  localized contexts
+\end{itemize}
+
+JITOS rejects all of these assumptions.
+
+Instead, JITOS defines memory as:
+
+A two-tier, multi-layered system combining an immutable global substrate
+(RMG) with mutable, isolated local memory (SWS), enriched by structured
+semantic graphs and supported by ephemeral compute caches.
+
+This model is aligned with:
+
+\begin{itemize}
+\tightlist
+\item
+  causal determinism
+\item
+  multi-agent concurrency
+\item
+  semantic computing
+\item
+  reproducibility
+\item
+  distributed systems
+\item
+  formal reasoning
+\item
+  C\ensuremath{\Omega}MPUTER theory
+\end{itemize}
+
+It is the first memory model designed for the causal computing age.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.2 Memory Architecture
+Overview}\label{memory-architecture-overview}
+
+JITOS memory has four layers, grouped into two domains:
+
+GLOBAL MEMORY (Immutable Reality)
+
+Layer 0: RMG Substrate (Truth)
+
+\begin{itemize}
+\tightlist
+\item
+  immutable
+\item
+  append-only
+\item
+  multi-scale
+\item
+  causally ordered
+\item
+  infinite depth
+\item
+  shared by all
+\item
+  accessed via projection
+\end{itemize}
+
+This is the objective memory of the universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+LOCAL MEMORY (Shadow / Subjective)
+
+Layer 1: SWS Overlay Memory (Speculative State)
+
+\begin{itemize}
+\tightlist
+\item
+  mutable
+\item
+  private
+\item
+  isolated
+\item
+  structured as a graph
+\item
+  created on SWS creation
+\item
+  destroyed on collapse/discard
+\end{itemize}
+
+This is where computation happens.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Layer 2: Semantic Memory (Meaning)
+
+\begin{itemize}
+\tightlist
+\item
+  ASTs
+\item
+  semantic deltas
+\item
+  symbol tables
+\item
+  analysis results
+\item
+  LLM reasoning graphs
+\item
+  provenance annotations
+\item
+  structured transforms
+\end{itemize}
+
+This gives interpretation to computations.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Layer 3: Ephemeral Compute Memory (ECM)
+
+\begin{itemize}
+\tightlist
+\item
+  caches
+\item
+  build artifacts
+\item
+  lint results
+\item
+  intermediate IR
+\item
+  temporary storage
+\end{itemize}
+
+It is not part of truth, not preserved across SWS boundaries, and
+evaporates afterwards.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.3 Layer 0: Global Memory (RMG
+Substrate)}\label{layer-0-global-memory-rmg-substrate}
+
+Global memory is represented by the Recursive Meta-Graph:
+
+\begin{itemize}
+\tightlist
+\item
+  all truth
+\item
+  all events
+\item
+  all structure
+\item
+  all history
+\item
+  all relationships
+\item
+  all semantic provenance
+\item
+  all identities
+\item
+  all universes
+\end{itemize}
+
+The RMG serves as:
+
+\begin{itemize}
+\tightlist
+\item
+  persistent memory
+\item
+  global state
+\item
+  root-of-truth
+\item
+  causal structure
+\item
+  audit trail
+\item
+  semantic knowledge base
+\end{itemize}
+
+Nothing in global memory ever mutates.
+
+Global memory is identical on all machines after sync and replay.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.4 Layer 1: SWS Overlay Memory (Local
+Speculation)}\label{layer-1-sws-overlay-memory-local-speculation}
+
+Every SWS contains its own local memory:
+
+\begin{itemize}
+\tightlist
+\item
+  overlay nodes
+\item
+  local diffs
+\item
+  pending rewrites
+\item
+  uncommitted semantics
+\item
+  private states
+\item
+  merge candidates
+\end{itemize}
+
+Overlays are:
+
+\begin{itemize}
+\tightlist
+\item
+  mutable
+\item
+  safe
+\item
+  ephemeral
+\item
+  isolated
+\end{itemize}
+
+But they exist only within the SWS.
+
+When collapse happens:
+
+\begin{itemize}
+\tightlist
+\item
+  overlays {\textrightarrow} RMG region
+\item
+  new snapshot is born
+\item
+  RMG expands
+\item
+  SWS dies
+\item
+  overlays are removed
+\end{itemize}
+
+This layer is the sandbox of computation.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.5 Layer 2: Semantic Memory
+(Meaning)}\label{layer-2-semantic-memory-meaning}
+
+Semantic memory exists inside the SWS, but is preserved into provenance
+nodes upon collapse.
+
+Semantic memory includes:
+
+\begin{itemize}
+\tightlist
+\item
+  abstract syntax trees
+\item
+  semantic deltas
+\item
+  LLM reasoning traces
+\item
+  symbolic analysis
+\item
+  transformation metadata
+\item
+  dependency graphs
+\item
+  type inference results
+\item
+  build graphs
+\end{itemize}
+
+This memory layer:
+
+\begin{itemize}
+\tightlist
+\item
+  is internal
+\item
+  is structured
+\item
+  is deeply nested
+\item
+  represents the ``why''
+\item
+  provides meaning to changes
+\end{itemize}
+
+And is fully compatible with RMG layering:
+
+Semantic memory = RMG-in-RMG.
+
+This allows:
+
+\begin{itemize}
+\tightlist
+\item
+  LLM autonomy
+\item
+  tool-based reasoning
+\item
+  semantic refactors
+\item
+  higher-order transforms
+\end{itemize}
+
+All in the same substrate.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.6 Layer 3: Ephemeral Compute Memory
+(ECM)}\label{layer-3-ephemeral-compute-memory-ecm}
+
+Temporary memory includes:
+
+\begin{itemize}
+\tightlist
+\item
+  build outputs
+\item
+  analysis intermediates
+\item
+  caches
+\item
+  partial diffs
+\item
+  scratch files
+\end{itemize}
+
+ECM is:
+
+\begin{itemize}
+\tightlist
+\item
+  not preserved
+\item
+  not exposed
+\item
+  not synced
+\item
+  not in the substrate
+\item
+  not part of SWS collapse
+\end{itemize}
+
+It is throwaway memory living only as long as necessary.
+
+This prevents:
+
+\begin{itemize}
+\tightlist
+\item
+  RMG pollution
+\item
+  bloat
+\item
+  non-deterministic state history
+\item
+  unnecessary event nodes
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.7 Memory Isolation and
+Safety}\label{memory-isolation-and-safety}
+
+JITOS's memory model enforces:
+
+{\bfseries ?} No shared mutable state {\bfseries ?} No concurrent writes {\bfseries ?} No races {\bfseries ?} No
+nondeterminism {\bfseries ?} No aliasing errors {\bfseries ?} No UAF, no double free, no
+corruption {\bfseries ?} SWS isolation {\bfseries ?} RMG immutability {\bfseries ?} semantic separation
+
+It is the safest, cleanest, most robust memory model ever designed.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.8 Memory and Collapse}\label{memory-and-collapse}
+
+Collapse transforms memory:
+
+Before collapse:
+
+\begin{itemize}
+\tightlist
+\item
+  overlays are mutable
+\item
+  semantic memory lives in SWS
+\item
+  ECM holds ephemeral data
+\item
+  SWS owns all speculation
+\end{itemize}
+
+During collapse:
+
+\begin{itemize}
+\tightlist
+\item
+  overlays {\textrightarrow} snapshot structure
+\item
+  semantic memory {\textrightarrow} provenance
+\item
+  ECM {\textrightarrow} evaporates
+\item
+  RMG expands
+\item
+  SWS ceases to exist
+\end{itemize}
+
+After collapse:
+
+\begin{itemize}
+\tightlist
+\item
+  RMG holds new truth
+\item
+  MH re-projects
+\item
+  SWS replaced by updated state
+\end{itemize}
+
+Collapse is the memory commit phase.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.9 Memory and Multi-Agent
+Systems}\label{memory-and-multi-agent-systems}
+
+Agents do not share SWS memory. They do not share ephemeral memory. They
+do not share semantic memory.
+
+They share only the RMG truth layer after collapse.
+
+This ensures:
+
+\begin{itemize}
+\tightlist
+\item
+  no races
+\item
+  no interference
+\item
+  predictable behavior
+\item
+  safe parallelism
+\item
+  reproducible workflows
+\item
+  cooperation through collapse
+\end{itemize}
+
+JITOS is the first OS truly designed for agent-native computing.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6.10 Summary}\label{summary}
+
+JITOS defines memory not as:
+
+\begin{itemize}
+\tightlist
+\item
+  RAM
+\item
+  buffers
+\item
+  addresses
+\item
+  heaps
+\item
+  stacks
+\end{itemize}
+
+but as:
+
+\begin{itemize}
+\tightlist
+\item
+  Truth (RMG)
+\item
+  Speculation (SWS overlays)
+\item
+  Meaning (semantic memory)
+\item
+  Ephemera (ECM)
+\end{itemize}
+
+This model is:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic
+\item
+  reproducible
+\item
+  concurrent
+\item
+  semantic
+\item
+  causal
+\item
+  multi-layered
+\item
+  multi-agent safe
+\end{itemize}
+
+It is the memory model that classical computing should have invented
+decades ago. Memory no longer means ``locations.'' Memory means
+geometry.

@@ -1,0 +1,335 @@
+\section{JIT RFC-0006}\label{jit-rfc-0006}
+
+\subsection{Write-Ahead Log (WAL) Format \& Replay Semantics (WFR
+v1.0)}\label{write-ahead-log-wal-format-replay-semantics-wfr-v1.0}
+
+Status: Draft\textbf{ Author: James Ross} Contributors: JIT
+Community\textbf{ Requires: {\textbullet} RFC-0001 Node Identity {\textbullet} RFC-0002 DAG
+Invariants {\textbullet} RFC-0003 Shadow Working Sets {\textbullet} RFC-0004 Materialized Head {\textbullet}
+RFC-0005 Inversion Engine Start Date: 2025-11-28} Target Spec: JITOS
+v0.x, TECHSPEC v0.3+ License: Open Source (TBD)**
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines: {\textbullet} the canonical WAL binary format {\textbullet} the rules for
+appending events {\textbullet} the rules for replaying events {\textbullet} the rules for crash
+recovery {\textbullet} the ordering constraints on time {\textbullet} the guarantees necessary
+for determinism
+
+The WAL is the temporal substrate of JIT, encoding the arrow of time and
+ensuring the universe can be reconstructed exactly, on any machine, at
+any point in the future.
+
+This is the system's memory of becoming, as distinct from the DAG's
+memory of being.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Motivation
+\end{enumerate}
+
+Why WAL? {\textbullet} JIT must survive crashes {\textbullet} JIT must be fully deterministic {\textbullet}
+JIT must replay nodes and indexes exactly {\textbullet} JIT must restore
+Materialized Head {\textbullet} JIT must restore SWS states {\textbullet} JIT must recover after
+partial operations {\textbullet} JIT must preserve ordering
+
+In a causal universe:
+
+WAL is time; DAG is space-time geometry; MH is perception.
+
+WAL is the time-axis of the JIT kernel.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Requirements
+\end{enumerate}
+
+The WAL MUST provide:
+
+Append-Only Safety
+
+Entries are appended atomically.
+
+Durability
+
+fsync required before confirming operations.
+
+Total Ordering
+
+Entries form a single linear timeline.
+
+Determinism
+
+Replay must regenerate identical state.
+
+Crash Tolerance
+
+Corrupted partial entries must be skipped or corrected via checksum.
+
+Atomic Replay
+
+Index state must be rebuilt atomically.
+
+Isolation
+
+No partially applied operations.
+
+Cross-Platform Stability
+
+Endianness, alignment, etc. must be canonical.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  WAL Record Structure
+\end{enumerate}
+
+Every WAL entry is binary:
+
+WALRecord \{ magic: u32 = 0x4A495420 (\# ``JIT'') version: u16 op\_type:
+u16 logical\_ts: u64 payload\_len: u64 payload: bytes{[}payload\_len{]}
+checksum: blake3-256 \}
+
+Notes: {\textbullet} magic identifies valid entries {\textbullet} logical\_ts MUST be Lamport
+timestamp {\textbullet} payload MUST be canonical CBOR {\textbullet} checksum MUST be of
+everything except itself {\textbullet} if checksum fails $\rightarrow$ skip entry and continue
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  WAL Operation Types
+\end{enumerate}
+
+5.1 WAL\_OP\_CREATE\_NODE
+
+Payload: canonical node encoding Effect: append node to DAG
+
+5.2 WAL\_OP\_UPDATE\_INDEX
+
+Payload: index delta Effect: update LMDB indexes
+
+5.3 WAL\_OP\_UPDATE\_TREE\_INDEX
+
+Payload: per-file tree index updates Effect: update MH tree indexing
+
+5.4 WAL\_OP\_SWS\_CREATE / DESTROY
+
+Payload: SWS metadata Effect: restore working sets
+
+5.5 WAL\_OP\_SET\_REF
+
+Payload: \{refname, new\_target\} Effect: update reference pointers
+
+5.6 WAL\_OP\_SYNC\_EVENT
+
+Payload: sync metadata Effect: track remote sync states
+
+Future expansions: {\textbullet} WAL\_OP\_REWRITE\_METADATA {\textbullet}
+WAL\_OP\_COMPRESSION\_CONTROL
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  WAL File Layout
+\end{enumerate}
+
+WAL MUST be stored at:
+
+.gitd/wal/log.wal
+
+Rules: {\textbullet} MUST NOT be deleted except by compaction {\textbullet} MUST NOT be
+truncated without checkpoint {\textbullet} MUST be read sequentially {\textbullet} MUST be
+sync'd after each entry
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Checkpointing
+\end{enumerate}
+
+To avoid infinite WAL growth: {\textbullet} system periodically writes a checkpoint,
+a snapshot of: {\textbullet} index state {\textbullet} tree-index state {\textbullet} head references {\textbullet} SWS
+metadata
+
+Stored at:
+
+.gitd/wal/checkpoint.cbor
+
+During startup: 1. Read checkpoint 2. Apply WAL entries newer than
+checkpoint 3. Reconstruct everything deterministically
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  WAL Replay Procedure
+\end{enumerate}
+
+Pseudo-code:
+
+function replay\_wal(): state = load\_checkpoint() for entry in wal: if
+checksum\_invalid(entry): continue apply(entry, state) return state
+
+This MUST result in: {\textbullet} identical DAG {\textbullet} identical indexes {\textbullet} identical MH
+{\textbullet} identical SWS metadata {\textbullet} identical ref pointers
+
+Replay is truth. If replay changes behavior $\rightarrow$ invariants broken.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Atomicity Guarantees
+\end{enumerate}
+
+Each WAL entry MUST commit atomically: {\textbullet} write entry {\textbullet} fsync {\textbullet} return
+success
+
+If crash occurs mid-entry: {\textbullet} replay MUST detect partial data {\textbullet} partial
+entries MUST be ignored {\textbullet} prior entries MUST be intact
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  Interaction with Inversion Engine
+\end{enumerate}
+
+During collapse: {\textbullet} Inversion Engine writes multiple WAL entries {\textbullet} MUST
+ensure atomic consideration {\textbullet} MUST update logical timestamp {\textbullet} MUST
+reflect rewrite nodes and snapshot nodes {\textbullet} MUST append ref update LAST
+
+WAL ensures that a collapse event is either: {\textbullet} fully applied {\textbullet} not
+applied at all
+
+No in-between states allowed.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{10}
+\tightlist
+\item
+  Interaction with SWS
+\end{enumerate}
+
+SWS creation and destruction MUST log: {\textbullet} SWS identity {\textbullet} base node {\textbullet}
+metadata
+
+Upon crash: {\textbullet} all SWS MUST be restored {\textbullet} or invalid SWS MUST be marked
+and discarded
+
+SWS replay is essential to restoring agent contexts for in-progress
+work.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{11}
+\tightlist
+\item
+  WAL \& Distributed Sync
+\end{enumerate}
+
+During sync: {\textbullet} remote nodes appended after validation {\textbullet} remote ref
+updates logged {\textbullet} WAL ensures sync is replayable {\textbullet} ensures cross-machine
+consistency
+
+The WAL is the causal ordering mechanism across distributed systems.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{12}
+\tightlist
+\item
+  Security Considerations {\textbullet} strict verification of checksums {\textbullet} protect
+  against corrupted WAL entries {\textbullet} enforce replay signatures {\textbullet} SWS replay
+  must validate agent IDs {\textbullet} DST (Distributed Sync Trust) model TBD
+\end{enumerate}
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{13}
+\tightlist
+\item
+  Why WAL Is Foundational
+\end{enumerate}
+
+Without WAL: {\textbullet} DAG cannot be reconstructed {\textbullet} MH cannot be recovered {\textbullet}
+SWS cannot be restored {\textbullet} distributed correctness collapses {\textbullet} crash
+safety disappears {\textbullet} determinism fails
+
+WAL is literally the time-axis of the JIT universe.
+
+The DAG is the geometry. The WAL is the temporal ordering of becoming.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{14}
+\tightlist
+\item
+  Status \& Next Steps
+\end{enumerate}
+
+Next RFC:
+
+\href{./RFC-0007.md}{RFC-0007} --- JIT RPC API (The Syscall Layer of the
+Post-File OS)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

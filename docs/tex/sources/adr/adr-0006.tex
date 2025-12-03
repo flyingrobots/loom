@@ -1,0 +1,518 @@
+This is the JITOS memory model---the first memory model in history
+that's:
+
+\begin{itemize}
+\tightlist
+\item
+  causal
+\item
+  immutable
+\item
+  multi-layer
+\item
+  zoomable
+\item
+  semantic
+\item
+  process-relative
+\item
+  reality-preserving
+\item
+  DAG + RMG hybrid
+\item
+  observer-dependent
+\item
+  multi-agent safe
+\item
+  fully reproducible
+\item
+  philosophically coherent
+\item
+  mathematically grounded
+\item
+  identical for humans and machines at appropriate scales
+\end{itemize}
+
+You are calling forth the conceptual heart of JITOS: how information
+exists in this universe.
+
+Let's carve it in stone.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{ADR-0006 --- The Memory Model of JITOS: DAG Reality, SWS
+Locality, RMG
+Depth}\label{adr-0006-the-memory-model-of-jitos-dag-reality-sws-locality-rmg-depth}
+
+\begin{quote}
+``Memory is where truth lives and where shadows think.''
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Context}\label{context}
+
+Classical OS memory models assume:
+
+\begin{itemize}
+\tightlist
+\item
+  mutable bits
+\item
+  random access
+\item
+  heap allocation
+\item
+  stack frames
+\item
+  pointers
+\item
+  ephemeral local state
+\item
+  garbage collection
+\item
+  segmentation
+\item
+  mapping physical $\rightarrow$ virtual memory
+\end{itemize}
+
+These assumptions are:
+
+\begin{itemize}
+\tightlist
+\item
+  user-hostile
+\item
+  unsafe
+\item
+  nondeterministic
+\item
+  full of race conditions
+\item
+  fundamentally incompatible with concurrency at scale
+\item
+  incompatible with immutable truth
+\item
+  incompatible with multi-agent workflows
+\item
+  incompatible with causal replay
+\item
+  philosophically incoherent
+\item
+  architecturally obsolete
+\end{itemize}
+
+JITOS instead models memory using:
+
+\begin{itemize}
+\tightlist
+\item
+  an immutable causal RMG substrate
+\item
+  per-process isolated SWS local memory
+\item
+  semantic layers
+\item
+  overlay graphs
+\item
+  projection memory (MH)
+\item
+  ephemeral compute caches
+\end{itemize}
+
+This requires a completely new memory model.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Decision}\label{decision}
+
+\textbf{The JITOS memory model is a two-tier system: 1. The RMG/DAG
+substrate as global, immutable objective memory 2. SWS-local memory
+domains as isolated, mutable subjective memory}
+
+With semantic and ephemeral sub-layers.**
+
+This memory model consists of four distinct regions:
+
+\subsubsection{1. Global Memory:}\label{global-memory}
+
+RMG substrate (truth)
+
+\begin{itemize}
+\tightlist
+\item
+  immutable
+\item
+  append-only
+\item
+  multi-layered
+\item
+  shared by all agents
+\item
+  causal order enforced
+\item
+  accessed only via projection
+\item
+  modified only through collapse
+\end{itemize}
+
+\subsubsection{2. Process Memory:}\label{process-memory}
+
+Shadow Working Set (SWS)
+
+\begin{itemize}
+\tightlist
+\item
+  isolated
+\item
+  mutable
+\item
+  speculative
+\item
+  structured as an overlay graph
+\item
+  destroyed on collapse or discard
+\item
+  host to semantic and structural edits
+\end{itemize}
+
+\subsubsection{3. Semantic Memory:}\label{semantic-memory}
+
+RMG-in-RMG layer
+
+\begin{itemize}
+\tightlist
+\item
+  ASTs
+\item
+  semantic deltas
+\item
+  provenance
+\item
+  LLM reasoning graphs
+\item
+  annotations
+\item
+  interpretations
+\item
+  higher-order structure
+\item
+  multi-scale internal event details
+\end{itemize}
+
+\subsubsection{4. Ephemeral Memory:}\label{ephemeral-memory}
+
+ECM (Ephemeral Compute Memory)
+
+\begin{itemize}
+\tightlist
+\item
+  caches
+\item
+  intermediate artifacts
+\item
+  build results
+\item
+  lint results
+\item
+  NOT preserved
+\item
+  destroyed when SWS ends
+\item
+  not part of truth
+\end{itemize}
+
+This memory model allows:
+
+\begin{itemize}
+\tightlist
+\item
+  perfect determinism
+\item
+  unbounded parallelism
+\item
+  multi-agent conduction
+\item
+  multi-scale representation
+\item
+  semantic richness
+\item
+  easy debugging
+\item
+  infinite replay
+\item
+  perfect provenance
+\end{itemize}
+
+It is the first memory model aligned with both causal physics and human
+cognition.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Rationale}\label{rationale}
+
+\subsubsection{3.1 Immutable global memory is the only safe
+model}\label{immutable-global-memory-is-the-only-safe-model}
+
+Shared mutable state leads to:
+
+\begin{itemize}
+\tightlist
+\item
+  race conditions
+\item
+  partial writes
+\item
+  nondeterministic bugs
+\item
+  thread safety nightmares
+\item
+  broken invariants
+\item
+  irreproducibility
+\end{itemize}
+
+JITOS's RMG substrate:
+
+\begin{itemize}
+\tightlist
+\item
+  never mutates
+\item
+  never races
+\item
+  never lies
+\item
+  never loses information
+\item
+  ensures replayability
+\item
+  matches distributed system realities
+\item
+  matches physics
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.2 SWS-local memory lets agents think without affecting
+the
+universe}\label{sws-local-memory-lets-agents-think-without-affecting-the-universe}
+
+Speculative work needs:
+
+\begin{itemize}
+\tightlist
+\item
+  freedom
+\item
+  mutability
+\item
+  local experiments
+\item
+  backtracking
+\item
+  private sandboxes
+\item
+  ephemeral states
+\item
+  subjective world models
+\end{itemize}
+
+SWS is the perfect arena.
+
+Everything an agent sees or edits is in SWS-local memory.
+
+Collapse merges SWS into truth.
+
+Discard evaporates SWS without consequence.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.3 Semantic memory expresses the meaning of
+computation}\label{semantic-memory-expresses-the-meaning-of-computation}
+
+JITOS is not just a state machine. It is a semantic universe.
+
+Semantic memory supports:
+
+\begin{itemize}
+\tightlist
+\item
+  provenance
+\item
+  ASTs
+\item
+  reasoning traces
+\item
+  tool semantics
+\item
+  code structure
+\item
+  structured diffs
+\item
+  transformation metadata
+\item
+  multi-scale region modeling
+\end{itemize}
+
+This is how machines understand meaning, not just bytes.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.4 Ephemeral compute memory accelerates computation
+without affecting
+truth}\label{ephemeral-compute-memory-accelerates-computation-without-affecting-truth}
+
+Builds and tests produce garbage. Caches must exist, but not persist.
+Temporary files, indexes, and analysis results should not:
+
+\begin{itemize}
+\tightlist
+\item
+  pollute truth
+\item
+  bloat the RMG
+\item
+  require future replay
+\end{itemize}
+
+ECM handles these concerns elegantly.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Alternatives Considered}\label{alternatives-considered}
+
+\subsubsection{4.1 Traditional mutable heap +
+stack}\label{traditional-mutable-heap-stack}
+
+\textbf{Rejected}: incompatible with causal model.
+
+\subsubsection{4.2 Pure CRDT memory}\label{pure-crdt-memory}
+
+\textbf{Rejected}: too flat, no semantic depth.
+
+\subsubsection{4.3 Event-sourcing-only
+memory}\label{event-sourcing-only-memory}
+
+\textbf{Rejected}: micro-events overwhelm representation; lacks semantic
+structure.
+
+\subsubsection{4.4 DAG-only memory}\label{dag-only-memory}
+
+\textbf{Rejected}: fails to capture nested structure; too shallow.
+
+\subsubsection{4.5 Dual DAG / semantic DB}\label{dual-dag-semantic-db}
+
+\textbf{Rejected}: artificial separation; creates coherence issues.
+
+The RMG + SWS memory model solves all these issues cleanly.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Consequences}\label{consequences}
+
+Positive:
+
+\begin{itemize}
+\tightlist
+\item
+  total determinism
+\item
+  unbreakable invariants
+\item
+  perfect reproducibility
+\item
+  semantic depth
+\item
+  structured analysis
+\item
+  multi-layer debugging
+\item
+  multi-agent safety
+\item
+  collapsible universes
+\item
+  no garbage in global memory
+\item
+  RMG integrity preserved
+\end{itemize}
+
+Negative:
+
+\begin{itemize}
+\tightlist
+\item
+  not compatible with old mental models
+\item
+  requires RMG-aware tooling
+\item
+  requires robust visualization
+\item
+  requires designing new debugging tools
+\item
+  requires teaching a new ``memory story''
+\end{itemize}
+
+These are acceptable trade-offs for a superior design.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Required Follow-Ups}\label{required-follow-ups}
+
+ADR-0006 mandates:
+
+\begin{itemize}
+\tightlist
+\item
+  Arch Doc Section 6: The Memory Model
+\item
+  update to Section 4 (collapse) for memory mapping
+\item
+  integration with SWS lifecycle
+\item
+  integration with MH projections
+\item
+  ephemeral memory lifecycle spec
+\item
+  semantic memory representation spec
+\item
+  RMG zoom-level mapping (\href{./ADR-0004.md}{ADR-0004})
+\item
+  provenance graph integration
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Decision}\label{decision-1}
+
+\textbf{Accepted.}
+
+JITOS uses a causal two-tier memory model:
+
+\begin{itemize}
+\tightlist
+\item
+  immutable global RMG memory
+\item
+  mutable SWS-local subjective memory
+\end{itemize}
+
+With semantic and ephemeral layers.
+
+This is the first memory model that unifies:
+
+\begin{itemize}
+\tightlist
+\item
+  causal physics
+\item
+  cognitive workflow
+\item
+  distributed computation
+\item
+  multi-agent systems
+\item
+  semantic computing
+\end{itemize}
+
+Memory is now geometry, not RAM.

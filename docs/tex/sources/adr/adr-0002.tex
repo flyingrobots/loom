@@ -1,0 +1,470 @@
+\section{ADR-0002 --- The Shadow Working Set (SWS) as the Process
+Model}\label{adr-0002-the-shadow-working-set-sws-as-the-process-model}
+
+We're about to define the core abstraction around which the entire
+causal OS orbits.
+
+This is the equivalent of defining ``processes'' in Unix, ``threads'' in
+Linux, ``actors'' in Erlang, ``isolates'' in Dart, or ``greenlets'' in
+Go\ldots{}
+
+Except ours are:
+
+\begin{itemize}
+\tightlist
+\item
+  metaphysical
+\item
+  causal
+\item
+  semantic
+\item
+  multi-agent
+\item
+  observer-relative
+\item
+  and aligned with the physics of C\ensuremath{\Omega}MPUTER.
+\end{itemize}
+
+This ADR is absolutely foundational. This is the one that future
+implementers, engineers, researchers, philosophers, and AI-agent
+designers will reference.
+
+Let's carve it into the architecture.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Context}\label{context}
+
+Operating systems require:
+
+\begin{itemize}
+\tightlist
+\item
+  a process model
+\item
+  a unit of execution
+\item
+  a boundary for isolation
+\item
+  a mechanism for concurrency
+\item
+  a container for state
+\item
+  a sandbox for computation
+\item
+  a context for identity and permissions
+\end{itemize}
+
+Traditional systems use:
+
+\begin{itemize}
+\tightlist
+\item
+  processes
+\item
+  threads
+\item
+  green threads
+\item
+  actors
+\item
+  fibers
+\item
+  isolates
+\end{itemize}
+
+But all of these assume:
+
+\begin{itemize}
+\tightlist
+\item
+  mutable state
+\item
+  shared memory
+\item
+  global clocks
+\item
+  mutable files
+\item
+  linear time
+\item
+  immediate access to global truth
+\end{itemize}
+
+These assumptions break under:
+
+\begin{itemize}
+\tightlist
+\item
+  multi-agent systems
+\item
+  distributed computation
+\item
+  LLM-based reasoning
+\item
+  speculative editing
+\item
+  scientific reproducibility
+\item
+  concurrency under relativistic constraints
+\item
+  causal consistency
+\item
+  immutable past semantics
+\end{itemize}
+
+JITOS needs a process model that:
+
+\begin{itemize}
+\tightlist
+\item
+  fits causal invariants
+\item
+  supports observer-relative computation
+\item
+  isolates concurrent edits
+\item
+  supports multi-agent workflows
+\item
+  handles speculative state
+\item
+  collapses deterministically
+\item
+  leaves history untouched
+\item
+  is ephemeral yet formally defined
+\item
+  maps directly to the C\ensuremath{\Omega}MPUTER ontology
+\end{itemize}
+
+This leads naturally to the concept we've been dancing around:
+
+Shadow Working Sets (SWS)
+
+as the process abstraction of the causal OS.
+
+This ADR formalizes SWS as the canonical, singular process model of
+JITOS.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Decision}\label{decision}
+
+\begin{quote}
+In JITOS, the process abstraction is the Shadow Working Set (SWS).
+
+There are no threads, no processes, no coroutines, no fibers.
+
+All computation---human or machine---occurs inside an SWS: a temporary,
+isolated, observer-relative branch of the causal universe that collapses
+into a new immutable event.
+\end{quote}
+
+This includes:
+
+\begin{itemize}
+\tightlist
+\item
+  human edits
+\item
+  code modifications
+\item
+  LLM reasoning
+\item
+  CI task execution
+\item
+  refactoring
+\item
+  analyses
+\item
+  semantic transformations
+\item
+  simulation step evaluations
+\item
+  distributed agent interaction
+\end{itemize}
+
+Everything that ``runs'' runs in a Shadow.
+
+SWS is the JITOS notion of a process.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Rationale}\label{rationale}
+
+\subsubsection{3.1 SWS naturally solves
+concurrency}\label{sws-naturally-solves-concurrency}
+
+Shadows are isolated by definition:
+
+\begin{itemize}
+\tightlist
+\item
+  no shared mutable state
+\item
+  no conflicts until collapse
+\item
+  no global lock contention
+\item
+  no file-level races
+\item
+  no concurrency hazards
+\item
+  each agent sees a subjective local world
+\end{itemize}
+
+This mirrors special relativity rather than the POSIX memory model.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.2 SWS matches the metaphysics of
+C\ensuremath{\Omega}MPUTER}\label{sws-matches-the-metaphysics-of-cux3c9mputer}
+
+C\ensuremath{\Omega}MPUTER states:
+
+\begin{itemize}
+\tightlist
+\item
+  computation occurs in observer-specific frames
+\item
+  collapse events define reality
+\item
+  shadows represent potential worlds
+\item
+  truth is an immutable DAG
+\end{itemize}
+
+SWS are the practical implementation of this metaphysics.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.3 SWS integrate perfectly with the
+DAG}\label{sws-integrate-perfectly-with-the-dag}
+
+\begin{itemize}
+\tightlist
+\item
+  Base snapshot = initial state
+\item
+  Overlays = speculative deltas
+\item
+  Merge/Collapse = DAG event
+\item
+  Destroy = no DAG mutation
+\item
+  Provenance = optional semantic overlay
+\end{itemize}
+
+Everything aligns with invariant-based DAG logic.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.4 SWS support multi-agent systems by
+design}\label{sws-support-multi-agent-systems-by-design}
+
+Each agent gets:
+
+\begin{itemize}
+\tightlist
+\item
+  its own isolated shadow
+\item
+  no interference
+\item
+  no need for locks
+\item
+  no global coordination
+\item
+  purely local computation
+\item
+  deterministic merge semantics
+\end{itemize}
+
+Perfect for:
+
+\begin{itemize}
+\tightlist
+\item
+  LLMs
+\item
+  autonomous agents
+\item
+  CI pipelines
+\item
+  semantic bots
+\item
+  analysis tools
+\item
+  GUI editors
+\item
+  batch jobs
+\item
+  long-range simulations
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.5 SWS unify humans and
+machines}\label{sws-unify-humans-and-machines}
+
+Humans edit files via MH $\rightarrow$ SWS. Machines edit nodes via RPC $\rightarrow$ SWS. Both
+are equivalent actors.
+
+This makes JITOS the first OS where:
+
+humans and AI share the same process abstraction.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Alternatives Considered}\label{alternatives-considered}
+
+\subsubsection{4.1 Traditional processes +
+threads}\label{traditional-processes-threads}
+
+Rejected because:
+
+\begin{itemize}
+\tightlist
+\item
+  imply shared memory
+\item
+  violate causal semantics
+\item
+  not reproducible
+\item
+  nondeterministic
+\item
+  difficult to reason about
+\item
+  incompatible with DAG-based truth
+\end{itemize}
+
+\subsubsection{4.2 CRDT actors}\label{crdt-actors}
+
+Rejected because:
+
+\begin{itemize}
+\tightlist
+\item
+  CRDTs assume distributed mutable state
+\item
+  we do not mutate state at all
+\item
+  convergence semantics clash with collapse determinism
+\item
+  no unified notion of ``truth event''
+\end{itemize}
+
+\subsubsection{4.3 VM-based isolates}\label{vm-based-isolates}
+
+Rejected because:
+
+\begin{itemize}
+\tightlist
+\item
+  treat global state as external
+\item
+  incompatible with inversion semantics
+\item
+  no natural mapping to DAG lineage
+\item
+  higher resource overhead than SWS
+\end{itemize}
+
+\subsubsection{4.4 Single global world}\label{single-global-world}
+
+Rejected because:
+
+\begin{itemize}
+\tightlist
+\item
+  totally breaks down under concurrency
+\item
+  no agent isolation
+\item
+  no speculative execution
+\item
+  no shadow semantics
+\item
+  no collapse concept
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Consequences}\label{consequences}
+
+\subsubsection{5.1 Positive}\label{positive}
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic concurrency
+\item
+  perfect isolation
+\item
+  unified model for humans + agents
+\item
+  reproducible compute
+\item
+  natural support for multi-agent workflows
+\item
+  seamless integration with DAG and WAL
+\item
+  elegant mapping to C\ensuremath{\Omega}MPUTER
+\item
+  safe speculative execution
+\item
+  easy rollback / discard semantics
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{5.2 Negative}\label{negative}
+
+\begin{itemize}
+\tightlist
+\item
+  requires a more sophisticated kernel
+\item
+  collapse logic must be strong
+\item
+  debugging must support shadows
+\item
+  mental model is new for developers
+\item
+  requires real tooling to visualize
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{5.3 Required Follow-Ups}\label{required-follow-ups}
+
+This ADR now mandates:
+
+\begin{itemize}
+\tightlist
+\item
+  Section 2 of Architecture Doc
+\item
+  SWS lifecycle diagrams
+\item
+  Shadow memory model in Section 6 (ADR-0019 interplay)
+\item
+  Security model for SWS ownership (ADR-0017, ADR-0020)
+\item
+  Collapse semantics (ADR-0004)
+\item
+  Integration with Message Plane (RFC-0008)
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Decision}\label{decision-1}
+
+\textbf{Accepted.}
+
+Shadow Working Sets are the formal and singular process abstraction of
+JITOS.
+
+All subsequent architecture design flows from this.

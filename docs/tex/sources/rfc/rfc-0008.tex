@@ -1,0 +1,553 @@
+\section{JIT RFC-0008}\label{jit-rfc-0008}
+
+\subsection{Message Plane Integration (MPI
+v1.0)}\label{message-plane-integration-mpi-v1.0}
+
+\subsubsection{Distributed Coordination for Shadow-Based Causal
+Computing}\label{distributed-coordination-for-shadow-based-causal-computing}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Summary}\label{summary}
+
+This RFC defines how JIT integrates with a Message Plane --- a
+distributed, topic-based communication layer used for:
+
+\begin{itemize}
+\tightlist
+\item
+  Shadow Working Set orchestration
+\item
+  multi-agent collaboration
+\item
+  patch flow
+\item
+  remote execution
+\item
+  distributed builds
+\item
+  workflow pipelines
+\item
+  collaborative editing
+\item
+  agent swarming
+\item
+  distributed computation
+\end{itemize}
+
+The Message Plane unifies event sourcing, actor systems, and controller
+loops, but grounded in causal DAG physics.
+
+JIT does not rely on the MP for correctness or determinism --- but uses
+it for coordination, dispatch, and parallelism.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Motivation}\label{motivation}
+
+Why do we need a Message Plane?
+
+Because the modern universe of computation is:
+
+\begin{itemize}
+\tightlist
+\item
+  multi-agent
+\item
+  distributed
+\item
+  asynchronous
+\item
+  latency-bound
+\item
+  partially observable
+\item
+  concurrency-rich
+\end{itemize}
+
+And Shadow Working Sets are isolated ephemeral worlds that must be:
+
+\begin{itemize}
+\tightlist
+\item
+  created
+\item
+  mutated
+\item
+  resolved
+\item
+  collapsed
+\item
+  synchronized
+\item
+  coordinated
+\end{itemize}
+
+The Message Plane enables:
+
+\begin{itemize}
+\tightlist
+\item
+  remote agent editing
+\item
+  shared tasks
+\item
+  distributed merges
+\item
+  CI pipelines
+\item
+  ``agent swarms''
+\item
+  LLM-based code modification
+\item
+  structured patch flow
+\end{itemize}
+
+It is the coordination fabric, not the truth fabric.
+
+The DAG is truth. The MP is conversation.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Architectural Role
+\end{enumerate}
+
+The Message Plane is: - stateless (mostly) - ephemeral - pub/sub based -
+non-authoritative - advisory
+
+GITD retains all authority. Message Plane cannot mutate the universe.
+
+Instead, MP delivers: - shadow commands - patch proposals - commit
+requests - merge directives - execution jobs - remote control messages
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Message Plane Concepts
+\end{enumerate}
+
+Topic
+
+A logical channel for message exchange.
+
+Subscriber
+
+Agent or local service listening on a topic.
+
+Publisher
+
+Agent or subsystem sending data into a topic.
+
+Payload
+
+CBOR-encoded messages.
+
+Transport
+
+Message Plane MAY use: - NATS - Kafka - Redis Streams - MQTT - Custom
+JIT-native layer - etc.
+
+MP is agnostic; RPC + invariants keep truth consistent.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  SWS Topics (Core Model)
+\end{enumerate}
+
+Each Shadow Working Set has its own topic namespace:
+
+jit.sws..patch jit.sws..analyze jit.sws..commit jit.sws..discard
+jit.sws..status
+
+These enable agent swarming: - LLMs editing the same shadow in
+coordinated fashion - CI tools analyzing patches - formatters, linters,
+compilers updating overlays - ``bots'' pushing semantic changes
+
+Invariant:
+
+MP interactions MUST NOT directly write to DAG.
+
+All changes must go through:
+
+shadow.apply\_patch shadow.commit
+
+via RPC.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Global Kernel Topics
+\end{enumerate}
+
+GITD itself uses global topics:
+
+jit.kernel.events jit.kernel.sync jit.kernel.ref\_updates
+jit.kernel.sws\_lifecycle
+
+These act as kernel notifications:
+
+\begin{itemize}
+\tightlist
+\item
+  SWS created/destroyed
+\item
+  commit collapse events
+\item
+  ref updates
+\item
+  distributed sync start/finish
+\end{itemize}
+
+These are for GUIs, dashboards, logs, orchestrators.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Message Payloads
+\end{enumerate}
+
+MP messages MUST be CBOR-encoded and MUST include:
+
+\{ ``sender'': agent\_id, ``ts'': logical\_clock, ``payload'':
+\{\ldots\} \}
+
+Why?
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic ordering
+\item
+  replay
+\item
+  causal tracing
+\item
+  provenance
+\end{itemize}
+
+Agents are first-class citizens.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Ordering Guarantees
+\end{enumerate}
+
+The MP provides:
+
+Per-topic FIFO ordering
+
+\begin{itemize}
+\tightlist
+\item
+  In each topic, messages preserve ordering
+\item
+  No guarantee across different topics
+\end{itemize}
+
+Delivery Semantics
+
+JIT requires at-least-once delivery.
+
+Why?
+
+\begin{itemize}
+\tightlist
+\item
+  collapse/commit is idempotent
+\item
+  patch operations are idempotent under \href{./RFC-0003.md}{RFC-0003}
+\item
+  ordering guarantees come from causal invariants, not MP
+\end{itemize}
+
+\subsubsection{Idempotence}\label{idempotence}
+
+All MP messages MUST be idempotent at RPC layer.
+
+If the same message arrives twice $\rightarrow$ same effect.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{9. SWS Coordination
+Patterns}\label{sws-coordination-patterns}
+
+\subsubsection{9.1 Multi-Agent Editing}\label{multi-agent-editing}
+
+Example flow:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Agent A publishes patch
+\item
+  Agent B publishes patch
+\item
+  SWS receives both
+\item
+  RPC layer applies patches in deterministic order
+\item
+  Conflicts resolved locally
+\item
+  Optional collapse
+\end{enumerate}
+
+\subsubsection{9.2 Agent Swarms}\label{agent-swarms}
+
+Topic:
+
+\begin{lstlisting}
+jit.sws.<id>.analyze
+\end{lstlisting}
+
+Multiple agents run:
+
+\begin{itemize}
+\tightlist
+\item
+  static analysis
+\item
+  semantic analysis
+\item
+  build/test
+\item
+  refactoring
+\item
+  documentation generation
+\item
+  risk scoring
+\end{itemize}
+
+All contribute overlays.
+
+\subsubsection{9.3 Human + Agent
+Co-Editing}\label{human-agent-co-editing}
+
+Human edits $\rightarrow$ FS watcher $\rightarrow$ SWS overlay Agent edits $\rightarrow$ MP patch $\rightarrow$ SWS
+overlay
+
+Equal footing.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{10. Distributed Sync}\label{distributed-sync}
+
+Message Plane carries:
+
+\begin{itemize}
+\tightlist
+\item
+  remote announcements
+\item
+  frontier messages
+\item
+  availability signals
+\item
+  ephemeral state
+\end{itemize}
+
+But all truth is validated and written through RPC $\rightarrow$ WAL $\rightarrow$ DAG.
+
+MP coordinates; GITD commits.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{11. MP and Conflict
+Convergence}\label{mp-and-conflict-convergence}
+
+MP can generate race conditions --- good.
+
+GITD must handle:
+
+\begin{itemize}
+\tightlist
+\item
+  multiple patches
+\item
+  conflicting edits
+\item
+  concurrent SWS updates
+\item
+  distributed overlay batching
+\item
+  delayed collapse
+\end{itemize}
+
+Through deterministic resolution rules in:
+
+\begin{itemize}
+\tightlist
+\item
+  \href{./RFC-0003.md}{RFC-0003} (SWS)
+\item
+  \href{./RFC-0005.md}{RFC-0005} (Inversion Engine)
+\end{itemize}
+
+MP stimulates concurrency. The kernel arbitrates.
+
+This is how emergent behavior appears.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{12. Fault Tolerance}\label{fault-tolerance}
+
+MP is advisory, so failure is:
+
+\begin{itemize}
+\tightlist
+\item
+  non-fatal
+\item
+  non-corrupting
+\item
+  recoverable
+\end{itemize}
+
+If MP crashes:
+
+\begin{itemize}
+\tightlist
+\item
+  SWS and DAG remain intact
+\item
+  WAL ensures time/log consistency
+\item
+  GITD performs eventual convergence
+\end{itemize}
+
+MP MUST be restartable without loss of correctness.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{13. Security}\label{security}
+
+MP MUST support:
+
+\begin{itemize}
+\tightlist
+\item
+  agent identity
+\item
+  signatures (optional)
+\item
+  topic-level ACLs
+\item
+  replay detection
+\item
+  rate limiting
+\item
+  sandboxing
+\end{itemize}
+
+SWS IDs MUST NOT be guessable.
+
+MP cannot impersonate GITD.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{14. Why MP Is Crucial}\label{why-mp-is-crucial}
+
+Because JIT is:
+
+\begin{itemize}
+\tightlist
+\item
+  multi-agent
+\item
+  distributed
+\item
+  post-file
+\item
+  observer-relative
+\item
+  shadow-native
+\end{itemize}
+
+MP enables:
+
+\begin{itemize}
+\tightlist
+\item
+  orchestration
+\item
+  automation
+\item
+  parallel editing
+\item
+  code swarms
+\item
+  semantic pipelines
+\item
+  build observers
+\item
+  remote agent fleets
+\item
+  consensus-driven transforms
+\end{itemize}
+
+MP is the nervous system to the DAG's spacetime and the Inversion
+Engine's physics.
+
+Without the MP:
+
+\begin{itemize}
+\tightlist
+\item
+  no agent cooperation
+\item
+  no swarming
+\item
+  no distributed verification
+\item
+  no real-time collaboration
+\item
+  no event-driven automation
+\end{itemize}
+
+With it?
+
+JIT becomes a living computational universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{15. Status \& Next Steps}\label{status-next-steps}
+
+\subsubsection{Next RFC:}\label{next-rfc}
+
+\href{./RFC-0009.md}{RFC-0009} --- Storage Tiering \& Rehydration (The
+cold/hot/warm substrate dynamics)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

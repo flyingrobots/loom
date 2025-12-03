@@ -1,0 +1,487 @@
+\section{JIT RFC-0002}\label{jit-rfc-0002}
+
+\subsection{Causal DAG Invariants (CDI
+v1.0)}\label{causal-dag-invariants-cdi-v1.0}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{1. Summary}\label{summary}
+
+This RFC defines the \textbf{global structural invariants} that govern
+the JIT causal substrate (GATOS-Core DAG). These invariants ensure:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic behavior
+\item
+  irreversible history
+\item
+  causality preservation
+\item
+  safe concurrency
+\item
+  shadow isolation semantics
+\item
+  conflict-free merges
+\item
+  correct replay
+\item
+  global consistency
+\end{itemize}
+
+These rules form the ``physics'' of the JIT universe.
+
+Everything: nodes, shadows, inversion, commits, sync. Everything depends
+on these invariants being preserved at all times.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{2. Motivation}\label{motivation}
+
+A causal DAG is only as correct as the invariants that define it.
+
+Break an invariant $\rightarrow$
+
+you break causality $\rightarrow$
+
+you break determinism $\rightarrow$
+
+you break reproducibility $\rightarrow$
+
+you break the entire universe.
+
+Therefore, JIT requires mathematical guarantees analogous to physical
+laws:
+
+\begin{itemize}
+\tightlist
+\item
+  No cycles
+\item
+  No deletion
+\item
+  No mutation of past
+\item
+  Monotonic growth
+\item
+  Deterministic edges
+\item
+  Append-only temporal extension
+\end{itemize}
+
+These invariants ensure:
+
+\begin{itemize}
+\tightlist
+\item
+  Shadow Working Sets are safe
+\item
+  commits collapse unambiguously
+\item
+  inversion rewrites do not corrupt the universe
+\item
+  distributed sync is correct
+\item
+  conflict resolution is deterministic
+\item
+  the DAG remains canonical across machines
+\end{itemize}
+
+Without this RFC, JIT is just ``a cool Git idea.'' With it, JIT becomes
+a \textbf{causal operating system}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{3. Invariant Definitions}\label{invariant-definitions}
+
+Below are the \textbf{non-negotiable} invariants of the GATOS-Core
+causal DAG.
+
+Each \textbf{MUST} hold at all times.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 1 --- Acyclicity (No
+Cycles)}\label{invariant-1-acyclicity-no-cycles}
+
+\begin{quote}
+\textbf{The causal graph \emph{MUST} be a Directed Acyclic Graph.}
+\end{quote}
+
+No node may reference itself as an ancestor, directly or indirectly.
+
+Why:
+
+Cycles would imply a state is both cause and effect of itself $\rightarrow$ paradox.
+
+Implications:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic replay
+\item
+  conflict-free topological ordering
+\item
+  causal consistency
+\item
+  no temporal violations
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 2 --- Append-Only (No
+Deletion)}\label{invariant-2-append-only-no-deletion}
+
+\begin{quote}
+\textbf{Once a node exists, it \emph{MUST NEVER} be altered or removed.}
+\end{quote}
+
+Past is immutable.
+
+Only new nodes can be appended.
+
+Why:
+
+Rewrite = ``new history'', not ``edited history.''
+
+Implications:
+
+\begin{itemize}
+\tightlist
+\item
+  perfect reproducibility
+\item
+  infinite audit trail
+\item
+  deterministic cross-machine sync
+\item
+  time is monotonic
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 3 --- No Mutation
+(Immutability)}\label{invariant-3-no-mutation-immutability}
+
+\begin{quote}
+\textbf{Nodes \emph{MUST} be immutable after creation.}
+\end{quote}
+
+Payload? Immutable.
+
+Metadata? Immutable.
+
+Parents? Immutable.
+
+Why:
+
+Mutation breaks identity.
+
+Identity breaks hashing.
+
+Hashing breaks causality.
+
+Causality breaks the universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 4 --- Causal Completeness (Parents
+First)}\label{invariant-4-causal-completeness-parents-first}
+
+\begin{quote}
+\textbf{A node \emph{MUST NOT} exist unless all its parents already
+exist.}
+\end{quote}
+
+This ensures that every event has its dependencies fully realized.
+
+Why:
+
+Guarantees proper topological ordering. Allows deterministic
+reconstruction.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 5 --- Monotonic Event
+Ordering}\label{invariant-5-monotonic-event-ordering}
+
+\begin{quote}
+\textbf{Adding a node \emph{MUST} increase the causal ``size'' of the
+universe.}
+\end{quote}
+
+I.e.
+
+the DAG must grow, not shrink or mutate.
+
+Why:
+
+Supports WAL replay, invariance under distribution, and time semantics.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 6 --- Parent List
+Canonicalization}\label{invariant-6-parent-list-canonicalization}
+
+\begin{quote}
+\textbf{Parents of a node \emph{MUST} be lexicographically sorted by
+NodeID.}
+\end{quote}
+
+Required to enforce deterministic encoding and hashing.
+
+Why:
+
+Two machines must produce identical results for identical inputs.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 7 --- Single Universe (Global
+Graph)}\label{invariant-7-single-universe-global-graph}
+
+\begin{quote}
+\textbf{There \emph{MUST} be one and only one global DAG per
+repository.}
+\end{quote}
+
+Shadows (SWS) represent \emph{subjective frames},
+
+but commit events collapse into \textbf{one global worldline}.
+
+Why:
+
+\begin{itemize}
+\tightlist
+\item
+  avoids universe bifurcation
+\item
+  ensures consistent truth
+\item
+  supports deterministic ref updates
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 8 --- Shadows Cannot Mutate the
+Universe}\label{invariant-8-shadows-cannot-mutate-the-universe}
+
+\begin{quote}
+\textbf{SWS MAY NOT directly modify the DAG.} \textbf{Only GITD through
+commit may append nodes to the DAG.}
+\end{quote}
+
+Why:
+
+Ensures shadow isolation and avoids race conditions / paradoxes.
+
+Shadows = potentiality.
+
+DAG = actuality.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 9 --- Deterministic Collapse
+(Commit)}\label{invariant-9-deterministic-collapse-commit}
+
+\begin{quote}
+\textbf{Given identical SWS and identical DAG frontier, commit
+\emph{MUST} always produce identical nodes.}
+\end{quote}
+
+This invariant turns commit into a pure, deterministic operator:
+
+\begin{lstlisting}
+collapse(sws, graph_state) $\rightarrow$ node
+\end{lstlisting}
+
+Why:
+
+\begin{itemize}
+\tightlist
+\item
+  no nondeterministic history
+\item
+  no divergence across machines
+\item
+  reproducible builds
+\item
+  deterministic rewriting
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 10 --- Rewrites Create, Never
+Mutate}\label{invariant-10-rewrites-create-never-mutate}
+
+\begin{quote}
+\textbf{Inversion rewrites \emph{MUST} produce new nodes rather than
+alter existing ones.}
+\end{quote}
+
+Rebases, merges, amends, cherry-picks:
+
+\begin{itemize}
+\tightlist
+\item
+  do not edit the past
+\item
+  generate inversion-rewrite nodes
+\item
+  map old$\rightarrow$new via rewrite tables
+\end{itemize}
+
+Why:
+
+This preserves immutability and allows algebraic reasoning.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 11 --- Temporal Consistency (Lamport
+Ordering)}\label{invariant-11-temporal-consistency-lamport-ordering}
+
+\begin{quote}
+\textbf{Every node \emph{MUST} include a logical timestamp that reflects
+causal ordering.}
+\end{quote}
+
+Not wall clock---logical clock.
+
+This ensures all nodes satisfy:
+
+\begin{lstlisting}
+parent.ts < child.ts
+\end{lstlisting}
+
+Why:
+
+\begin{itemize}
+\tightlist
+\item
+  handles distributed sync
+\item
+  avoids concurrency paradoxes
+\item
+  supports replay
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Invariant 12 --- Deterministic
+Reconstruction}\label{invariant-12-deterministic-reconstruction}
+
+\begin{quote}
+**Given the DAG, the system \emph{MUST} be able to reconstruct:
+\end{quote}
+
+\begin{itemize}
+\item
+  filesystem projection
+\item
+  Git view
+\item
+  subgraph slices
+\item
+  conflict states
+\item
+  shadow overlays
+
+  with perfect determinism.**
+\end{itemize}
+
+If reconstruction differs across machines, JIT collapses.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{4. Enforcement}\label{enforcement}
+
+GITD \textbf{MUST} enforce all invariants:
+
+\begin{itemize}
+\tightlist
+\item
+  before accepting a commit
+\item
+  before accepting remote nodes
+\item
+  during WAL replay
+\item
+  during local operation
+\item
+  during SWS operations
+\end{itemize}
+
+Violation \textbf{MUST} cause:
+
+\begin{itemize}
+\tightlist
+\item
+  reject the operation
+\item
+  quarantine the node
+\item
+  sync refusal
+\item
+  or emergency halt
+\end{itemize}
+
+JIT never allows invalid states.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{5. Security}\label{security}
+
+These invariants prevent:
+
+\begin{itemize}
+\tightlist
+\item
+  conflict-related nondeterminism
+\item
+  malicious forks
+\item
+  state corruption
+\item
+  backdated mutations
+\item
+  improper rewrites
+\end{itemize}
+
+A JIT universe is immune to:
+
+\begin{itemize}
+\tightlist
+\item
+  forced history rewrites
+\item
+  concurrency bugs
+\item
+  desync
+\item
+  unauthorized state mutation
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{6. Status \& Next Steps}\label{status-next-steps}
+
+This RFC:
+
+\begin{itemize}
+\tightlist
+\item
+  becomes mandatory for all future JIT implementations
+\item
+  underpins \href{./RFC-0003.md}{RFC-0003} (Shadow Semantics)
+\item
+  defines the physics of the JIT universe
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

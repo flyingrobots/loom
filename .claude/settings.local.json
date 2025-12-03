@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make arch:*)",
+      "Bash(tee:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)",
+      "Bash(make:*)",
+      "Bash(git ls-tree:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

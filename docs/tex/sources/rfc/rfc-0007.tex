@@ -1,0 +1,479 @@
+\section{JIT RFC-0007}\label{jit-rfc-0007}
+
+\subsection{JIT RPC API (JRAPI v1.0)}\label{jit-rpc-api-jrapi-v1.0}
+
+\subsubsection{The Syscall Layer of the Inversion
+Kernel}\label{the-syscall-layer-of-the-inversion-kernel}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Summary}\label{summary}
+
+This RFC defines the canonical RPC API for interacting with the JIT
+Kernel (GITD).
+
+This API replaces:
+
+\begin{itemize}
+\tightlist
+\item
+  POSIX syscalls
+\item
+  Git plumbing commands
+\item
+  ad hoc filesystem interactions
+\item
+  shell-based workflows
+\end{itemize}
+
+\ldots with a unified, structured, typed, agent-friendly interface.
+
+The RPC API provides:
+
+\begin{itemize}
+\tightlist
+\item
+  Shadow Working Set lifecycle
+\item
+  DAG operations
+\item
+  collapse/commit interface
+\item
+  Materialized Head sync
+\item
+  Git protocol abstraction
+\item
+  sync and replication primitives
+\item
+  introspection and query semantics
+\end{itemize}
+
+This is the ABI of the causal universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Motivation}\label{motivation}
+
+The Inversion Kernel is not a file-based OS.
+
+It cannot expose:
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!open()!}
+\item
+  \passthrough{\lstinline!read()!}
+\item
+  \passthrough{\lstinline!write()!}
+\item
+  \passthrough{\lstinline!fork()!}
+\item
+  \passthrough{\lstinline!exec()!}
+\end{itemize}
+
+These make no sense in a causal DAG.
+
+Instead, JIT must expose operations that manipulate:
+
+\begin{itemize}
+\tightlist
+\item
+  nodes
+\item
+  shadows
+\item
+  worldlines
+\item
+  projections
+\item
+  rewrites
+\item
+  collapse events
+\item
+  provenance
+\item
+  time
+\end{itemize}
+
+This necessitates a new syscall layer: JIT RPC.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Transport}\label{transport}
+
+RPC MUST support:
+
+\begin{itemize}
+\tightlist
+\item
+  Unix domain sockets (local)
+\item
+  TCP+TLS (remote)
+\item
+  QUIC (optional future transport)
+\end{itemize}
+
+Serialization MUST be:
+
+\begin{itemize}
+\tightlist
+\item
+  canonical CBOR (for determinism)
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  RPC Structure
+\end{enumerate}
+
+Every RPC request:
+
+\begin{lstlisting}
+{
+  "op": "string",
+  "payload": CBOR-encoded struct,
+  "ts": client_logical_clock
+}
+\end{lstlisting}
+
+Every RPC response:
+
+\begin{lstlisting}
+{
+  "status": "OK" | "ERR",
+  "result": CBOR-encoded struct,
+  "error": optional string
+}
+\end{lstlisting}
+
+Logical timestamps MUST propagate into SWS and WAL ordering.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. RPC Categories}\label{rpc-categories}
+
+We define RPCs in six categories:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Shadow Working Set (SWS) API
+\item
+  Collapse / Commit API
+\item
+  DAG Access API
+\item
+  Projection (MH) API
+\item
+  Git Protocol Facade API
+\item
+  Sync \& Replication API
+\item
+  Introspection \& Query API
+\end{enumerate}
+
+Let's detail each.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Shadow Working Set API}\label{shadow-working-set-api}
+
+These are the ``process control'' syscalls of the JIT OS.
+
+\subsubsection{6.1 shadow.create}\label{shadow.create}
+
+op: ``shadow.create'' payload: \{ ref: string \} result: \{ id: uuid,
+base\_node: NodeID \}
+
+Creates a new Shadow Working Set anchored to ref.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{6.2 shadow.apply\_patch}\label{shadow.apply_patch}
+
+op: ``shadow.apply\_patch'' payload: \{ id: uuid, patch: PatchData \}
+result: \{ updated: bool \}
+
+Applies an edit within the SWS. Diff $\rightarrow$ chunk $\rightarrow$ overlay nodes.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{6.3 shadow.diff}\label{shadow.diff}
+
+op: ``shadow.diff'' payload: \{ id: uuid, ref: string \} result: \{
+diff: DiffData \}
+
+Computes difference between SWS and another snapshot or ref.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{6.4 shadow.status}\label{shadow.status}
+
+op: ``shadow.status'' payload: \{ id: uuid \} result: \{ overlays: list,
+conflicts: list \}
+
+Local SWS state reporting.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{6.5 shadow.discard}\label{shadow.discard}
+
+op: ``shadow.discard'' payload: \{ id: uuid \} result: \{\}
+
+Destroys a shadow. Zero side effects.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Collapse / Commit API}\label{collapse-commit-api}
+
+Collapse is how shadows become real.
+
+\subsubsection{7.1 collapse.commit}\label{collapse.commit}
+
+op: ``collapse.commit'' payload: \{ id: uuid \} result: \{ snapshot:
+NodeID, rewrite: optional NodeID, conflicts: list, updated\_ref: string
+\}
+
+Triggers collapse. If conflicts cannot be deterministically resolved,
+commit MUST fail.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{7.2 collapse.validate}\label{collapse.validate}
+
+op: ``collapse.validate'' payload: \{ id: uuid \} result: \{ ok: bool,
+errors: list \}
+
+Checks whether a commit would succeed.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{8. DAG Access API}\label{dag-access-api}
+
+Direct substrate queries (read-only).
+
+\subsubsection{8.1 dag.get\_node}\label{dag.get_node}
+
+op: ``dag.get\_node'' payload: \{ id: NodeID \} result: NodeData
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{8.2 dag.get\_parents}\label{dag.get_parents}
+
+op: ``dag.get\_parents'' payload: \{ id: NodeID \} result: \{ parents:
+list \}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{8.3 dag.lineage}\label{dag.lineage}
+
+op: ``dag.lineage'' payload: \{ id: NodeID, depth: int \} result: \{
+ancestors: list \}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{8.4 dag.subgraph}\label{dag.subgraph}
+
+\begin{lstlisting}
+op: "dag.subgraph"
+payload: { root: NodeID }
+result: { nodes: list<Node>, edges: list<Edge> }
+\end{lstlisting}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\#\#9. Projection (Materialized Head) API
+
+MH is the human projection of truth.
+
+\subsubsection{9.1 mh.checkout}\label{mh.checkout}
+
+op: ``mh.checkout'' payload: \{ ref: string \} result: \{ root: NodeID,
+files: list \}
+
+Performs incremental reconstruction.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{9.2 mh.status}\label{mh.status}
+
+op: ``mh.status'' payload: \{\} result: \{ changes: list \}
+
+Simplified status for editors/IDE integrations.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{9.3 mh.read\_file}\label{mh.read_file}
+
+op: ``mh.read\_file'' payload: \{ path: string \} result: \{ content:
+bytes \}
+
+MH $\rightarrow$ SWS projection.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{10. Git Protocol Facade API}\label{git-protocol-facade-api}
+
+For backward compatibility.
+
+\subsubsection{10.1 git.upload\_pack}\label{git.upload_pack}
+
+op: ``git.upload\_pack'' payload: \{ wants: list, haves: list \} result:
+GitPackData
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{10.2 git.receive\_pack}\label{git.receive_pack}
+
+op: ``git.receive\_pack'' payload: GitObjectSet result: \{ updated:
+bool, rewrites: list \}
+
+JIT LOSSES NO FIDELITY HERE.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{11. Sync \& Replication API}\label{sync-replication-api}
+
+Distributed computing, remote sync.
+
+\subsubsection{11.1 sync.pull}\label{sync.pull}
+
+op: ``sync.pull'' payload: \{ remote: string, ref: string \} result: \{
+nodes: list, updates: list \}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{11.2 sync.push}\label{sync.push}
+
+op: ``sync.push'' payload: \{ remote: string, ref: string \} result: \{
+accepted: bool \}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{11.3 sync.missing\_nodes}\label{sync.missing_nodes}
+
+op: ``sync.missing\_nodes'' payload: \{ remote\_frontier: list \}
+result: \{ missing: list \}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{12. Introspection \& Query
+API}\label{introspection-query-api}
+
+For analytics, tools, LLMs, explorers, etc.
+
+\subsubsection{12.1 jit.info}\label{jit.info}
+
+op: ``jit.info'' payload: \{\} result: \{ dag\_size: int, node\_count:
+int, head: NodeID, sws\_active: int, mh\_state: MHInfo \}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{12.2 jit.search}\label{jit.search}
+
+op: ``jit.search'' payload: \{ query: QueryExpr \} result: \{ matches:
+list \}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{12.3 jit.graphviz}\label{jit.graphviz}
+
+\begin{lstlisting}
+op: "jit.graphviz"
+payload: { root: NodeID }
+result: { dotfile: string }
+\end{lstlisting}
+
+Enables visualization tooling.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{13. Error Model}\label{error-model}
+
+All RPCs MUST return:
+
+\begin{itemize}
+\tightlist
+\item
+  status: ERR
+\item
+  standardized error codes
+\item
+  optional human-readable message
+\end{itemize}
+
+\begin{quote}
+{[}!critical{]} Errors MUST NEVER corrupt the DAG or MH.
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{14. Security}\label{security}
+
+RPC must enforce:
+
+\begin{itemize}
+\tightlist
+\item
+  per-SWS isolation
+\item
+  signature validation
+\item
+  ref protections
+\item
+  access control (future)
+\item
+  secure transport
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{15. Why This API Matters}\label{why-this-api-matters}
+
+This is the syscall interface of the new OS.
+
+It:
+
+\begin{itemize}
+\tightlist
+\item
+  abstracts away direct file I/O
+\item
+  provides a stable ABI for agents
+\item
+  lets external systems integrate with JIT
+\item
+  supports introspection \& analysis
+\item
+  enables distributed correctness
+\item
+  replaces POSIX, Git plumbing, and half of Unix's syscall table
+\item
+  makes JITOS a real, buildable, extensible kernel
+\end{itemize}
+
+This is where the system becomes usable.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{16. Status \& Next Steps}\label{status-next-steps}
+
+\subsubsection{Next RFC:}\label{next-rfc}
+
+\href{./RFC-0008.md}{RFC-0008} --- Message Plane Integration
+(Distributed coordination \& SWS orchestration)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

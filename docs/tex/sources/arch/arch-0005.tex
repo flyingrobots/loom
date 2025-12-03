@@ -1,0 +1,127 @@
+
+\section*{Metadata}
+\begin{itemize}
+    \item \textbf{Status:} Final
+    \item \textbf{Owner:} James Ross
+    \item \textbf{Depends on:} ARCH-0001, ARCH-0002, ARCH-0003, ADR-0005
+    \item \textbf{Relates to:} ARCH-0006 (Memory Model), ARCH-0007 (Temporal), ARCH-0008 (Scheduler), ADR-0007 (RPC/ABI)
+\end{itemize}
+
+\hrule
+
+\section{Purpose and Scope}
+
+This document defines the \textbf{Materialized Head (MH)} and its backing index, the \textbf{Virtual Tree Index (VTI)}.
+
+\begin{itemize}
+    \item \textbf{RMG (ARCH-0003)} is the authoritative truth substrate.
+    \item \textbf{MH} is a projection of (Snapshot + SWS overlay) into a file-like tree for humans and legacy tools.
+    \item \textbf{VTI} is an ephemeral index that makes path resolution efficient and cache-friendly.
+\end{itemize}
+
+This section specifies the MH abstraction, VTI data structures, POSIX-style read/write semantics, content chunking, FUSE/VFS integration, and consistency invariants. MH is non-authoritative: destroying MH and VTI must not lose truth.
+
+\section{MH Abstraction}
+
+\subsection{Views per SWS}
+For each SWS, the kernel exposes two logical MH views:
+\begin{enumerate}
+    \item \textbf{Global View (Read-Only):} Projection of a chosen \texttt{SnapshotRef}. Supports read operations only; writes fail with \texttt{EROFS}. Intended for browsing immutable snapshots.
+    \item \textbf{SWS View (Read/Write):} Projection of \texttt{base\_snapshot} + \texttt{overlay} for a specific \texttt{SwsId}. Read operations see overlay content if present; writes mutate only SWS overlay (Layer 1 memory), never RMG.
+\end{enumerate}
+
+\subsection{Path Identity vs Node Identity}
+\begin{itemize}
+    \item \textbf{Node Identity:} \texttt{NodeId} in RMG; immutable.
+    \item \textbf{Path Identity:} \texttt{(snapshot\_or\_sws, path)} $\to$ \texttt{NodeId}.
+\end{itemize}
+Paths are not stable identifiers. MH implements the mapping, guaranteeing deterministic resolution until the overlay is edited.
+
+\section{Virtual Tree Index (VTI)}
+
+\subsection{Role}
+The VTI is an \textbf{Ephemeral Compute Memory (ECM)} index that accelerates path-to-node lookups, tracks overlay nodes, hides tombstones, and caches metadata. It is never written to WAL and is rebuilt lazily after restart.
+
+\subsection{Data Model}
+Per (view, path) we maintain a \texttt{VtiEntry}:
+\begin{lstlisting}[language=C]
+struct VtiEntry {
+    path_hash: u64,     // Key for fast lookup
+    path:      String,  // Canonical absolute path
+    node_id:   NodeId,  // Underlying RMG or overlay node
+    kind:      NodeKind, // FILE, DIR, SYMLINK
+    mode:      u32,     // Synthetic POSIX mode
+    size:      u64,     // Cached size in bytes
+    overlay:   bool,    // True if node lives in SWS overlay
+    tombstone: bool,    // True if path is deleted in overlay
+    dirty_meta: bool    // True if metadata needs recomputation
+}
+\end{lstlisting}
+
+\subsection{Maintenance}
+\begin{itemize}
+    \item \textbf{On SWS Write:} Update/insert \texttt{VtiEntry}. Mark \texttt{overlay = true} or \texttt{tombstone = true}. Mark parents dirty.
+    \item \textbf{On Collapse:} Update MH/VTI incrementally from collapse diff. Clear overlay flags as nodes merge into base snapshot.
+    \item \textbf{On Reboot:} Empty at boot. Lazily populate on access by walking RMG Tree.
+\end{itemize}
+
+\section{Path Resolution Algorithm}
+To resolve a path for a given SWS view:
+\begin{enumerate}
+    \item Normalize path.
+    \item Lookup in VTI:
+    \begin{itemize}
+        \item If \texttt{tombstone}, return \texttt{ENOENT}.
+        \item If \texttt{overlay}, return overlay \texttt{node\_id}.
+        \item If base entry, return base \texttt{node\_id}.
+    \end{itemize}
+    \item \textbf{Cache Miss:} Walk RMG Tree (base + overlay structures). Populate VTI entries. Return final \texttt{node\_id} or \texttt{ENOENT}.
+\end{enumerate}
+
+\section{POSIX Read/Write Semantics}
+
+\subsection{Reads}
+\begin{itemize}
+    \item \texttt{open(path, O\_RDONLY)}: Resolve via VTI. If content tree, create virtual handle mapping chunks to linear stream. If Blob, present directly.
+    \item \texttt{read(fd, buf)}: Compute chunk index from offset. Read Blob data. No RMG mutation.
+    \item \texttt{stat(path)}: Use VTI metadata or compute from RMG.
+\end{itemize}
+
+\subsection{Writes}
+\begin{itemize}
+    \item \texttt{open(path, O\_WRONLY)}: Resolve parent in SWS view. If file in base only, allocate new overlay \texttt{FileTree} (CoW). If in overlay, reuse.
+    \item \texttt{write(fd, buf)}: Append/overwrite into overlay content buffer (ECM). On flush/fsync, chunk into overlay Blobs and update \texttt{FileTree}. Update VTI size.
+    \item \texttt{unlink(path)}: Insert overlay tombstone. Mark VTI entry \texttt{tombstone = true}.
+    \item \texttt{rename(old, new)}: Move entry in overlay Tree. Update VTI path/hash.
+\end{itemize}
+
+\section{Content Chunking \& Projection}
+ARCH-0003 defines large files as trees of Blob chunks. MH hides this, presenting a linear byte stream.
+\begin{itemize}
+    \item \textbf{Read Projection:} Assemble contiguous buffer from chunks.
+    \item \textbf{Write Projection:} Buffer writes in ECM. On flush, cut buffers into chunks (fixed size or CDC), create new overlay Blobs, and update \texttt{FileTree}. Reuses unchanged Blobs (deduplication).
+\end{itemize}
+
+\section{Consistency \& Recovery}
+\begin{itemize}
+    \item \textbf{Consistency:} VTI entries must be consistent with SWS overlay + RMG base. VTI updates are atomic with respect to SWS operations.
+    \item \textbf{Crash \& Rebuild:} On crash, MH/VTI state is discarded. VTI is rebuilt lazily from authoritative RMG/WAL. No correctness guarantees depend on VTI persistence.
+\end{itemize}
+
+\section{FUSE / VFS Integration}
+MH can be surfaced via:
+\begin{enumerate}
+    \item \textbf{FUSE-like Daemon:} Translates host syscalls to JITOS RPC calls.
+    \item \textbf{In-Kernel VFS Module:} Direct calls to MH/VTI APIs.
+\end{enumerate}
+In both cases, the host sees a POSIX filesystem, but persistence is managed by RMG + WAL.
+
+\section{Security \& Permissions}
+\begin{itemize}
+    \item \textbf{MH Layer:} \texttt{VtiEntry.mode} derived from Policy nodes and AgentId.
+    \item \textbf{Enforcement:} Read ops verify read rights. Write ops verify write permissions for the subtree/ref. Denying at MH is the first line of defense; collapse re-checks permissions.
+\end{itemize}
+
+\section{Summary}
+ARCH-0005 defines MH/VTI as a non-authoritative filesystem projection backed by an ephemeral index. It implements POSIX-like semantics where mutations are localized to the SWS overlay until collapse. This closes the compatibility loop, allowing JITOS to present as a conventional OS while operating over the causal, append-only RMG substrate.
+

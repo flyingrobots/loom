@@ -1,0 +1,11 @@
+\begin{tikzpicture}[
+    layer/.style={draw=gray!60, thick, dashed}
+]
+
+\foreach \y in {0,-1,-2,-3,-4}{
+    \draw[layer] (-3,\y) -- (3,\y);
+}
+
+\node at (0,-5) {\small $\Omega$---Parallel Horizons};
+
+\end{tikzpicture}

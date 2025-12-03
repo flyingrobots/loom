@@ -1,0 +1,549 @@
+\section{\texorpdfstring{\textbf{Chapter 12 --- Interference as
+Constraint
+Resolution}}{Chapter 12 --- Interference as Constraint Resolution}}\label{chapter-12-interference-as-constraint-resolution}
+
+\subsection{\texorpdfstring{\textbf{When possibilities collide and shape
+each
+other.}}{When possibilities collide and shape each other.}}\label{when-possibilities-collide-and-shape-each-other.}
+
+In the previous chapter, we saw that rewrite bundles represent the
+structured set of next possible futures --- the local ``cluster'' of
+universes that could unfold from the current state.
+
+But bundles don't exist in isolation. They exist \textbf{together},
+inside the same RMG structure.
+
+And when multiple bundles overlap --- when two futures share structural
+commitments, or fight over the same region of the graph --- something
+fascinating happens:
+
+\begin{quote}
+\textbf{Possibility interacts.}
+\end{quote}
+
+Not physically. Not quantum mechanically. Not probabilistically.
+
+Structurally.
+
+Whenever multiple legal futures depend on the same RMG region, their
+constraints either:
+
+\begin{itemize}
+\tightlist
+\item
+  reinforce each other,
+\item
+  block each other,
+\item
+  or carve out a smaller shared region of possibility.
+\end{itemize}
+
+This is \textbf{interference}.
+
+Let's dig in.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.1 --- What Is Interference in
+RMG+DPO?}}{12.1 --- What Is Interference in RMG+DPO?}}\label{what-is-interference-in-rmgdpo}
+
+Interference happens when:
+
+\begin{itemize}
+\tightlist
+\item
+  two or more legal rewrites want to modify overlapping structure,\\
+\item
+  or share the same K-interface,
+\item
+  or have conflicting invariants,
+\item
+  or propose incompatible futures.
+\end{itemize}
+
+In formal terms:
+
+\begin{quote}
+\textbf{Two bundles interfere when they cannot both be extended to
+consistent worldlines.}
+\end{quote}
+
+In human terms:
+
+\begin{quote}
+\textbf{Two futures collide because they contradict each other.}
+\end{quote}
+
+This isn't random. This is structural inevitability --- a fundamental
+part of the geometry of computation.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.2 --- Three Kinds of
+Interference}}{12.2 --- Three Kinds of Interference}}\label{three-kinds-of-interference}
+
+There are three primary ways bundles interact:
+
+\subsection{\texorpdfstring{\textbf{(1) Destructive
+Interference}}{(1) Destructive Interference}}\label{destructive-interference}
+
+\textbf{One rewrite makes another impossible.}
+
+Examples:
+
+\begin{itemize}
+\tightlist
+\item
+  A rule deletes the region another rule needs to match.\\
+\item
+  A wormhole modifies the interface (K) so another wormhole no longer
+  aligns.
+\item
+  A deep rewrite closes off a future nested rewrite.
+\end{itemize}
+
+This is how RMG enforces safety.
+
+\subsection{\texorpdfstring{\textbf{(2) Constructive
+Interference}}{(2) Constructive Interference}}\label{constructive-interference}
+
+\textbf{Two rewrites reinforce a shared invariant, reducing curvature.}
+
+Examples:
+
+\begin{itemize}
+\tightlist
+\item
+  Two optimizations simplify adjacent regions.\\
+\item
+  One constraint guarantees the legality of another.
+\item
+  A normalization pass stabilizes multiple follow-up rewrites.
+\end{itemize}
+
+This is how systems ``clean themselves up.''
+
+\subsection{\texorpdfstring{\textbf{(3) Neutral
+Interference}}{(3) Neutral Interference}}\label{neutral-interference}
+
+\textbf{Two rewrites touch disjoint structure and don't affect each
+other.}
+
+This is how concurrency emerges --- not as threads, but as disjoint
+regions of legality.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.3 --- Why Interference Exists: The
+K-Graph}}{12.3 --- Why Interference Exists: The K-Graph}}\label{why-interference-exists-the-k-graph}
+
+Typed interfaces are everything.
+
+Recall:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{L} = pattern to delete\\
+\item
+  \textbf{K} = the preserved interface
+\item
+  \textbf{R} = pattern to add
+\end{itemize}
+
+Two rewrites interfere when:
+
+\begin{itemize}
+\tightlist
+\item
+  their L regions overlap,\\
+\item
+  their K invariants contradict,
+\item
+  their R outputs violate neighboring invariants,
+\item
+  or their rewrite regions intersect in incompatible ways.
+\end{itemize}
+
+Think of K as the ``rules of the room.''
+
+If two futures propose different doorways that require altering the same
+load-bearing wall?
+
+That room ain't having it.
+
+One will block the other. Sometimes both get blocked. Sometimes both
+coexist perfectly.
+
+The architecture of the universe defines the interference.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.4 --- Why This Looks Like Quantum
+Interference (But
+Isn't)}}{12.4 --- Why This Looks Like Quantum Interference (But Isn't)}}\label{why-this-looks-like-quantum-interference-but-isnt}
+
+There's a structural resemblance:
+
+\begin{itemize}
+\tightlist
+\item
+  futures overlap\\
+\item
+  constraints shape outcomes
+\item
+  interference patterns appear
+\item
+  bundles collapse
+\item
+  some paths reinforce, some cancel
+\end{itemize}
+
+But similarity \textbf{\ensuremath{\neq} physics}.
+
+Here's the split:
+
+\subsubsection{\texorpdfstring{\textbf{Quantum
+Interference:}}{Quantum Interference:}}\label{quantum-interference}
+
+\begin{itemize}
+\tightlist
+\item
+  amplitudes\\
+\item
+  superpositions
+\item
+  probability waves
+\item
+  unitary evolution
+\item
+  Born rule
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{RMG+DPO
+Interference:}}{RMG+DPO Interference:}}\label{rmgdpo-interference}
+
+\begin{itemize}
+\tightlist
+\item
+  structural legality\\
+\item
+  invariant preservation
+\item
+  conflicting rewrite regions
+\item
+  adjacency in rulial space
+\item
+  geometric consequence
+\end{itemize}
+
+In quantum mechanics, interference is \emph{numerical}.
+
+In RMG, interference is \emph{combinatorial}.
+
+In quantum mechanics, cancellation is amplitude math.
+
+In RMG, cancellation is ``these two rewrites can't coexist.''
+
+In quantum mechanics, collapse is measurement.
+
+In RMG, collapse is \textbf{scheduler choosing one consistent
+worldline}.
+
+Absolutely no physics.
+
+Just the geometry of constraints.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.5 --- Interference Shapes
+Curvature}}{12.5 --- Interference Shapes Curvature}}\label{interference-shapes-curvature}
+
+Remember curvature from Chapter 9?
+
+Now we can see how interference sculpts it:
+
+\subsubsection{\texorpdfstring{\textbf{High
+Curvature:}}{High Curvature:}}\label{high-curvature}
+
+\begin{itemize}
+\tightlist
+\item
+  lots of destructive interference\\
+\item
+  narrow cones
+\item
+  bundles conflict
+\item
+  constraints clash
+\item
+  structure brittle
+\item
+  debugging hell
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{Low
+Curvature:}}{Low Curvature:}}\label{low-curvature}
+
+\begin{itemize}
+\tightlist
+\item
+  constructive interference dominates\\
+\item
+  wide cones
+\item
+  many compatible futures
+\item
+  constraints align
+\item
+  structure forgiving
+\item
+  optimization easy
+\end{itemize}
+
+Interference determines:
+
+\begin{itemize}
+\tightlist
+\item
+  how many futures survive,
+\item
+  how bundles shrink or grow,
+\item
+  how worldlines ``lean,''
+\item
+  how stable a system feels.
+\end{itemize}
+
+This is the heart of computational physics.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.6 --- Interference as a Creative
+Force}}{12.6 --- Interference as a Creative Force}}\label{interference-as-a-creative-force}
+
+Interference is not just blocking.
+
+It's shaping.
+
+In many systems:
+
+\begin{itemize}
+\tightlist
+\item
+  patterns of conflicts define architecture\\
+\item
+  zones of constructive overlap become ``attractors''
+\item
+  rewrite sequences funnel toward stable regions
+\item
+  systems naturally converge to canonical forms
+\item
+  curved regions ``bend'' worldlines into optimized paths
+\end{itemize}
+
+This means:
+
+\begin{quote}
+\textbf{The system shapes its own behavior through bundle interaction.}
+\end{quote}
+
+This is why:
+
+\begin{itemize}
+\tightlist
+\item
+  refactoring works,\\
+\item
+  normalization stabilizes behavior,
+\item
+  simplifiers reduce chaos,
+\item
+  rewrite rules self-organize,
+\item
+  invariant-heavy languages ``feel'' smooth,
+\item
+  badly designed rulesets create chaos.
+\end{itemize}
+
+Structure fights. Structure collaborates. Structure organizes.
+
+It's all interference.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.7 --- Practical
+Implications}}{12.7 --- Practical Implications}}\label{practical-implications}
+
+Interference explains:
+
+\subsubsection{\texorpdfstring{\textbf{Debugging}}{Debugging}}\label{debugging}
+
+``You fixed one thing, everything else broke.''
+
+Two bundles were destructively interfering. You stepped on brittle
+structure.
+
+\subsubsection{\texorpdfstring{\textbf{Optimization}}{Optimization}}\label{optimization}
+
+``Inlining this function made 20 other passes unlock.''
+
+Constructive interference. Flattened curvature.
+
+\subsubsection{\texorpdfstring{\textbf{Design
+Patterns}}{Design Patterns}}\label{design-patterns}
+
+``This architecture just feels clean.''
+
+Interference patterns align into stable attractors.
+
+\subsubsection{\texorpdfstring{\textbf{AI
+Reasoning}}{AI Reasoning}}\label{ai-reasoning}
+
+``These hypothetical futures converge on similar solutions.''
+
+Bundles reinforce each other.
+
+\subsubsection{\texorpdfstring{\textbf{DSLs}}{DSLs}}\label{dsls}
+
+``This domain language is shockingly good at making hard problems
+easy.''
+
+The rule-set creates large zones of constructive interference --- local
+NP collapse.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.8 --- The Bundle Interference
+Map}}{12.8 --- The Bundle Interference Map}}\label{the-bundle-interference-map}
+
+Sometimes it helps to visualize the bundle interactions at a tick:
+
+\begin{lstlisting}
+    [Bundle A]
+       /\   
+      /  \     destructive
+     /    X----------\ 
+    /    / \          \
+   {\bfseries ?}----/---\----------{\bfseries ?}
+    \  /     \        /
+     \/       \      /
+    [Bundle B] \    /   constructive
+                \  /
+                 \/
+             [Shared Stable Future]
+\end{lstlisting}
+
+Where:
+
+\begin{itemize}
+\tightlist
+\item
+  {\bfseries ?} is destructive interference\\
+\item
+  the shared downward path is constructive
+\item
+  the branching region is neutral
+\end{itemize}
+
+It's not physics. It's topology.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{FOR THE
+NERDS{\texttrademark}}}{FOR THE NERDS{\texttrademark}}}\label{for-the-nerds}
+
+\subsection{\texorpdfstring{\textbf{Interference = Constraint
+Algebra}}{Interference = Constraint Algebra}}\label{interference-constraint-algebra}
+
+Two rules \textbf{R{\bfseries ?}} and \textbf{R{\bfseries ?}} interfere if:
+
+\begin{itemize}
+\tightlist
+\item
+  L{\bfseries ?} \ensuremath{\cap} L{\bfseries ?} \ensuremath{\neq} \ensuremath{\varnothing}\\
+\item
+  or (R{\bfseries ?}\ensuremath{\circ}K{\bfseries ?}) invalid
+\item
+  or (R{\bfseries ?}\ensuremath{\circ}K{\bfseries ?}) invalid
+\item
+  or R{\bfseries ?} and R{\bfseries ?} produce incompatible invariants
+\end{itemize}
+
+If you're in the rewriting community, this maps directly to:
+
+\begin{itemize}
+\tightlist
+\item
+  critical pair analysis
+\item
+  confluence conditions
+\item
+  Church-Rosser properties
+\item
+  orthogonality
+\item
+  joinability
+\item
+  peak reduction
+\end{itemize}
+
+But C\ensuremath{\Omega}MPUTER wraps it in:
+
+\begin{itemize}
+\tightlist
+\item
+  geometry\\
+\item
+  adjacency
+\item
+  bundles
+\item
+  curvature
+\item
+  Time Cubes
+\end{itemize}
+
+Which makes it usable for engineers instead of only for theorists.
+
+\emph{(End sidebar.)}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12.9 --- Transition: From Interference
+to
+Collapse}}{12.9 --- Transition: From Interference to Collapse}}\label{transition-from-interference-to-collapse}
+
+Now that we know how bundles interact, we can explain collapse with full
+clarity:
+
+\begin{quote}
+\textbf{Collapse is selecting one consistent future out of an
+interacting bundle cluster.}
+\end{quote}
+
+Not randomness. Not quantum. Not metaphysics. Not wavefunction death.
+
+Just:
+
+\begin{itemize}
+\tightlist
+\item
+  consistency
+\item
+  legality
+\item
+  priority
+\item
+  scheduling
+\end{itemize}
+
+And that's the topic of \textbf{Chapter 13}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

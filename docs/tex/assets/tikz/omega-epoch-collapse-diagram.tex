@@ -1,0 +1,13 @@
+\begin{tikzpicture}[
+    epoch/.style={rectangle,draw=black,thick,minimum width=3cm,minimum height=0.7cm,align=center},
+    arrow/.style={->, thick}
+]
+
+\node[epoch] (E1) at (-2,0) {Epoch 1};
+\node[epoch] (E2) at (2,0) {Epoch 2};
+
+\draw[arrow] (E1)--(E2);
+
+\node at (0,-1.5) {\small $\Omega$---Epoch Collapse};
+
+\end{tikzpicture}

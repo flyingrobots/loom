@@ -1,0 +1,419 @@
+\section{RFC-0020}\label{rfc-0020}
+
+JIT RFC-0020
+
+Security \& Permissions Model (SPM v1.0)
+
+Root of Trust, Agent Authority, and Global Causal Integrity
+
+Status: Draft\\
+Author: James Ross\\
+Contributors: JIT Community\\
+Requires:\\
+- RFC-0017 Agent Identity \& Signing\\
+- RFC-0003 SWS\\
+- RFC-0005 Inversion Engine\\
+- RFC-0011 Distributed Sync\\
+Start Date: 2025-11-29\\
+Target Spec: JITOS v0.x\\
+License: TBD
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines:\\
+- the security boundaries\\
+- permission rules\\
+- access control\\
+- commit authorization\\
+- ref update policies\\
+- SWS ownership model\\
+- remote trust model\\
+- sandboxing of LLM agents\\
+- protections for DAG integrity\\
+- replay protections\\
+- signature requirements
+
+Without this RFC, JIT is powerful but unsafe.\\
+With this RFC, JIT becomes a secure kernel.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Philosophy
+\end{enumerate}
+
+Security in JIT is grounded in:
+
+Causal Integrity
+
+Protect the DAG at all costs.\\
+Truth is immutable.
+
+Agent Accountability
+
+All actions must be attributable.
+
+Shadow Isolation
+
+Agents cannot mutate the universe until commit.
+
+Least Privilege
+
+Shadows see only what they need.
+
+Deterministic Enforcement
+
+Security rules MUST be deterministic.
+
+Distributed Trust
+
+Remote peers MUST prove identity.
+
+Semantic Safety
+
+Agents MUST declare intent (provenance).
+
+This model rejects:\\
+- global mutable state\\
+- root-level arbitrary writes\\
+- unverified remote changes\\
+- trust-by-default
+
+We follow physics, not legacy computing.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Security Domains
+\end{enumerate}
+
+JIT defines four major security domains:
+
+3.1 DAG Domain (Truth)
+
+Immutable. Sacred.\\
+Only GITD updates it.\\
+Only after deterministic collapse.\\
+Protected by signatures and invariants.
+
+3.2 SWS Domain (Shadow/Process)
+
+Ephemeral but isolated.\\
+Owned by an agent.\\
+Sandboxed.\\
+Limited authority.
+
+3.3 Materialized Head (Human Projection)
+
+Local representation.\\
+User-facing.\\
+Not authoritative.
+
+3.4 Distributed Sync Domain
+
+Remote peers, object stores, cross-machine negotiation.\\
+Must be authenticated, validated, and replay-safe.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Permission Model
+\end{enumerate}
+
+Every action MUST be explicitly authorized.
+
+4.1 Commit Permissions
+
+An agent MAY commit a given SWS only if:\\
+- they own the SWS\\
+- or have delegated authority
+
+Collapse MUST verify:\\
+- SWS.owner\\
+- agent signature\\
+- permission flags
+
+Unauthorized collapse MUST fail.
+
+{\bfseries ?}
+
+4.2 Ref Update Permissions
+
+Branch ref updates MUST require:\\
+- agent signature\\
+- authorization for that branch\\
+- optional approval rules (multi-sig)
+
+Tag ref updates MUST be forbidden unless:\\
+- explicit override\\
+- explicit permissions\\
+- administrative mode
+
+{\bfseries ?}
+
+4.3 Node Creation Permissions
+
+Any agent may propose overlay nodes\\
+(because SWS allows experimentation),\\
+BUT ONLY GITD:\\
+- attaches them to DAG\\
+- generates snapshot/rewrite nodes\\
+- updates refs\\
+- logs via WAL\\
+- enforces invariants
+
+Unauthorized node injection MUST fail.
+
+{\bfseries ?}
+
+4.4 Provenance Permissions
+
+Any agent MAY write provenance nodes\\
+as long as:\\
+- agent identity is valid\\
+- signature is valid\\
+- metadata is in allowed schema\\
+- size limits not exceeded\\
+- SWS domain permits it
+
+Provenance injection into the DAG DOES NOT alter truth,\\
+but MUST be validated.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Access Control (ACLs)
+\end{enumerate}
+
+ACL primitives include:
+
+allow(agent, action, resource)\\
+deny(agent, action, resource)\\
+role(agent) = \{privileges\}\\
+policy(branch) = \{rules\}
+
+Resources:\\
+- refs\\
+- SWS\\
+- nodes\\
+- provenance categories\\
+- remote sync endpoints\\
+- MH projections
+
+Actions:\\
+- commit\\
+- write-ref\\
+- sync\\
+- create-SWS\\
+- attach-provenance\\
+- read-node\\
+- query-JQL
+
+ACL rules MUST be deterministic.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Sandbox Model for Agents
+\end{enumerate}
+
+Agents MUST be sandboxed:
+
+6.1 LLM Agents
+
+LLMs MUST operate in:\\
+- isolated SWS\\
+- limited memory\\
+- no direct DAG access\\
+- no raw ref updates\\
+- provenance enforcement\\
+- signature enforcement\\
+- rate-limited MP access
+
+LLMs CAN propose changes.\\
+GITD decides.
+
+{\bfseries ?}
+
+6.2 Human Agents
+
+Humans may be granted:\\
+- direct ref authority\\
+- advanced collapse authority\\
+- provenance override
+
+They must still sign everything.
+
+{\bfseries ?}
+
+6.3 System Agents
+
+CI, linkers, formatters, etc.\\
+operate in low-permission SWS\\
+with tightly restricted actions.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Distributed Sync Security
+\end{enumerate}
+
+Remote sync MUST enforce:\\
+- signature validation\\
+- trust policies\\
+- denylist of malicious peers\\
+- ref update restrictions\\
+- causal invariant checks\\
+- secure transport (TLS, QUIC)\\
+- replay protection via logical timestamps
+
+Remote nodes MUST NOT be accepted without validation.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Integrity Protections
+\end{enumerate}
+
+The system MUST:\\
+- verify BLAKE3 hashes\\
+- reject malicious DAG injections\\
+- refuse history rewrites\\
+- refuse corrupted rewrite nodes\\
+- enforce invariants during replay\\
+- ensure no unauthorized ref changes
+
+If invariants fail $\rightarrow$\\
+panic, quarantine, or safe-mode execution.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Multi-Signature Mode (Optional)
+\end{enumerate}
+
+Branches may require:\\
+- 2-of-3 signatures\\
+- 3-of-5 committee\\
+- human-in-the-loop approvals\\
+- CI + human pairing
+
+This enables enterprise workflows.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  Audit Trails
+\end{enumerate}
+
+All security-relevant operations MUST be logged:\\
+- SWS creation/destruction\\
+- commit events\\
+- ref updates\\
+- provenance\\
+- agent identity delegation\\
+- capability negotiation\\
+- sync events\\
+- failed or rejected collapses
+
+Audit trails MUST be stored as DAG nodes or append-only logs for
+verification.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{10}
+\tightlist
+\item
+  Why Security Matters
+\end{enumerate}
+
+Because JIT is:\\
+- the first OS for multi-agent systems\\
+- the underlying physics for C\ensuremath{\Omega}MPUTER\\
+- the substrate for agent-based software development\\
+- the host of automated reasoning\\
+- the truth layer for distributed systems\\
+- the future backbone of reproducible computation
+
+Without a solid security model:\\
+- LLMs go rogue\\
+- distributed sync becomes dangerous\\
+- DAG poisoning attacks break truth\\
+- collapse events can be forged\\
+- humanity loses its audit trail
+
+With this RFC?
+
+JIT becomes secure enough to run the world.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{11}
+\tightlist
+\item
+  Status \& Next Steps
+\end{enumerate}
+
+We have now completed the full safety layer of JITOS.
+
+Possible next RFCs:\\
+- RFC-0021---Multi-Universe Federation Protocol (HUGE)\\
+- RFC-0022---Visualization \& Rendering Protocol\\
+- RFC-0023---DAG Schema Evolution\\
+- RFC-0024---C\ensuremath{\Omega}MPUTER Fusion Layer\\
+- RFC-0025---Distributed Scheduler (Agent Economy)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

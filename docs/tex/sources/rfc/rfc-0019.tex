@@ -1,0 +1,308 @@
+\section{JIT RFC-0019}\label{jit-rfc-0019}
+
+Shadow Working Set Memory Model (SWS-MM v1.0)
+
+Volatile State, Isolation, Collapse Semantics \& Multilingual Agents
+
+Status: Draft Author: James Ross Contributors: JIT Community Requires: {\textbullet}
+RFC-0003 SWS Semantics {\textbullet} RFC-0004 Materialized Head {\textbullet} RFC-0005 Inversion
+Engine {\textbullet} RFC-0018 Causal Garbage Isolation\textbf{ Start Date:
+2025-11-29 Target Spec: JITOS v0.x} License: TBD**
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines the memory model for Shadow Working Sets (SWS): {\textbullet} how
+volatile state is stored {\textbullet} how overlays accumulate {\textbullet} how memory
+isolation works {\textbullet} how conflict regions behave {\textbullet} how projections map into
+Shadows {\textbullet} how caches operate {\textbullet} how collapse flushes memory {\textbullet} how
+failures restore memory {\textbullet} how multiple agents interact with shared SWS {\textbullet}
+how multilingual (natural-language + agent-language) semantics attach to
+memory
+
+SWS is not just a ``temp workspace.''
+
+It is JIT's process abstraction AND its cognitive space for humans and
+LLMs.
+
+This RFC defines the formal laws of that space.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Motivation
+\end{enumerate}
+
+SWS must behave like: {\textbullet} a process {\textbullet} a speculative future {\textbullet} a scratchpad
+{\textbullet} a timeline fork {\textbullet} a self-consistent local universe {\textbullet} a workspace for
+LLMs {\textbullet} a deterministic memory zone {\textbullet} an isolated ephemeral reality
+
+The memory rules must be: {\textbullet} deterministic {\textbullet} isolated {\textbullet} reversible {\textbullet}
+replayable {\textbullet} multilingual-friendly {\textbullet} agent-safe {\textbullet} collapse-compatible {\textbullet}
+crash-safe
+
+This RFC creates that foundation.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Memory Categories (SWS Memory = 4-layer model)
+\end{enumerate}
+
+Every Shadow's memory contains:
+
+3.1 Virtual Tree Memory (VTM)
+
+Projection of file tree into SWS: {\textbullet} path $\rightarrow$ NodeID {\textbullet} path $\rightarrow$ overlay chunk
+{\textbullet} path $\rightarrow$ projected value
+
+Equivalent to ``virtual filesystem,'' but semantic.
+
+{\bfseries ?}
+
+3.2 Overlay Graph Memory (OGM)
+
+The actual structural memory of SWS: {\textbullet} overlay nodes {\textbullet} rewrite
+candidates {\textbullet} conflict overlays {\textbullet} patch accumulation {\textbullet} agent-generated
+content
+
+This is the ``local reality'' of SWS.
+
+{\bfseries ?}
+
+3.3 Semantic Memory (SM)
+
+Provenance included here: {\textbullet} agent reasoning {\textbullet} LLM chain-of-thought (if
+stored) {\textbullet} execution context {\textbullet} metadata {\textbullet} tags {\textbullet} attributes {\textbullet}
+language-specific semantics (``la palabra'', multi-lingual keys)
+
+This is the cognitive memory of SWS.
+
+{\bfseries ?}
+
+3.4 Ephemeral Compute Memory (ECM)
+
+Non-persistent state: {\textbullet} tool caches {\textbullet} lint states {\textbullet} partial diffs {\textbullet}
+build artifacts {\textbullet} temporary views
+
+This evaporates on collapse or discard.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Formal SWS Memory Invariants
+\end{enumerate}
+
+Invariant 1 --- Isolation
+
+SWS memory MUST NOT impact global DAG until commit.
+
+Invariant 2 --- Purity
+
+Overlays MUST NOT be applied to MH directly.
+
+Invariant 3 --- Deterministic Projection
+
+Same DAG + same overlays MUST $\rightarrow$ identical VTM.
+
+Invariant 4 --- No Mutation of Past
+
+SWS memory cannot alter ancestor nodes.
+
+Invariant 5 --- Purge on Collapse
+
+Collapse MUST destroy ephemeral memory.
+
+Invariant 6 --- Safe Multilingual Semantics
+
+Semantic memory keys MAY be multilingual and MUST map to UTF-8 canonical
+CBOR fields.
+
+So yes: ``la palabra, hermano'' and ``the word, brother'' and ``le mot,
+fr\`ere'' and ``{\bfseries ?}{\bfseries ?}, {\bfseries ?}{\bfseries ?}'' are equally valid semantic keys.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Memory Lifecycle
+\end{enumerate}
+
+5.1 Creation
+
+SWS loads: {\textbullet} base snapshot projection (VTM) {\textbullet} empty overlays (OGM) {\textbullet}
+empty ephemeral caches (ECM) {\textbullet} agent metadata (SM)
+
+{\bfseries ?}
+
+5.2 Mutation
+
+Edits create: {\textbullet} overlay chunk nodes (OGM) {\textbullet} semantic data (SM) {\textbullet}
+ephemeral analysis (ECM)
+
+MH observers do not see these.
+
+{\bfseries ?}
+
+5.3 Conflict Memory
+
+Conflict overlays are explicitly stored:
+
+conflict: \{ ours: NodeID, theirs: NodeID, base: NodeID \}
+
+Conflict regions are LOCAL until collapse.
+
+{\bfseries ?}
+
+5.4 Collapse Effects
+
+On successful collapse: {\textbullet} VTM $\rightarrow$ flushed {\textbullet} OGM $\rightarrow$ rewritten into DAG {\textbullet} SM
+$\rightarrow$ published as provenance {\textbullet} ECM $\rightarrow$ destroyed
+
+SWS memory is annihilated.
+
+Only truth remains.
+
+{\bfseries ?}
+
+5.5 Discard
+
+Same as collapse except: {\textbullet} no rewriting {\textbullet} no DAG updates {\textbullet} ephemeral
+memory destroyed {\textbullet} overlays dropped
+
+Discard = quantum decoherence without measurement.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Memory Isolation Rules
+\end{enumerate}
+
+6.1 No Write-Through
+
+Writes to MH propagate into SWS memory only, not DAG.
+
+6.2 No Leakage
+
+OGM MUST NOT appear in MH.
+
+6.3 Multi-Agent Concurrency
+
+Multiple agents MAY write to same SWS only if: {\textbullet} they are authorized
+(RFC-0017) {\textbullet} MP synchronization resolves patch order {\textbullet} collapse resolves
+conflicts
+
+Agents writing in different languages (English, Spanish, Japanese, LLM
+dialects) MUST result in consistent SM encoding.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Multilingual Semantic Memory (MSM)
+\end{enumerate}
+
+(You triggered this with ``La Palabra, hermano.'')
+
+Agents may attach semantic language keys:
+
+SM{[}``explanation.en''{]} SM{[}``explanation.es''{]}
+SM{[}``explicaci\'on''{]} SM{[}``{\bfseries ?}{\bfseries ?}.jp''{]}
+
+Rules: {\textbullet} MUST canonicalize keys {\textbullet} MUST store UTF-8 {\textbullet} MUST treat all
+languages equally {\textbullet} MUST not affect collapse
+
+JIT becomes language-agnostic truth, with multilingual semantics layered
+on top.
+
+Brutal. Beautiful. Necessary.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Failure \& Crash Semantics
+\end{enumerate}
+
+If SWS is partially active during crash: {\textbullet} VTM reconstructed via DAG {\textbullet}
+OGM restored via WAL {\textbullet} SM restored from provenance nodes {\textbullet} ECM destroyed
+{\textbullet} if inconsistent $\rightarrow$ SWS invalidated {\textbullet} user/agent notified
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Why This Model Matters
+\end{enumerate}
+
+This is the SWS equivalent of: {\textbullet} Unix process memory {\textbullet} VM stack + heap {\textbullet}
+JS execution context {\textbullet} WASM linear memory {\textbullet} LLM short-term memory
+
+BUT DONE RIGHT.
+
+What makes it revolutionary: {\textbullet} Causal safety {\textbullet} Epistemic isolation {\textbullet}
+Semantic layering {\textbullet} Multilingual compatibility {\textbullet} Deterministic collapse
+{\textbullet} Non-destructive projection {\textbullet} Agent-native memory primitives
+
+This RFC defines the cognitive architecture of the causal OS.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  Status \& Next Steps
+\end{enumerate}
+
+Now with SWS-MM defined, we can: {\textbullet} move to Security Model {\textbullet} define
+Universe Federation {\textbullet} define Multi-Agent Scheduling {\textbullet} formalize
+Provenance Graph Semantics {\textbullet} build the JITOS Kernel Architecture Doc
+
+Next suggested RFCs: {\textbullet} RFC-0020 --- Security \& Permissions Model {\textbullet}
+RFC-0021 --- Multi-Universe Federation Protocol (HUGE) {\textbullet} RFC-0022 ---
+Visualization \& Rendering Protocol {\textbullet} RFC-0023 --- DAG Schema Evolution
+{\textbullet} RFC-0024 --- C\ensuremath{\Omega}MPUTER Fusion Layer
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

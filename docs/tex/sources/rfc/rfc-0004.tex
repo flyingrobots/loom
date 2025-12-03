@@ -1,0 +1,565 @@
+\section{JIT RFC-0004}\label{jit-rfc-0004}
+
+\subsection{Materialized Head: The Human Projection Layer (MHP
+v1.0)}\label{materialized-head-the-human-projection-layer-mhp-v1.0}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Summary}\label{summary}
+
+This RFC defines Materialized Head (MH) --- JIT's representation of the
+global graph as a human-friendly filesystem. It is the illusion layer
+that provides:
+
+\begin{itemize}
+\tightlist
+\item
+  familiar file I/O
+\item
+  editor/IDE integration
+\item
+  compatibility with existing tools
+\item
+  Git CLI support
+\item
+  deterministic file reconstruction
+\end{itemize}
+
+Materialized Head is not the true state of the universe --- it is a
+shadow projection, analogous to Plato's Cave.
+
+The DAG is reality. Materialized Head is perception.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Motivation}\label{motivation}
+
+Humans require:
+
+\begin{itemize}
+\tightlist
+\item
+  files
+\item
+  directories
+\item
+  text editors
+\item
+  terminal-based workflows
+\item
+  Git operations
+\end{itemize}
+
+But JIT uses:
+
+\begin{itemize}
+\tightlist
+\item
+  nodes
+\item
+  causal graphs
+\item
+  rewrites
+\item
+  SWS overlays
+\item
+  collapse events
+\end{itemize}
+
+There must be a bridge --- a projection system that maps a
+high-dimensional causal geometry into a low-dimensional tree of files.
+
+Materialized Head provides this layer without sacrificing:
+
+\begin{itemize}
+\tightlist
+\item
+  determinism
+\item
+  immutability
+\item
+  causal truth
+\item
+  JIT invariants
+\end{itemize}
+
+This is how humans work inside a post-file universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Definition}\label{definition}
+
+Materialized Head is a filesystem view backed by:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Tree Index (LMDB)
+\item
+  Working Directory Mirror
+\item
+  Metadata Cache
+\item
+  Filesystem Watcher
+\item
+  Projection Engine
+\end{enumerate}
+
+It is tied to a ref (typically HEAD), representing one particular slice
+of objective reality.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Core Principles}\label{core-principles}
+
+\subsubsection{4.1 MH is Epistemic}\label{mh-is-epistemic}
+
+Materialized Head is not truth. It is a shadow of truth.
+
+Only the DAG carries objective meaning. MH is a convenient fiction.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.2 MH Must Be
+Deterministic}\label{mh-must-be-deterministic}
+
+Given:
+
+\begin{itemize}
+\tightlist
+\item
+  a snapshot node
+\item
+  the node store
+\item
+  \href{./RFC-0001.md}{RFC-0001} encoding
+\end{itemize}
+
+Materialized Head \textbf{MUST} reconstruct the same file tree
+everywhere.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.3 MH is Incremental}\label{mh-is-incremental}
+
+Reconstruction \textbf{MUST} be incremental, not full:
+
+\begin{itemize}
+\tightlist
+\item
+  It \textbf{MUST} only materialize files that change.
+\item
+  Unchanged paths \textbf{MUST} remain untouched.
+\item
+  Directory structure \textbf{MUST} be updated lazily.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.4 MH Is Not
+Write-Through}\label{mh-is-not-write-through}
+
+Writes to the working directory NEVER mutate reality.
+
+They:
+
+\begin{itemize}
+\tightlist
+\item
+  update MH state
+\item
+  trigger overlay creation
+\item
+  enter Shadow Working Sets (SWS)
+\end{itemize}
+
+MH is the input to SWS, not the substrate.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.5 MH Must Be Fast}\label{mh-must-be-fast}
+
+Key performance requirements:
+
+\begin{itemize}
+\tightlist
+\item
+  git status \textless{} 20ms
+\item
+  file edits detected \textless{} 10ms
+\item
+  diff computation \textless{} 50ms
+\end{itemize}
+
+Achieved by:
+
+\begin{itemize}
+\tightlist
+\item
+  tree-index caching
+\item
+  file metadata hashing
+\item
+  fs watchers
+\item
+  minimal reconstruction
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Tree Index (The Real Data
+Structure)}\label{tree-index-the-real-data-structure}
+
+The Tree Index is the authoritative representation of the human-facing
+file system.
+
+It maps:
+
+\begin{lstlisting}
+path $\rightarrow$ FileProjection
+\end{lstlisting}
+
+Where:
+
+\begin{lstlisting}
+FileProjection {
+node: NodeID
+size: int
+hash: blake3-256
+mtime: timestamp
+flags: bitset (conflict, executable, symlink, etc.)
+}
+\end{lstlisting}
+
+Stored in LMDB for durability.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Working Directory Mirror}\label{working-directory-mirror}
+
+MH maintains a mirror of the file tree on disk under actual OS files.
+
+Rules:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Only modified files are rewritten.
+\item
+  Unchanged files are untouched between checkouts.
+\item
+  Conflicted files include conflict markers.
+\item
+  Deleted files are removed deterministically.
+\item
+  Symlinks are restored exactly.
+\end{enumerate}
+
+This mirror is the cave wall.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Conflict Semantics}\label{conflict-semantics}
+
+During merges/rebases/inversions:
+
+Materialized Head \textbf{MUST} support multi-stage entries:
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!BASE!}
+\item
+  \passthrough{\lstinline!OURS!}
+\item
+  \passthrough{\lstinline!THEIRS!}
+\item
+  \passthrough{\lstinline!RESOLVED!}
+\end{itemize}
+
+The index tracks all three, but the filesystem presents textual conflict
+markers for human resolution.
+
+Example markers (must match Git exactly):
+
+\textless\textless\textless\textless\textless\textless\textless{} OURS
+\ldots content\ldots{} ======= \ldots content\ldots{}
+\textgreater\textgreater\textgreater\textgreater\textgreater\textgreater\textgreater{}
+THEIRS
+
+After git add, a new file-chunk node is created and the conflict entry
+becomes \passthrough{\lstinline!RESOLVED!}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{8. Relationship to SWS}\label{relationship-to-sws}
+
+\begin{quote}
+{[}!WARNING{]} \emph{This is critical:}
+\end{quote}
+
+\subsubsection{8.1 MH serves humans; SWS serves
+agents.}\label{mh-serves-humans-sws-serves-agents.}
+
+MH performs:
+
+\begin{itemize}
+\tightlist
+\item
+  file reads
+\item
+  file writes
+\item
+  Git CLI operations
+\item
+  editor interaction
+\end{itemize}
+
+SWS performs:
+
+\begin{itemize}
+\tightlist
+\item
+  ephemeral computation
+\item
+  speculative operations
+\item
+  agent-based edits
+\item
+  automated transformations
+\item
+  previews
+\end{itemize}
+
+\subsubsection{8.2 MH must remain consistent with DAG +
+SWS}\label{mh-must-remain-consistent-with-dag-sws}
+
+When:
+
+\begin{itemize}
+\tightlist
+\item
+  commit occurs
+\item
+  ref updates
+\item
+  remote sync
+\item
+  SWS collapse
+\end{itemize}
+
+MH must merge its view with the new universe state.
+
+This may cause:
+
+\begin{itemize}
+\tightlist
+\item
+  local changes being rebased
+\item
+  conflicts
+\item
+  forced refresh
+\item
+  incremental reconstruction
+\end{itemize}
+
+Consistency \textbf{MUST} be maintained at all times.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{9. Filesystem Watcher}\label{filesystem-watcher}
+
+MH \textbf{MUST} include a watcher that detects:
+
+\begin{itemize}
+\tightlist
+\item
+  file edits
+\item
+  renames
+\item
+  deletes
+\item
+  directory creation
+\end{itemize}
+
+Watcher events become SWS overlays.
+
+MH does NOT ``write'' to the DAG directly --- only SWS can trigger
+commit.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  Checkout Semantics
+\end{enumerate}
+
+During checkout:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Retrieve snapshot node
+\item
+  Reconstruct tree-index
+\item
+  Apply incremental updates to working directory
+\item
+  Discard any out-of-date SWS associated with the ref
+\item
+  Update MH metadata
+\item
+  Update active shadow context
+\end{enumerate}
+
+Performance requirement:
+
+\begin{itemize}
+\tightlist
+\item
+  checkout \textless{} 150ms on typical repos
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{11. Revert \& Reset Behavior}\label{revert-reset-behavior}
+
+Revert:
+
+\begin{itemize}
+\tightlist
+\item
+  create inversion node
+\item
+  update MH via tree-index
+\item
+  rewrite filesystem for changed paths
+\end{itemize}
+
+Reset:
+
+\begin{itemize}
+\tightlist
+\item
+  detach MH from previous overlays
+\item
+  reconstruct tree-index
+\item
+  remove untracked files if requested
+\end{itemize}
+
+MH must remain deterministic.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{12. Sync Semantics (Remote)}\label{sync-semantics-remote}
+
+When pulling from remote:
+
+\begin{itemize}
+\tightlist
+\item
+  fetch new snapshot nodes
+\item
+  merge with MH tree-index
+\item
+  handle conflicts
+\item
+  present conflict markers
+\item
+  ensure deterministic rehydration (RFC-0003)
+\end{itemize}
+
+MH must remain consistent with the updated universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{13. Failure \& Crash
+Semantics}\label{failure-crash-semantics}
+
+Upon crash or abrupt termination:
+
+\begin{itemize}
+\tightlist
+\item
+  MH reconstruction \textbf{MUST} be possible from:
+\item
+  the DAG
+\item
+  the WAL
+\item
+  the tree-index
+\end{itemize}
+
+MH is fully recoverable as long as the substrate exists.
+
+Filesystem inconsistencies are ALWAYS repaired during initialization.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{14. Security}\label{security}
+
+MH must obey:
+
+\begin{itemize}
+\tightlist
+\item
+  no SWS can bypass commit
+\item
+  no direct DAG mutation
+\item
+  no arbitrary node insertion
+\item
+  permissions match underlying OS
+\item
+  signature validations enforced at commit
+\end{itemize}
+
+Filesystem writes are sandboxed to working directory.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{15. Why MH Is Foundational}\label{why-mh-is-foundational}
+
+Materialized Head provides:
+
+\begin{itemize}
+\tightlist
+\item
+  human compatibility
+\item
+  backwards Git compatibility
+\item
+  stable user workflows
+\item
+  deterministic projections
+\item
+  performance
+\item
+  reproducibility
+\item
+  separation of observer frames
+\item
+  the illusion needed for humans to operate in a post-file world
+\end{itemize}
+
+MH is the human lens through which the geometric universe of JIT becomes
+visible.
+
+It is the shadow on the wall.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

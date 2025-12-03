@@ -1,0 +1,203 @@
+\sectionbreak
+\section{Recursive Metagraphs}
+\label{sec:rmg}
+
+In this section we define Recursive Metagraphs (RMGs) and relate them to
+standard graph models and typed open graphs.  An RMG is a finite typed
+open graph whose nodes and edges may themselves carry RMGs recursively,
+forming a finitely branching, well-founded tree of graphs.
+
+\subsection{Inductive definition}
+
+Fix a set $P$ of atomic payloads (blobs, literals, external IDs).
+
+\begin{definition}[Recursive Metagraph]\label{def:rmg}
+The class $\RMG$ of \emph{recursive metagraphs} is the least set closed
+under the following constructors:
+\begin{enumerate}[leftmargin=*]
+  \item for each $p \in P$ there is an \emph{atom} $\mathrm{Atom}(p)
+    \in \RMG$;
+  \item for any finite directed multigraph $S = (V,E,s,t)$ and
+    assignments $\alpha : V \To \RMG$, $\beta : E \To \RMG$, the triple
+    $(S,\alpha,\beta)$ is in $\RMG$.
+\end{enumerate}
+\end{definition}
+
+We write an element of $\RMG$ as either an atom or as a ``1-skeleton''
+graph decorated by attachments on vertices and edges.  Attachments
+themselves may be recursive metagraphs, so this attachment structure
+can nest arbitrarily deeply.  This definition matches the
+set-theoretic and initial-algebra presentation.
+
+\paragraph{Example (A tiny recursive metagraph).}
+As a concrete instance, consider a program call graph where each
+function node carries its own abstract syntax tree (AST) and each call
+edge carries a small provenance graph (e.g.\ optimisation decisions or
+runtime statistics).  We can model this as an RMG whose skeleton has
+nodes $v_f,v_g$ for functions $f,g$, a directed edge
+$e_{\mathsf{call}} : v_f \to v_g$ for the call, and attachments:
+$\alpha(v_f)$ the AST of $f$, $\alpha(v_g)$ the AST of $g$, and
+$\beta(e_{\mathsf{call}})$ the call provenance.
+
+\subsection{Initial algebra viewpoint}
+
+Let $\mathcal{G}$ be a small collection of allowable skeleton shapes
+(finite directed multigraphs up to isomorphism).  Define a finitary
+polynomial endofunctor
+$F : \Set \To \Set$ by
+\[
+  F(X) = P + \coprod_{S\in\mathcal{G}} (V_S \To X) \times (E_S \To X).
+\]
+Then $\RMG$ is (up to isomorphism) the carrier of the initial
+$F$-algebra.  This yields the usual structural recursion and induction
+principles: every function out of $\RMG$ is uniquely determined by its
+action on atoms and on decorated skeletons.
+
+\subsection{Unfoldings and recursion schemes}
+
+The depth of an RMG $X$ is the length of the longest attachment chain
+in $X$; finite depth follows from the inductive definition.  For
+$k \in \mathbb{N}$, the \emph{$k$-unfolding} of $X$, written
+$\mathrm{unf}_k(X)$, replaces each attachment at depth $k$ or greater
+by an opaque atom while preserving all structure at depths
+$0,\ldots,k{-}1$.  Each $\mathrm{unf}_k(X)$ is a finitely branching RMG
+obtained by structural recursion on depth.
+
+The \emph{infinite unfolding}
+$\mathrm{unf}_\infty(X)$ is the directed colimit of the
+$\mathrm{unf}_k(X)$ along the truncation maps
+$\mathrm{unf}_k(X) \to \mathrm{unf}_{k+1}(X)$ that agree on depths
+$0,\ldots,k{-}1$.  Every finite pattern lives in some finite unfolding,
+so reasoning about $X$ via recursion schemes (catamorphisms,
+anamorphisms) can be reduced to these finite approximants and then
+passed to the colimit.  We do not rely on any stronger universal
+property of $\mathrm{unf}_\infty(X)$ in this paper.
+
+\subsection{Morphisms and category of RMGs}
+
+\begin{definition}[RMG morphism]
+We define morphisms by structural recursion on RMG depth (the nesting level in
+the construction of Definition~\ref{def:rmg}).  First form the
+discrete category $\mathbf{P}$ with $\mathrm{Ob}(\mathbf{P}) = P$ and
+$\mathrm{Mor}(\mathbf{P})$ containing only identity morphisms.  We define the
+RMG hom-sets on atoms to match this discrete structure:
+\[
+  \Hom_{\RMG}(\mathrm{Atom}(p),\mathrm{Atom}(p')) =
+  \begin{cases}
+    \{\id_{\mathrm{Atom}(p)}\} & \text{if } p = p',\\
+    \emptyset          & \text{otherwise.}
+  \end{cases}
+\]
+This embedding is faithful because it preserves the identity-only structure of
+$\mathbf{P}$.
+For composite objects, a morphism
+$f : (S,\alpha,\beta) \To (S',\alpha',\beta')$ consists of:
+\begin{itemize}[leftmargin=*]
+  \item a graph homomorphism of skeletons $f_V : V \To V'$, $f_E : E \To
+    E'$ preserving sources and targets; and
+  \item for each $v \in V$ a morphism of attachments
+    $f_v : \alpha(v) \To \alpha'(f_V(v))$ and, for each $e \in E$, a
+    morphism $f_e : \beta(e) \To \beta'(f_E(e))$.
+\end{itemize}
+Note that each $f_v$ and $f_e$ is itself an RMG morphism, so this definition
+proceeds by the structural recursion announced above.
+Composition and identities are defined componentwise.
+\end{definition}
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      snode/.style={circle,draw=purple!70!black,fill=purple!10,thick,minimum size=10mm,inner sep=0pt},
+      sedge/.style={-Latex,thick,purple!70!black},
+      anode/.style={circle,draw=orange!70!black,fill=orange!8,thin,minimum size=4mm,inner sep=0pt},
+      aedge/.style={-Latex,thin,orange!70!black},
+      >=Latex
+    ]
+
+    % Skeleton level
+    \node[snode] (v1) at (0,0) {$v_1$};
+    \node[snode] (v2) at (3.0,0) {$v_2$};
+    \draw[sedge] (v1) -- node[above]{\small $e_{\mathsf{call}}$} (v2);
+
+    \node at (1.5,-1.0) {\small skeleton $G$};
+
+    % Attachment for v1 (e.g. an AST)
+    \begin{scope}[shift={(-2.4,1.6)}]
+      \node[anode] (a1) at (0,0) {};
+      \node[anode] (a2) at (0.9,0.6) {};
+      \node[anode] (a3) at (0.9,-0.6) {};
+      \draw[aedge] (a1) -- (a2);
+      \draw[aedge] (a1) -- (a3);
+      \node[anchor=east] at (-0.1,0) {\small $\alpha(v_1)$};
+    \end{scope}
+    \draw[thin,dashed] (-0.3,0.5) to[out=150,in=0] (-1.5,1.6);
+
+    % Attachment for v2
+    \begin{scope}[shift={(1.8,1.6)}]
+      \node[anode] (b1) at (0,0) {};
+      \node[anode] (b2) at (0.9,0) {};
+      \node[anode] (b3) at (0.45,0.8) {};
+      \draw[aedge] (b1) -- (b2);
+      \draw[aedge] (b2) -- (b3);
+      \draw[aedge] (b3) -- (b1);
+      \node[anchor=east] at (-0.1,0) {\small $\alpha(v_2)$};
+    \end{scope}
+    \draw[thin,dashed] (3.3,0.5) to[out=30,in=180] (2.7,1.6);
+
+    % Attachment for edge e
+    \begin{scope}[shift={(1.5,-2.0)}]
+      \node[anode] (c1) at (-0.6,0) {};
+      \node[anode] (c2) at (0.6,0) {};
+      \draw[aedge] (c1) -- (c2);
+      \node at (0,-0.8) {\small $\beta(e_{\mathsf{call}})$};
+    \end{scope}
+    \draw[thin,dashed] (1.5,-0.2) -- (1.5,-1.4);
+
+  \end{tikzpicture}
+  \caption{A simple recursive metagraph: the skeleton $G$ has two
+  nodes $v_1,v_2$ and an edge $e_{\mathsf{call}}$, while each node and
+  edge carries its own attached graph $\alpha(v_i),\beta(e_{\mathsf{call}})$.
+  In an RMG this attachment structure recurses: the attachment graphs
+  themselves may have attachments, and so on.}
+  \label{fig:rmg-recursive-example}
+\end{figure}
+
+\subsection{Relation to ordinary and hypergraphs}
+
+Typed open graphs $\OGraph_T$ form an adhesive category, and DPO
+rewriting is well-behaved there.  Typed hypergraphs embed fully and
+faithfully into typed open graphs via an incidence construction that
+preserves DPO steps and their multiway derivations.
+Thus RMG rewriting subsumes standard open-graph and hypergraph
+rewriting while adding recursive structure through attachments.
+
+\subsection{Notation summary}
+
+For convenience, we collect the main notation introduced so far:
+
+\medskip
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$U = (G;\alpha,\beta)$ & single RMG state in universe $\mathcal{U}$ \\
+$p = (L \xleftarrow{\ell} K \xrightarrow{r} R)$ & DPOI rule \\
+$\mu_i$ & microstep label \\
+$P = (\mu_0,\dots,\mu_{n-1})$ & provenance payload \\
+$S_0 \Rewrite^\ast S_n$ & derivation volume (interior evolution) \\
+$(S_0,P)$ & wormhole (boundary encoding) \\
+$\Del(m), \Use(m)$ & delete and use sets of a match \\
+$\Recon(S_0,P)$ & reconstruction procedure \\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+
+Throughout, an \emph{RMG universe} $\mathcal{U}$ is a set of RMG states
+(typically closed under the rewrite rules $R$ under consideration), and
+$U \in \mathcal{U}$ denotes a particular state in that universe.
+
+Subsequent sections introduce $D_{\tau,m}$ (rulial distance),
+$\Hist(\mathcal{U},R)$ (history category on the universe $\mathcal{U}$ of
+RMG states), and
+other observer-related notation.

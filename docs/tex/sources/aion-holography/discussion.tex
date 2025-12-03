@@ -1,0 +1,122 @@
+\sectionbreak
+\section{Discussion and Future Work}
+\label{sec:discussion}
+
+We have defined Recursive Metagraphs, given a deterministic concurrent
+DPOI semantics, proved key confluence properties, and introduced a
+holographic provenance model in which the boundary of a computation
+encodes its entire interior evolution.  We have also outlined an
+MDL-based rulial geometry on observers and connected RMG rewriting to
+multiway systems.
+
+\subsection{Implementation guarantees (Echo)}
+
+In the concrete \AION{} runtime (Echo), the semantic assumptions above
+are enforced by operational determinism invariants; any violation aborts
+the tick deterministically and emits an error node for replay analysis.
+These invariants are also exercised by the test suite to guarantee
+bit-level reproducibility:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{World Equivalence:} identical diff sequences and merge
+    decisions yield identical world hashes.
+  \item \textbf{Merge Determinism:} given the same base snapshot, diffs,
+    and merge strategies, the resulting snapshot and diff hashes are
+    identical.
+  \item \textbf{Temporal Stability:} GC, compression, and inspector
+    activity do not alter logical state.
+  \item \textbf{Schema Consistency:} component layout hashes must match
+    before merges; mismatches block the merge.
+  \item \textbf{Causal Integrity:} writes cannot modify values they
+    transitively read earlier in Chronos; paradoxes are detected and
+    isolated.
+  \item \textbf{Entropy Reproducibility:} branch entropy is a
+    deterministic function of recorded events.
+  \item \textbf{Replay Integrity:} replaying from node $A$ to $B$
+    produces identical world hash, event order, and PRNG draw counts.
+\end{itemize}
+
+\subsection{Related work}
+
+Our work builds on several research traditions:
+
+\paragraph{Algebraic graph rewriting.}
+The DPO (Double Pushout) approach to graph rewriting was introduced
+by Ehrig and others~\cite{EhrigLowe1997,EEPT06} and extended to
+adhesive categories by Lack and Soboci{\'n}ski~\cite{LS06}.  We build
+directly on these foundations, applying DPO semantics both to the
+skeleton plane and to attachment fibers.  The tick-level confluence
+theorem (\cref{thm:tick-confluence}) is a specialization of the
+standard concurrency theorem for adhesive systems.
+
+Category-theoretic graph rewriting has also been applied to
+discretised space--time models in
+Arrighi--Costes--Maignan~\cite{Arrighi2025Reversible}, which uses DPO
+rewriting in an adhesive setting to study space--time reversible graph
+rewriting.  Our use of the same machinery is conceptually similar, but
+we focus on deterministic multiway semantics
+and holographic provenance in a computational setting rather than on
+physical geometry.
+
+\paragraph{Confluence and termination.}
+The critical-pair lemma and Newman's lemma are classical tools in
+term rewriting; for decreasing-diagram techniques, see van
+Oostrom~\cite{vanOostrom1994}.  Our conditional global confluence
+result (\cref{thm:global}) invokes these standard methods in
+the graph-rewriting setting.
+
+\paragraph{Multiway systems and the Ruliad.}
+Wolfram~\cite{Wolfram2020} introduced multiway systems and the
+Ruliad as a framework for fundamental physics and metamathematics.
+Our RMG rewriting naturally induces multiway graphs; the determinism
+discipline we impose selects unique worldlines within this larger
+possibility space.  The rulial distance in Section~\ref{sec:rulial}
+is our contribution to the problem of quantifying observer
+differences.
+
+\paragraph{Minimum Description Length.}
+The MDL principle, pioneered by Rissanen~\cite{Rissanen1978}, provides
+a rigorous information-theoretic basis for model selection and
+compression.  We apply MDL to measure the complexity of
+observer-to-observer translators, yielding a computable
+quasi-pseudometric on the space of descriptions.
+
+\paragraph{Categorical computation and diagrammatic reasoning.}
+String diagrams and categorical algebra have been successfully applied
+to quantum computing and concurrency~\cite{CoeckeDuncan2011}.  Our
+two-plane fibration view (\cref{sec:determinism}) is in this
+spirit: attachments live in fibers, and reindexing functors transport
+attachment updates along skeleton morphisms.
+
+The novelty of our approach lies not in any single component, but in
+the synthesis: combining DPO rewriting on recursive structures,
+deterministic concurrency via a two-plane discipline, and holographic
+provenance encoding, all within a single framework with explicit
+confluence guarantees.
+
+Several directions remain:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Full global confluence analysis.}  For concrete rule
+    packs used in practice, automated critical-pair analysis and
+    decreasing-diagram labellings can provide machine-checkable
+    confluence certificates.
+  \item \textbf{Zero-knowledge provenance.}  Because payloads identify
+    substructures via opaque, content-addressed pointers, it is natural
+    to layer cryptographic commitments and zero-knowledge proofs on top,
+    enabling external verifiers to check correctness properties without
+    learning private data.
+  \item \textbf{Temporal logic and the Time Cone.}  The Chronos, Kairos, and
+    Aion triad naturally suggests new modal and temporal logics for
+    reasoning about linear time, branch points, and the surrounding
+    possibility space.
+  \item \textbf{\COMPUTER{} architecture.}  Building on this foundation,
+    the companion paper will define the \AION{} \COMPUTER{}: a machine model
+    whose basic step is a provenance-carrying RMG rewrite, supporting
+    backward- and forward-traceable computation, multiverse debugging,
+    and glass-box AI cognition.
+\end{itemize}
+
+The long-term vision is that computational holography becomes as
+standard as content-addressing and version control are today: every
+nontrivial system records not just \emph{what} happened, but a
+compact, verifiable encoding of \emph{how} it happened.

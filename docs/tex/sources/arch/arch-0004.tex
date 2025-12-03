@@ -1,0 +1,746 @@
+THE COLLAPSE OPERATOR IS THE HEART OF THE CAUSAL UNIVERSE. SECTION 4 IS
+WHERE WE DEFINE THE LAWS OF REALITY ITSELF.
+
+This is the chapter of the Architecture Doc where we describe: - how
+subjective worlds become objective truth - how SWS {\textrightarrow} Node - how merges
+work - how rewrites work - how human-level intent becomes machine-level
+geometry - how RMG regions collapse - how the irreversible causal arrow
+forms - how multi-agent timelines reconcile - how no mutation of the
+past is enforced - how the universe expands
+
+This is the kernel's physics. And now it becomes architecture.
+
+Let's begin.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{JITOS Architecture Document --- Section
+4}\label{jitos-architecture-document-section-4}
+
+The Collapse Operator \& The Inversion Engine
+
+(Grounded in ADR-0002, ADR-0003, ADR-0004, RFC-0005)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Collapse \& Inversion: The Physics of
+JITOS}\label{collapse-inversion-the-physics-of-jitos}
+
+\subsubsection{4.1 Overview}\label{overview}
+
+JITOS defines work inside Shadow Working Sets (SWS): temporary,
+isolated, observer-relative universes.
+
+An SWS may contain: - micro-events (keystrokes, rewrites) - macro-events
+(human conceptual edits) - semantic graphs (ASTs, deltas) - provenance
+(reasoning, metadata) - structural overlay graphs - partial rewrites -
+tool-created transformations
+
+These forms exist only inside the shadow world. They do not exist in the
+global universe.
+
+The Collapse Operator is the deterministic, irreversible function that:
+
+\begin{quote}
+turns speculative structure into objective truth. It appends a new
+snapshot event into the causal universe, and destroys the shadow.
+\end{quote}
+
+Collapse is JITOS's equivalent of:
+
+\begin{itemize}
+\tightlist
+\item
+  Git ``commit''
+\item
+  quantum measurement
+\item
+  OS process exit
+\item
+  database transaction commit
+\end{itemize}
+
+But unlike those systems:
+
+Collapse is not a write operation.
+
+It is an ontological transition:
+
+\begin{itemize}
+\tightlist
+\item
+  A subjective world {\textrightarrow} an objective node
+\item
+  A local graph {\textrightarrow} an RMG region
+\item
+  A set of edits {\textrightarrow} a causal event
+\item
+  A possible universe {\textrightarrow} the one true worldline
+\end{itemize}
+
+This section defines how that transition works.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.2 What Collapse Produces}\label{what-collapse-produces}
+
+A collapse always produces:
+
+\paragraph{1. A new Snapshot Node}\label{a-new-snapshot-node}
+
+This is the macroscopic, first-order representation of the entire SWS
+RMG region.
+
+\paragraph{2. Optional Inversion-Rewrite
+Nodes}\label{optional-inversion-rewrite-nodes}
+
+These represent structural collapses of:
+
+\begin{itemize}
+\tightlist
+\item
+  divergent histories
+\item
+  merges
+\item
+  rebases
+\item
+  rewrites
+\item
+  semantic deltas
+\item
+  conflict resolutions
+\end{itemize}
+
+They map old {\textrightarrow} new.
+
+\paragraph{3. Provenance Nodes}\label{provenance-nodes}
+
+Optional, but extremely powerful:
+
+\begin{itemize}
+\tightlist
+\item
+  reasoning traces
+\item
+  intent
+\item
+  metadata
+\item
+  analysis results
+\item
+  semantic tags
+\end{itemize}
+
+\paragraph{4. A Ref Update}\label{a-ref-update}
+
+If the SWS corresponds to a branch.
+
+\paragraph{5. Shadow destruction}\label{shadow-destruction}
+
+The SWS ceases to exist.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.3 Collapse as a Function}\label{collapse-as-a-function}
+
+In JITOS, collapse is a pure function.
+
+Given:
+
+\begin{itemize}
+\tightlist
+\item
+  The SWS graph (micro-level)
+\item
+  The RMG substrate (macro-level)
+\item
+  The world frontier (current ref)
+\end{itemize}
+
+Then:
+
+\begin{lstlisting}
+collapse(sws, universe) {\textrightarrow} (snapshot_node, rewrite_nodes...)
+\end{lstlisting}
+
+Properties:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic
+\item
+  idempotent
+\item
+  architecture-independent
+\item
+  invariant-preserving
+\item
+  reproducible
+\item
+  atomic
+\item
+  irreversible
+\item
+  totally ordered by ref advancement
+\end{itemize}
+
+Collapse MUST produce identical outputs on all machines given identical
+inputs.
+
+This is how JITOS becomes a replayable universe, not a heuristic system.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\paragraph{4.4 Collapse of RMG Regions
+(ADR-0004)}\label{collapse-of-rmg-regions-adr-0004}
+
+Collapse operates on RMG regions, not single nodes.
+
+This is the key idea:
+
+\begin{quote}
+Humans see the region as one event. Machines see the region as many
+nodes. Truth sees the region as geometry.
+\end{quote}
+
+Collapse:
+
+\begin{itemize}
+\tightlist
+\item
+  compresses micro-events
+\item
+  preserves structure inside semantic layers
+\item
+  produces a single macro-level snapshot node
+\item
+  embeds semantic subgraphs inside RMG payload
+\item
+  produces rewrite nodes to express cross-history relationships
+\end{itemize}
+
+This is how:
+
+\begin{itemize}
+\tightlist
+\item
+  30 keystrokes
+\item
+  14 diffs
+\item
+  5 semantic rewrites
+\item
+  and 1 human-level change
+\end{itemize}
+
+all collapse into one RMG region represented by a single causal snapshot
+node.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.5 Collapse Algorithm (Full
+Architecture)}\label{collapse-algorithm-full-architecture}
+
+\paragraph{Step 1: Validate SWS}\label{step-1-validate-sws}
+
+\begin{itemize}
+\tightlist
+\item
+  Base node must exist
+\item
+  Overlays must be well-formed
+\item
+  Graph must be locally consistent
+\item
+  No invariants violated
+\end{itemize}
+
+\paragraph{Step 2: Reconcile with Universe
+State}\label{step-2-reconcile-with-universe-state}
+
+If the SWS base node \ensuremath{\neq} current ref head:
+
+\begin{itemize}
+\tightlist
+\item
+  compute merge region
+\item
+  generate inversion-rewrite node(s)
+\item
+  resolve conflicts deterministically
+\end{itemize}
+
+\paragraph{Step 3: Overlay
+Application}\label{step-3-overlay-application}
+
+\begin{itemize}
+\tightlist
+\item
+  Apply overlay graph onto base graph
+\item
+  Expand/flatten RMG micro-layers
+\item
+  Normalize semantic deltas
+\item
+  Canonicalize structure
+\end{itemize}
+
+\paragraph{Step 4: Generate Snapshot
+Node}\label{step-4-generate-snapshot-node}
+
+The snapshot node's payload = the macroscopic projection of the full RMG
+region.
+
+\paragraph{Step 5: Generate Provenance
+Graph}\label{step-5-generate-provenance-graph}
+
+Optional but encouraged:
+
+\begin{itemize}
+\tightlist
+\item
+  attach reasoning
+\item
+  attach metadata
+\item
+  attach agent identity
+\item
+  attach intent
+\end{itemize}
+
+\paragraph{Step 6: Update Refs}\label{step-6-update-refs}
+
+Point ref {\textrightarrow} new snapshot node.
+
+\paragraph{Step 7: Destroy SWS}\label{step-7-destroy-sws}
+
+Evaporate the shadow world.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.6 Conflict Handling}\label{conflict-handling}
+
+Conflicts occur when:
+
+\begin{itemize}
+\tightlist
+\item
+  multiple SWS collapse onto the same causal base
+\item
+  humans \& machines edit same regions
+\item
+  parallel histories diverge
+\item
+  rewrites affect overlapping geometry
+\end{itemize}
+
+JITOS handles conflict through the Inversion Engine, which:
+
+\begin{itemize}
+\tightlist
+\item
+  preserves both histories
+\item
+  computes a deterministic merge region
+\item
+  builds an inversion-rewrite RMG node
+\item
+  projects MH conflict markers for humans
+\item
+  resolves machine-level conflicts silently
+\item
+  ensures a unique canonical result
+\end{itemize}
+
+Conflicts do not invalidate the past. They generate new geometry.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.7 The Inversion Engine (Kernel Consistency
+Layer)}\label{the-inversion-engine-kernel-consistency-layer}
+
+The Inversion Engine:
+
+\begin{itemize}
+\tightlist
+\item
+  performs DAG-level merges
+\item
+  performs RMG-region merges
+\item
+  resolves multi-scale conflicts
+\item
+  applies rewrite rules
+\item
+  constructs new regions
+\item
+  ensures invariants hold
+\item
+  validates internal structure
+\item
+  preserves all ancestry
+\end{itemize}
+
+This is the consistency engine of the universe.
+
+In classical computing, we have:
+
+\begin{itemize}
+\tightlist
+\item
+  CRDTs
+\item
+  oplog merges
+\item
+  git merges
+\item
+  3-way diffs
+\item
+  version vectors
+\end{itemize}
+
+In JITOS, we have:
+
+\begin{quote}
+Inversion:
+
+An immutable, causal rewrite algorithm that integrates subjective
+timelines into objective truth.
+\end{quote}
+
+This is the scientific heart of the kernel.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.8 Collapse = Time}\label{collapse-time}
+
+Collapse defines the arrow of time:
+
+\begin{itemize}
+\tightlist
+\item
+  past is immutable
+\item
+  future becomes past
+\item
+  subjective becomes objective
+\item
+  micro collapses into macro
+\item
+  semantic collapses into structural
+\item
+  structure collapses into causality
+\end{itemize}
+
+Time moves forward because:
+
+\begin{quote}
+Events encode their causal provenance cryptographically. And collapse is
+the ONLY way new events form.
+\end{quote}
+
+This is physically simple and philosophically profound.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.9 Collapse \& The C\ensuremath{\Omega}MPUTER Fusion
+Layer}\label{collapse-the-cux3c9mputer-fusion-layer}
+
+The fusion layer interprets collapse as:
+
+\begin{itemize}
+\tightlist
+\item
+  an epistemic transition
+\item
+  a measurement
+\item
+  a rewriting of the observer's shadow graph
+\item
+  a creation of a new worldline
+\item
+  a discrete event in the geometry of thought
+\end{itemize}
+
+Collapse is the mechanism by which:
+
+\begin{itemize}
+\tightlist
+\item
+  ideas
+\item
+  operations
+\item
+  reasoning
+\item
+  computation
+\item
+  observation
+\end{itemize}
+
+become geometry.
+
+JITOS is the first OS to embed this metaphysics at the kernel level.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.10 Summary}\label{summary}
+
+Collapse is the only event that changes truth.
+
+It:
+
+\begin{itemize}
+\tightlist
+\item
+  materializes subjective SWS
+\item
+  creates objective snapshot nodes
+\item
+  merges timelines
+\item
+  handles divergence
+\item
+  projects internal structure into macro reality
+\item
+  ensures determinism
+\item
+  preserves the past
+\item
+  advances time
+\item
+  encodes provenance
+\item
+  expands the RMG universe
+\end{itemize}
+
+It is the most important function in the entire system.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{4.11 Memory Behavior During
+Collapse}\label{memory-behavior-during-collapse}
+
+(Mandated by ADR-0006)
+
+Collapse is not only a causal event; it is a memory transformation
+between distinct domains. JITOS defines four memory layers--- the RMG
+substrate, SWS overlay memory, semantic memory, and ephemeral compute
+memory--- each of which behaves differently during the transition from
+speculation to truth.
+
+Collapse is the process that maps these memory layers into their
+appropriate post-collapse forms.
+
+\paragraph{4.11.1 Global Memory: RMG Substrate
+Expansion}\label{global-memory-rmg-substrate-expansion}
+
+During collapse: - A new snapshot node is appended to the causal DAG
+layer of the RMG. - The snapshot's payload represents the macro-scale
+projection of the entire SWS region. - Rewrite nodes capture structural
+merges and semantic transformations. - Provenance nodes (if present) are
+attached to the snapshot as semantic subgraphs.
+
+The RMG grows. Nothing mutates. Nothing disappears.
+
+Truth accumulates and remembers.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\paragraph{4.11.2 SWS Overlay Memory: Structural
+Integration}\label{sws-overlay-memory-structural-integration}
+
+The SWS maintains a mutable overlay graph representing:
+
+\begin{itemize}
+\tightlist
+\item
+  diffs
+\item
+  rewrites
+\item
+  file-chunk replacements
+\item
+  patch sets
+\item
+  local structural transforms
+\end{itemize}
+
+During collapse:
+
+\begin{itemize}
+\tightlist
+\item
+  These overlay graphs are applied to the base snapshot
+  deterministically.
+\item
+  The resulting merged structure becomes part of the new snapshot node.
+\item
+  Conflicts trigger inversion-rewrite nodes.
+\item
+  Once collapse completes, the SWS overlay memory is destroyed.
+\end{itemize}
+
+Overlay memory has no existence beyond collapse.
+
+It is the working memory that becomes committed geometry.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\paragraph{4.11.3 Semantic Memory {\textrightarrow} Provenance
+Memory}\label{semantic-memory-provenance-memory}
+
+Semantic memory includes:
+
+\begin{itemize}
+\tightlist
+\item
+  ASTs
+\item
+  semantic deltas
+\item
+  symbolic analyses
+\item
+  tool reasoning
+\item
+  LLM thought traces
+\item
+  structured transforms
+\end{itemize}
+
+During collapse:
+
+\begin{itemize}
+\tightlist
+\item
+  Relevant semantic structures become provenance nodes.
+\item
+  These nodes are embedded in the RMG as second-order graphs,
+  representing meaning, intention, and structure behind the change.
+\item
+  Irrelevant or temporary semantic structures are discarded.
+\end{itemize}
+
+Semantic memory transitions from:
+
+epistemic context {\textrightarrow} objective narrative.
+
+This is the step where thought becomes geometry.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\paragraph{4.11.4 Ephemeral Compute Memory {\textrightarrow}
+Evaporation}\label{ephemeral-compute-memory-evaporation}
+
+Ephemeral memory (ECM):
+
+\begin{itemize}
+\tightlist
+\item
+  build artifacts
+\item
+  caches
+\item
+  intermediate results
+\item
+  temporary encodings
+\item
+  partial analyses
+\item
+  scratch files
+\end{itemize}
+
+During collapse:
+
+\begin{itemize}
+\tightlist
+\item
+  ECM is not committed
+\item
+  ECM is not preserved
+\item
+  ECM is not synced
+\item
+  ECM is not replayed
+\end{itemize}
+
+Ephemeral memory evaporates.
+
+This prevents:
+
+\begin{itemize}
+\tightlist
+\item
+  RMG bloat
+\item
+  nondeterministic residues
+\item
+  irrelevant history
+\item
+  replay pollution
+\end{itemize}
+
+ECM exists for performance, not truth.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\paragraph{4.11.5 Post-Collapse MH
+Synchronization}\label{post-collapse-mh-synchronization}
+
+After collapse:
+
+\begin{itemize}
+\tightlist
+\item
+  The Materialized Head (MH) is incrementally updated
+\item
+  Only changed paths are rewritten
+\item
+  Stale files removed
+\item
+  New files created
+\item
+  Conflict markers projected into MH if required
+\item
+  VTI updated atomically
+\item
+  Human-facing filesystem made consistent with the new truth
+\end{itemize}
+
+MH becomes the shadow of the new worldline.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\paragraph{4.11.6 Summary of Memory
+Transformation}\label{summary-of-memory-transformation}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Memory Layer
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+During Collapse
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+After Collapse
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+RMG (Truth) & Expands & Permanent \\
+SWS Overlays & Integrated & Destroyed \\
+Semantic Memory & Becomes provenance & Preserved (as semantic graph) \\
+ECM & Evaporates & Gone \\
+\end{longtable}
+}
+
+Collapse is thus:
+
+The total memory transformation from subjectivity to objectivity, from
+intention to structure, from possibility to truth.

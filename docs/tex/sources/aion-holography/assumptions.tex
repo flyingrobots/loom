@@ -1,0 +1,29 @@
+\section*{Standing Assumptions}
+\label{sec:assumptions}
+
+For ease of reference, we summarise the main semantic assumptions
+used in the determinism, holography, and rulial-distance results.
+
+\medskip
+\begin{center}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.37\textwidth}>{\raggedright\arraybackslash}p{0.55\textwidth}}
+\toprule
+\textbf{Assumption} & \textbf{Where used} \\
+\midrule
+Skeleton independence via footprints &
+ \cref{def:footprint,def:batch,thm:tick-confluence} \\
+No-delete/no-clone-under-descent (ND/NC) &
+\cref{def:no-delete,thm:two-plane,thm:global} \\
+Termination / decreasing diagrams on the skeleton &
+\cref{thm:global} (conditional global confluence) \\
+No re-derivation (single producer) &
+\cref{sec:holography}, \cref{thm:backward} (backward provenance) \\
+Budgeted translators and 1-Lipschitz distortion &
+\cref{sec:rulial,thm:rulial-basic,thm:rulial-triangle} (rulial distance) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+
+Unless otherwise stated, all results in the main text are to be read
+relative to these assumptions.

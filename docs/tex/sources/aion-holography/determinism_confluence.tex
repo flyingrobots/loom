@@ -1,0 +1,392 @@
+\sectionbreak
+\section{Determinism and Confluence}
+\label{sec:determinism}
+
+Throughout this section we work under the standing assumptions
+summarised in the Standing Assumptions section.
+
+We sketch the concurrency discipline, define independence, and state the
+main confluence theorems for tick-level execution, working with RMG
+states and tick semantics as introduced in \cref{def:rmg-state,def:rmg-tick}.
+
+\subsection{Footprints and Independence on the Skeleton Plane}
+
+We work at the level of the skeleton plane.  Write $G_S$ for the
+skeleton component of $G$, and likewise $L_S$, $K_S$, $R_S$ for the
+underlying skeleton graphs of a rule.  Let
+$U = (G;\alpha,\beta)$ be an RMG state and let
+$p = (L \xleftarrow{\ell} K \xrightarrow{r} R)$ be a DPOI rule.  A
+\emph{skeleton match} is a mono $m_S : L_S \hookrightarrow G_S$ in
+$\OGraph_T$ satisfying the usual gluing conditions.
+
+\begin{definition}[Footprint]\label{def:footprint}
+  The \emph{delete set} $\Del(m_S) \subseteq \mathrm{Ob}(G_S)$
+  of a match $m_S$ is the image under $m_S$ of the part of the
+  left-hand side that is not preserved:
+  \[
+    \Del(m_S) \;=\; m_S\bigl(L_S \setminus K_S\bigr).
+  \]
+  The \emph{use set} $\Use(m_S) \subseteq \mathrm{Ob}(G_S)$ is
+  the image under $m_S$ of all of $L_S$:
+  \[
+    \Use(m_S) \;=\; m_S(L_S).
+  \]
+  The \emph{footprint} of $m_S$ is the pair
+  $\Foot(m_S) = (\Del(m_S),\Use(m_S))$.
+\end{definition}
+
+\begin{definition}[Independence]\label{def:independence}
+  Two skeleton matches $m_{1,S} : L_{1,S} \to G_S$ and
+  $m_{2,S} : L_{2,S} \to G_S$ with footprints
+  $\Foot(m_{i,S}) = (\Del(m_{i,S}),\Use(m_{i,S}))$ are
+  \emph{independent} if
+  \[
+    \Del(m_{1,S}) \cap \Use(m_{2,S}) = \emptyset
+    \quad\text{and}\quad
+    \Del(m_{2,S}) \cap \Use(m_{1,S}) = \emptyset.
+  \]
+  Intuitively, no vertex or edge that one step deletes is read or
+  written by the other.
+\end{definition}
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node/.style={circle,draw=gray!60,fill=gray!10,thick,minimum size=8mm},
+      del/.style={fill=red!25},
+      use/.style={fill=blue!20},
+      edge/.style={-Latex,thick,gray!60},
+      >=Latex
+    ]
+    % baseline graph
+    \node[node] (a) at (0,0) {$a$};
+    \node[node,del] (b) at (2.2,1.2) {$b$};
+    \node[node,use] (c) at (4.1,0.1) {$c$};
+    \node[node] (d) at (2.1,-1.3) {$d$};
+    \draw[edge] (a) -- (b);
+    \draw[edge] (b) -- (c);
+    \draw[edge] (a) -- (d);
+    \draw[edge] (d) -- (c);
+
+    % match 1
+    \draw[rounded corners,thick,teal!70]
+      ( -0.5, -0.9) rectangle (2.9,1.6);
+    \node[anchor=west,teal!70!black] at (3.05,1.55) {$m_1$};
+
+    % match 2
+    \draw[rounded corners,thick,orange!80]
+      (0.9,-1.7) rectangle (4.7,1.4);
+    \node[anchor=west,orange!80!black] at (4.85,1.35) {$m_2$};
+
+  \end{tikzpicture}
+  \caption{Two overlapping matches on the skeleton plane.  Shaded nodes
+  illustrate $\Del$ (red) and $\Use$ (blue).  Independence requires
+  $\Del(m_1)\cap\Use(m_2)=\Del(m_2)\cap\Use(m_1)=\emptyset$, ruling out
+  destructive interference between the matches.}
+  \label{fig:footprint}
+\end{figure}
+
+\subsubsection{Scheduler--admissible batches}
+
+\begin{definition}[Scheduler--admissible batch]\label{def:batch}
+  Let $U = (G;\alpha,\beta)$ be an RMG state.  A finite
+  family of skeleton matches
+  $B = \{m_{i,S} : L_{i,S} \to G_S\}_{i\in I}$ is
+  \emph{scheduler--admissible} if the matches are pairwise
+  independent in the sense of Definition~\ref{def:independence}, i.e.
+  \[
+    \Del(m_{i,S}) \cap \Use(m_{j,S}) = \emptyset
+    \quad\text{for all distinct } i,j\in I.
+  \]
+\end{definition}
+Admissibility only requires pairwise independence; in practice the
+scheduler selects a \emph{maximal} independent subset each tick.
+
+\subsection{Tick semantics and scheduler confluence}
+
+We recall the basic setting.  Work in the adhesive category
+$\OGraph_T$ of typed open graphs.  A DPOI rule is a span of monos
+$p = (L \xleftarrow{\ell} K \xrightarrow{r} R)$; a match is a mono
+$m : L \hookrightarrow G$ satisfying the usual gluing conditions
+(dangling and identification).  A DPOI step $G \Rewrite_p H$ is
+given by the standard double square (pushout complement + pushout).
+
+We work with RMG states and tick semantics as defined in
+Definitions~\ref{def:rmg-state} and~\ref{def:rmg-tick}.  In this section we analyse when
+sets of matches can be scheduled concurrently without affecting the
+resulting state.  The deterministic properties proved here apply
+uniformly to all derivations; applying them to cognitive systems
+introduces additional ethical structure developed in
+\cref{sec:ethics}.
+
+Each tick, the scheduler computes a maximal independent set of matches
+from the scheduler--admissible (pairwise independent) matches, using a
+safe over-approximation of $\Use\cup\Del$; we do not repeat the
+implementation details here.
+
+\begin{theorem}[Skeleton-plane tick confluence]\label{thm:tick-confluence}
+  Let $U = (G;\alpha,\beta)$ be an RMG state and let
+  $B = \{m_{i,S} : L_{i,S} \hookrightarrow G_S\}_{i\in I}$ be a
+  scheduler--admissible batch for a family of DPOI rules (not
+  necessarily maximal).  Then any two sequentialisations of the
+  corresponding DPOI steps yield isomorphic successor states.
+\end{theorem}
+
+\begin{proof}
+By scheduler--admissibility (pairwise independence), the skeleton matches
+$\{m_{i,S} : L_{i,S} \hookrightarrow G_S\}$ are independent in
+the sense of \cref{def:independence}.  By the Parallel Independence
+Theorem for DPO rewriting in adhesive categories
+\cite[Thm.~5.4]{EEPT06} (see also \cite[Sec.~4]{Arrighi2025Reversible}),
+parallel independent steps commute: for
+any $i \neq j$ we have a diagram
+\[
+  G_S \;\Rightarrow_{(p_i,m_{i,S})}\; G_i
+    \;\Rightarrow_{(p_j,m'_{j,S})}\; G_{ij}
+  \quad\text{and}\quad
+  G_S \;\Rightarrow_{(p_j,m_{j,S})}\; G_j
+    \;\Rightarrow_{(p_i,m'_{i,S})}\; G_{ji}
+\]
+where both two-step derivations exist and the results $G_{ij}$ and
+$G_{ji}$ are isomorphic.  The rewritten matches $m'_{i,S}, m'_{j,S}$ are
+obtained by the standard reindexing construction of the concurrency
+theorem.
+
+We now induct on $|I|$ to obtain order-independence for the entire
+family of skeleton steps.
+
+For $|I| = 0$ or $1$ the claim is trivial.  For $|I| = 2$ it is exactly
+the commuting-square case of the concurrency theorem.
+
+Assume the property holds for all scheduler--admissible batches of
+size $k$.  Let $B$ have size $k+1$.  Pick any index $j \in I$ and
+factor an arbitrary serial order as
+\[
+  G_S \Rewrite^{(p_{i_1},m_{i_1,S})} \cdots
+    \Rewrite^{(p_{i_k},m_{i_k,S})} G'
+    \Rewrite^{(p_j,m'_{j,S})} G''.
+\]
+By the induction hypothesis, the prefix of length $k$ yields a result
+unique up to isomorphism, regardless of the order of the $k$ steps.
+Now compare any two permutations of the full $(k+1)$ steps.  One can
+be obtained from the other by a finite sequence of adjacent swaps.
+Each adjacent swap exchanges two parallel independent steps; by the
+two-step concurrency theorem, the corresponding length-$(k+1)$
+derivations commute up to isomorphism.  Thus, by finite induction on
+the number of swaps, all serialisations of the skeleton batch produce
+isomorphic skeletons.  Lifting back along the fibration
+$\pi : \RMGState \to \OGraph_T$ yields the claimed determinism up to
+isomorphism for RMG states.
+\end{proof}
+
+Combining \cref{thm:tick-confluence} with the two-plane commutation
+result (\cref{thm:two-plane}) shows that a tick that satisfies the
+no-delete/no-clone-under-descent invariant has a unique outcome up to
+isomorphism in the full RMG semantics.
+
+\begin{corollary}[Worldline uniqueness]\label{cor:worldline-uniqueness}
+Let an RMG runtime satisfy the assumptions of
+\cref{thm:tick-confluence,thm:two-plane,thm:global} together with the
+holography property (\cref{thm:holography}).  Then every schedule of a
+given tick produces the same RMG successor up to isomorphism, and the
+boundary data $(S_0,P)$ determines the interior derivation uniquely up
+to isomorphism.
+\end{corollary}
+
+\subsection{Two-plane commutation via a fibration}
+
+We now justify the two-plane discipline more structurally, using a
+simple fibration view.
+
+Let $\RMGState$ be the category of RMG states and RMG morphisms
+(skeleton morphisms together with compatible fiber morphisms).  There
+is a forgetful functor
+\[
+  \pi : \RMGState \;\longrightarrow\; \OGraph_T
+\]
+sending $(G;\alpha,\beta)$ to its skeleton $G$ and acting on morphisms
+componentwise.  This functor is a (Grothendieck) fibration whose
+fibers are products of copies of $\OGraph_T$:
+\[
+  \pi^{-1}(G) \;\cong\; \prod_{x\in V(G)\cup E(G)} \OGraph_T.
+\]
+In particular, given a mono $u : G \hookrightarrow G'$ in the base,
+there is a reindexing functor
+\[
+  u^\ast : \pi^{-1}(G') \longrightarrow \pi^{-1}(G)
+\]
+which transports attachments along $u$ by precomposition.
+
+An \emph{attachment step} is a DPOI step in some fiber
+$\pi^{-1}(G)$; a \emph{skeleton step} is a DPOI step in the base
+$\OGraph_T$.  Both are built from pushouts along monos.
+
+\begin{definition}[No-delete/no-clone-under-descent]\label{def:no-delete}
+Consider a tick on an RMG state $U = (G;\alpha,\beta)$
+  consisting of
+  \begin{enumerate}[leftmargin=*]
+    \item a family of attachment--plane DPOI steps, each acting inside
+      a fibre $\alpha(v)$ or $\beta(e)$ over a skeleton vertex or edge,
+      and
+    \item a single skeleton--plane DPOI step
+      $G_S \Rewrite_S G_S'$ induced by a rule and match
+      $m_S : L_S \to G_S$.
+  \end{enumerate}
+  We say that an object $y$ in an attachment graph has
+  \emph{skeleton ancestor} $x \in G_S$ if it lies in the finite tree of
+  attachments rooted at the fibre over $x$, following the recursive
+  attachment structure of \cref{sec:rmg}.
+  We say that this tick satisfies \emph{no-delete/no-clone-under-descent}
+  if:
+  \begin{enumerate}[leftmargin=*]
+    \item[(ND)] (\emph{No delete under descent.})
+      If a skeleton vertex or edge $x\in G_S$ is deleted by the
+      skeleton step (i.e.\ $x \in \Del(m_S)$), then the fibre over $x$
+      is empty before the tick: no object in any attachment graph has
+      $x$ as its skeleton ancestor.
+    \item[(NC)] (\emph{No clone under descent.})
+      The skeleton step does not implicitly duplicate attachment state:
+      whenever a skeleton vertex or edge $x\in G_S$ is preserved and
+      mapped to $x'\in G_S'$, the attachment over $x'$ is (up to
+      isomorphism) obtained from the attachment over $x$ solely by the
+      attachment--plane DPOI steps in the same tick.  In particular,
+      no attachment object is copied to multiple descendants of $x$.
+  \end{enumerate}
+  A rule pack $R$ satisfies no-delete/no-clone-under-descent if every
+  tick generated from $R$ has this property.
+\end{definition}
+
+\begin{theorem}[Two-plane commutation]\label{thm:two-plane}
+Let $R$ be a rule pack satisfying the no-delete/no-clone-under-descent
+invariant of Definition~\ref{def:no-delete}.  Let
+$U = (G;\alpha,\beta)$ be an RMG state generated from $R$.
+Let $A : U \Rewrite U_A$ be a finite composite of
+attachment steps in the fiber over $G$, and let
+$S : G \Rewrite G'$ be the skeleton DPOI step induced by the same tick.
+Then
+there exists an attachment composite
+$A' : (G';\alpha',\beta') \Rightarrow (G';\alpha'',\beta'')$ in the
+fiber over $G'$ such that the following square in $\RMGState$ commutes
+up to isomorphism:
+\[
+\begin{tikzcd}
+  (G;\alpha,\beta) \arrow[r,"A"] \arrow[d,"S"']
+    & (G;\alpha_A,\beta_A) \arrow[d,"S'"] \\
+  (G';\alpha',\beta') \arrow[r,"A'"']
+    & (G';\alpha'',\beta'')
+\end{tikzcd}
+\]
+In particular, applying attachments then skeleton yields the same
+result (up to iso) as applying skeleton then the transported
+attachments.
+\end{theorem}
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=32mm,
+      obj/.style={rectangle,draw=teal!70!black,fill=teal!8,thick,minimum width=22mm,
+                  minimum height=8mm,align=center},
+      arr/.style={-Latex,thick,teal!70!black},
+      >=Latex
+    ]
+
+    \node[obj] (U)   {$(G;\alpha,\beta)$};
+    \node[obj,right=of U] (UA)  {$(G;\alpha_A,\beta_A)$};
+    \node[obj,below=of U] (US)  {$(G';\alpha',\beta')$};
+    \node[obj,below=of UA] (USA) {$(G';\alpha'',\beta'')$};
+
+    \draw[arr] (U)  -- node[above]{\scriptsize attachments $A$} (UA);
+    \draw[arr] (U)  -- node[left]{\scriptsize skeleton $S$} (US);
+    \draw[arr] (UA) -- node[right]{\scriptsize skeleton $S'$} (USA);
+    \draw[arr] (US) -- node[below]{\scriptsize transported $A'$} (USA);
+
+  \end{tikzpicture}
+  \caption{Two-plane commutation: attachment updates $A$ in the fiber over $G$ commute with skeleton rewriting $S$ in the base, up to transporting the attachment steps along the skeleton morphism. Theorem~\ref{thm:two-plane} shows that the two paths in the square yield isomorphic RMG states.}
+  \label{fig:two-plane-square}
+\end{figure}
+
+\begin{proof}
+Write the skeleton composite $S$ as a sequence of DPOI steps
+\[
+  G = G_0 \Rewrite G_1 \Rewrite \cdots \Rewrite G_n = G'.
+\]
+Each step $G_{k-1} \Rewrite G_k$ is a pushout along a mono in
+$\OGraph_T$.  Because $\OGraph_T$ is adhesive, pushouts along monos
+are Van Kampen squares and stable under pullback~\cite{LS06}.
+
+\smallskip
+\noindent
+The no-delete/no-clone-under-descent hypothesis ensures that every
+position $x$ whose attachment is touched by $A$ lies in the preserved
+interface of each skeleton step.  Thus, along the composite mono
+$u : G \hookrightarrow G'$, the reindexing functor
+$u^\ast : \pi^{-1}(G') \to \pi^{-1}(G)$ is an isomorphism on the
+fibers corresponding to positions touched by $A$; informally, the
+skeleton only renames those attachment slots.
+
+\smallskip
+\noindent
+Consider first a single attachment step in the fiber over some
+position $x$:
+\[
+  (G;\alpha,\beta) \Rightarrow_A (G;\alpha_A,\beta_A),
+\]
+given by a DPOI double square in the corresponding component of the
+fiber $\pi^{-1}(G) \cong \prod_x \OGraph_T$.  Forming the pullback of
+this square along the mono $u : G \hookrightarrow G'$ yields a square
+in the fiber over $G'$; by stability of pushout complements and
+Van Kampen, this square is again a DPOI step, which we denote by
+$A'$:
+\[
+  (G';\alpha',\beta') \Rightarrow_{A'} (G';\alpha'',\beta'').
+\]
+At the level of the total category $\RMGState$ we thus obtain a
+commuting cube whose back face is the original attachment step, whose
+bottom face is the skeleton step, and whose front face is the
+transported attachment step.  All vertical faces are pullbacks and all
+horizontal faces are pushouts along monos; Van Kampen ensures that the
+top and bottom composites are isomorphic.
+
+\smallskip
+\noindent
+Iterating this construction over the finite families of attachment and
+skeleton steps yields a composite cube whose front and back faces are
+the two composites $S\circ A$ and $A'\circ S'$ in the statement.  By
+pasting of Van Kampen squares, the induced morphism between the top
+and bottom objects is an isomorphism in $\RMGState$.  Hence the
+diagram commutes up to isomorphism.
+\end{proof}
+
+\subsection{Global confluence}
+
+To obtain global Church--Rosser properties for the entire rewrite
+system, additional hypotheses are required.  We invoke the standard
+critical-pair lemma and Newman's lemma for terminating systems:
+
+\begin{theorem}[Conditional global confluence]\label{thm:global}
+Let $R$ be a finite DPOI rule set.  Suppose that:
+\begin{enumerate}[leftmargin=*]
+  \item every DPOI critical pair of $R$ is joinable (modulo boundary
+    isomorphism), and
+  \item the induced rewrite relation is terminating on the class of
+    states considered, or admits a decreasing-diagrams labelling.
+\end{enumerate}
+Then the rewrite relation is confluent.
+\end{theorem}
+
+This theorem applies directly to the skeleton plane; together with the
+no-delete/no-clone-under-descent invariant and two-plane commutation,
+it yields uniqueness of \emph{worldlines} at the level of RMG states
+for rule packs satisfying the hypotheses of \cref{thm:global} (the
+no-delete/no-clone-under-descent invariant plus termination and
+joinability of critical pairs).
+
+Under the hypotheses of the global confluence theorem, any two complete
+derivations from a fixed initial state are joinable and yield
+isomorphic tick-boundary states.  In other words, the observable
+``worldline'' of the system is unique up to isomorphism, even though
+many different schedules of independent ticks may realise it.  This is
+exactly what we need for holographic provenance in \cref{sec:holography}:
+the boundary data $(S_0,P)$ determines the interior history up to
+isomorphism.

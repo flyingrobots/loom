@@ -1,0 +1,559 @@
+ADR-0008 is the architecture's \textbf{temporal decision point}. This is
+where we define the rules governing:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{concurrency}\\
+\item
+  \textbf{collapse arbitration}
+\item
+  \textbf{scheduler behavior}
+\item
+  \textbf{race-free truth}
+\item
+  \textbf{ordering of simultaneous SWS collapses}
+\item
+  \textbf{integration of the Echo deterministic scheduler into JITOS}
+\item
+  \textbf{policies around ``next tick'', rebase, and conflict explosion}
+\item
+  \textbf{how reality advances when multiple universes demand truth at
+  once}
+\end{itemize}
+
+This ADR is effectively:
+
+\begin{quote}
+\textbf{``The Laws of Causal Time in a Multi-Agent Universe.''}
+\end{quote}
+
+Let's carve it into the ledger.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{ADR-0008 --- Collapse Scheduling \&
+Echo
+Integration}}{ADR-0008 --- Collapse Scheduling \& Echo Integration}}\label{adr-0008-collapse-scheduling-echo-integration}
+
+\subsubsection{\texorpdfstring{\textbf{``Time chooses the order. Echo
+enforces
+it.''}}{``Time chooses the order. Echo enforces it.''}}\label{time-chooses-the-order.-echo-enforces-it.}
+
+\textbf{Status:} Proposed \textbf{Date:} 2025-12-01 \textbf{Owner:}
+James Ross \textbf{Depends on:} ADR-0001, ADR-0002, ADR-0003, ADR-0004,
+ADR-0006, ADR-0007 \textbf{Relates to:} Section 7 (Temporal Semantics),
+Section 4 (Collapse), Echo architecture
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{1.
+Context}}{1. Context}}\label{context}
+
+JITOS defines:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{SWS} as isolated speculative universes\\
+\item
+  \textbf{collapse} as the only operation that produces truth
+\item
+  \textbf{RMG} as the substrate
+\item
+  \textbf{WAL} as the temporal backbone
+\item
+  \textbf{Lamport clocks} for ordering
+\item
+  \textbf{deterministic replay} for consistency
+\end{itemize}
+
+BUT:
+
+\subsubsection{\texorpdfstring{\textbf{JITOS does not yet define how
+competing collapse events are
+scheduled.}}{JITOS does not yet define how competing collapse events are scheduled.}}\label{jitos-does-not-yet-define-how-competing-collapse-events-are-scheduled.}
+
+Real systems WILL face:
+
+\begin{itemize}
+\tightlist
+\item
+  multiple agents collapsing simultaneously\\
+\item
+  overlapping edit footprints
+\item
+  semantic interference
+\item
+  rebase conflicts
+\item
+  agents repeating collapse attempts
+\item
+  human edits colliding with machine rewrites
+\item
+  pathological merge/rebase loops
+\item
+  distributed collapse storms
+\item
+  impossible merges (incoherent universes)
+\end{itemize}
+
+This is ALSO where Echo naturally fits in.
+
+We need to formalize:
+
+\begin{itemize}
+\tightlist
+\item
+  how collapse events are \emph{queued}\\
+\item
+  how they are \emph{ordered}
+\item
+  when they are \emph{accepted} vs \emph{deferred}
+\item
+  how to avoid ``rebase hell''
+\item
+  how to handle irreconcilable collapse attempts
+\item
+  how to schedule fairness
+\item
+  how to guarantee deterministic global behavior
+\end{itemize}
+
+This ADR defines the rules.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{2.
+Decision}}{2. Decision}}\label{decision}
+
+\begin{quote}
+**JITOS uses a deterministic Collapse Scheduler, based on Echo's
+tick-based deterministic scheduler, to serialize and arbitrate all
+collapse attempts across all SWS.
+
+No two collapse events may commit in the same logical tick.
+
+If collapse attempts conflict or overlap, the scheduler either rebases,
+defers, or rejects the second collapse.**
+\end{quote}
+
+This scheduler becomes part of the kernel, but modular:
+
+\begin{itemize}
+\tightlist
+\item
+  JITD manages RMG truth\\
+\item
+  Echo manages collapse ordering
+\item
+  The WAL records the final causal ordering
+\item
+  Collapse attempts ALWAYS flow through the scheduler
+\end{itemize}
+
+This ensures the universe remains:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic
+\item
+  consistent
+\item
+  deadlock-free
+\item
+  free of infinite rebase loops
+\item
+  safe for machine agents
+\item
+  safe for human users
+\item
+  capable of handling massive concurrency
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{3.
+Rationale}}{3. Rationale}}\label{rationale}
+
+\subsection{\texorpdfstring{\textbf{3.1 Collapse must be serialized even
+under
+contention}}{3.1 Collapse must be serialized even under contention}}\label{collapse-must-be-serialized-even-under-contention}
+
+Simultaneous collapses cannot be allowed to mutate truth concurrently.
+
+Even if:
+
+\begin{itemize}
+\tightlist
+\item
+  wall-clock timestamps match\\
+\item
+  two RPC calls arrive at the same moment
+\item
+  two SWS mutate the same RMG regions
+\item
+  two agents attempt rewrite of same AST node
+\end{itemize}
+
+Thus the scheduler MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  serialize collapses\\
+\item
+  order them via deterministic logic
+\item
+  ensure WAL entries are strictly ordered
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{3.2 Echo already solved
+deterministic
+scheduling}}{3.2 Echo already solved deterministic scheduling}}\label{echo-already-solved-deterministic-scheduling}
+
+Echo's scheduler provides:
+
+\begin{itemize}
+\tightlist
+\item
+  tick-based global time\\
+\item
+  deterministic progression
+\item
+  no ambiguity in event ordering
+\item
+  footprint analysis
+\item
+  rebase detection
+\item
+  next-tick deferral
+\item
+  safe overlapping region resolution
+\item
+  undo/retry cycles
+\item
+  consistent tie-breaking
+\end{itemize}
+
+Its semantics are PERFECT for JITOS.
+
+Thus:
+
+\begin{quote}
+\textbf{Echo is adopted as the temporal arbitration layer for collapse.}
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{3.3 Footprint-based scheduling
+reduces unnecessary
+rebases}}{3.3 Footprint-based scheduling reduces unnecessary rebases}}\label{footprint-based-scheduling-reduces-unnecessary-rebases}
+
+The scheduler knows:
+
+\begin{itemize}
+\tightlist
+\item
+  which files / nodes / regions each SWS touches\\
+\item
+  which AST regions overlap
+\item
+  which semantic structures interfere
+\item
+  which dependencies exist
+\end{itemize}
+
+Thus:
+
+\subsubsection{\texorpdfstring{\textbf{If two collapses are disjoint $\rightarrow$
+collapse both in same
+tick}}{If two collapses are disjoint $\rightarrow$ collapse both in same tick}}\label{if-two-collapses-are-disjoint-collapse-both-in-same-tick}
+
+(but serialized internally)
+
+\subsubsection{\texorpdfstring{\textbf{If footprints overlap $\rightarrow$ second
+collapse is
+deferred}}{If footprints overlap $\rightarrow$ second collapse is deferred}}\label{if-footprints-overlap-second-collapse-is-deferred}
+
+(never forced to rebase needlessly)
+
+Echo's footprint analysis prevents:
+
+\begin{itemize}
+\tightlist
+\item
+  thrashing\\
+\item
+  rebase storms
+\item
+  conflict explosions
+\item
+  failed collapses
+\item
+  unnecessary merge attempts
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{3.4 Rebase Hell is treated as a
+kernel-level safety
+hazard}}{3.4 Rebase Hell is treated as a kernel-level safety hazard}}\label{rebase-hell-is-treated-as-a-kernel-level-safety-hazard}
+
+If SWS B repeatedly attempts collapse and fails rebasing against SWS A's
+commits:
+
+\begin{itemize}
+\tightlist
+\item
+  the scheduler PROMOTES B to a ``manual intervention'' state\\
+\item
+  B cannot collapse until human or agent modifies it
+\item
+  this prevents infinite loops
+\end{itemize}
+
+Rebase hell is a \textbf{resource exhaustion / semantic instability}
+condition.
+
+JITOS does not attempt infinite retries.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{3.5 Irreconcilable collapses must be
+rejected, not
+forced}}{3.5 Irreconcilable collapses must be rejected, not forced}}\label{irreconcilable-collapses-must-be-rejected-not-forced}
+
+If:
+
+\begin{itemize}
+\tightlist
+\item
+  SWS B depends on nodes that collapse A removes\\
+\item
+  or structural invariants are broken
+\item
+  or semantic meaning becomes incoherent
+\item
+  or RMG rewrites invalidate B's premise
+\end{itemize}
+
+Then collapse B MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  fail deterministically\\
+\item
+  return an explicit kernel error
+\item
+  produce no new truth
+\item
+  preserve SWS B for inspection / rebase / discard
+\end{itemize}
+
+This prevents truth corruption.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{4. Echo Scheduler
+Integration}}{4. Echo Scheduler Integration}}\label{echo-scheduler-integration}
+
+This is the precise integration:
+
+\subsubsection{\texorpdfstring{\textbf{4.1 Scheduler sits between RPC
+and
+Collapse}}{4.1 Scheduler sits between RPC and Collapse}}\label{scheduler-sits-between-rpc-and-collapse}
+
+\begin{lstlisting}
+SWS Commit RPC  
+      {\textdownarrow}  
+  Echo Scheduler  
+      {\textdownarrow} (ordered event stream)
+   Collapse Engine  
+      {\textdownarrow}  
+     WAL  
+      {\textdownarrow}  
+     RMG
+\end{lstlisting}
+
+\subsubsection{\texorpdfstring{\textbf{4.2 Scheduler
+Responsibilities}}{4.2 Scheduler Responsibilities}}\label{scheduler-responsibilities}
+
+The scheduler:
+
+\begin{itemize}
+\tightlist
+\item
+  accepts collapse requests\\
+\item
+  orders them into ticks
+\item
+  chooses which collapse executes first
+\item
+  defers collapse if needed
+\item
+  identifies overlapping footprints
+\item
+  detects rebase hell
+\item
+  enforces fairness
+\item
+  enforces no-two-collapses-in-one-tick policy
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{4.3 Tick
+Semantics}}{4.3 Tick Semantics}}\label{tick-semantics}
+
+Each tick:
+
+\begin{itemize}
+\tightlist
+\item
+  processes at most ONE collapse per ref
+\item
+  uses deterministic ordering rules
+\item
+  resolves region conflicts predictably
+\end{itemize}
+
+This aligns with:
+
+\begin{itemize}
+\tightlist
+\item
+  Lamport clocks\\
+\item
+  WAL ordering
+\item
+  RMG causal structure
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{4.4 Configurable
+Policies}}{4.4 Configurable Policies}}\label{configurable-policies}
+
+Policies:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Greedy Merge}\\
+\item
+  \textbf{Footprint Conservative}
+\item
+  \textbf{Rebase-Minimal}
+\item
+  **Fair-Round Robin*
+\item
+  \textbf{Human-First}
+\item
+  \textbf{Machine-First}
+\end{enumerate}
+
+All legal under this ADR.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{5.
+Consequences}}{5. Consequences}}\label{consequences}
+
+\subsubsection{\texorpdfstring{\textbf{Positive:}}{Positive:}}\label{positive}
+
+\begin{itemize}
+\tightlist
+\item
+  perfect determinism
+\item
+  multi-agent safety
+\item
+  cross-machine consistency
+\item
+  avoids rebase thrashing
+\item
+  safe parallel collapses
+\item
+  scalable across clusters
+\item
+  integrates Echo's maturity
+\item
+  flexible policies
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{Negative:}}{Negative:}}\label{negative}
+
+\begin{itemize}
+\tightlist
+\item
+  collapse latency depends on queue\\
+\item
+  collapse can be deferred
+\item
+  requires careful implementation
+\item
+  requires explicit agent/human loop for conflict resolution
+\end{itemize}
+
+Worth every tradeoff.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{6. Required
+Follow-Ups}}{6. Required Follow-Ups}}\label{required-follow-ups}
+
+ADR-0008 mandates:
+
+\begin{itemize}
+\tightlist
+\item
+  Section 7.5: Collapse Scheduling\\
+\item
+  Section 8: Storage may interact with freeze/isolation states
+\item
+  Section 11: Sync must integrate with deterministic scheduling
+\item
+  Section 20: Agent Scheduling doc
+\item
+  Maybe a full Echo $\times$ JITOS Integration Spec (future)
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{7.
+Decision}}{7. Decision}}\label{decision-1}
+
+\textbf{Accepted.}
+
+Echo's deterministic scheduler becomes the foundation for collapse
+arbitration in JITOS.
+
+Collapse attempts are serialized, scheduled, and reconciled via
+deterministic ticks.
+
+Overlapping collapses are deferred or rebased according to policy.
+
+Irreconcilable collapses fail safely.
+
+This is the \textbf{law of time} in a multi-agent causal universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+ADR-0008 is COMPLETE.
+
+Next:
+
+\subsubsection{\texorpdfstring{\textbf{Begin Section
+7.5}}{Begin Section 7.5}}\label{begin-section-7.5}
+
+\subsubsection{\texorpdfstring{~\textbf{(scheduler in temporal
+semantics)}}{~(scheduler in temporal semantics)}}\label{scheduler-in-temporal-semantics}
+
+or
+
+\subsubsection{\texorpdfstring{\textbf{Start ADR-0009 --- Storage
+Model}}{Start ADR-0009 --- Storage Model}}\label{start-adr-0009-storage-model}
+
+Just give the word, brother.

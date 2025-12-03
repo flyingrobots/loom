@@ -1,0 +1,403 @@
+\section{\texorpdfstring{\textbf{Chapter 7 --- Neighborhoods of
+Universes}}{Chapter 7 --- Neighborhoods of Universes}}\label{chapter-7-neighborhoods-of-universes}
+
+\subsection{\texorpdfstring{\textbf{Where alternative worlds
+live.}}{Where alternative worlds live.}}\label{where-alternative-worlds-live.}
+
+Every computation doesn't just move through \emph{time.} It moves
+through \textbf{possibility space}.
+
+You already know the worldline --- the actual path your system takes
+through structure. And you know the Time Cube --- the cone of legal
+moves at the next tick. But what lies just outside your worldline? What
+surrounds it? How do we describe the \textbf{nearby universes} that
+almost happened, that could have happened, that still can happen?
+
+To understand computation as geometry, you need more than distance. You
+need \textbf{neighborhoods} --- the regions of the Rulial Space that
+cluster around your actual history.
+
+This chapter is about those clusters.
+
+Why they form. Why they matter. Why some regions feel smooth and others
+feel jagged. Why some codebases feel like strolling through a park and
+others feel like crawling across broken glass.
+
+Let's explore the geometry just outside your worldline.
+
+Welcome to the local universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{7.1 --- Rules Define
+Locality}}{7.1 --- Rules Define Locality}}\label{rules-define-locality}
+
+The first rule of Rulial Space is simple:
+
+\begin{quote}
+\textbf{Universes are ``near'' each other} \textbf{if they differ by
+small, legal rewrites.}
+\end{quote}
+
+Not semantic closeness. Not code similarity. Not ``hunches.''
+
+Literal adjacency in rewrite space.
+
+If two states are:
+
+\begin{itemize}
+\tightlist
+\item
+  one rule apart {\textrightarrow} neighbors\\
+\item
+  two rules apart {\textrightarrow} second-degree neighbors
+\item
+  many rewrites apart {\textrightarrow} distant regions
+\end{itemize}
+
+The \textbf{DPO rule set} defines this topology:
+
+\begin{itemize}
+\tightlist
+\item
+  what counts as a tiny step,
+\item
+  what counts as a massive leap,
+\item
+  what's even reachable,
+\item
+  and what's totally illegal.
+\end{itemize}
+
+This is the fundamental geometry of your computational world. You aren't
+just mapping code --- you're mapping the \textbf{rules-of-motion} that
+define adjacency.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{7.2 --- The Adjacency Graph of
+Universes}}{7.2 --- The Adjacency Graph of Universes}}\label{the-adjacency-graph-of-universes}
+
+Think of Rulial Space as a giant graph where:
+
+\begin{itemize}
+\tightlist
+\item
+  each node = a possible RMG state\\
+\item
+  each edge = one legal DPO rewrite
+\end{itemize}
+
+This means the computational universe forms:
+
+\begin{quote}
+\textbf{A graph of universes connected by wormholes.}
+\end{quote}
+
+Your worldline traces through this graph like a hiking trail. But the
+graph itself is huge --- much bigger than what you actually travel. Your
+immediate neighbors --- the states one and two rewrites away --- define:
+
+\begin{itemize}
+\tightlist
+\item
+  nearby solutions,
+\item
+  alternative histories,
+\item
+  valid transformations,
+\item
+  candidate optimizations,
+\item
+  potential bug fix routes.
+\end{itemize}
+
+This adjacency structure is \textbf{not} like program diffs.
+
+It respects:
+
+\begin{itemize}
+\tightlist
+\item
+  recursive structure
+\item
+  invariants (K-graph)
+\item
+  legality
+\item
+  boundaries
+\item
+  nested RMG content
+\item
+  wormhole behavior
+\item
+  typed transitions
+\end{itemize}
+
+Two states that look very different in source code might be \emph{very
+close} in Rulial Distance. Two that look nearly identical in text might
+be \emph{far} in rewrite space. Text lies. Structure doesn't.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{7.3 --- Smooth vs.~Jagged
+Neighborhoods}}{7.3 --- Smooth vs.~Jagged Neighborhoods}}\label{smooth-vs.-jagged-neighborhoods}
+
+Some systems have wide cones. Some have narrow cones. Some have smooth
+neighborhoods. Some are jagged hellscapes. This is curvature (Chapter
+9), but here's the simple version:
+
+\subsubsection{\texorpdfstring{\textbf{Smooth
+regions}}{Smooth regions}}\label{smooth-regions}
+
+\begin{itemize}
+\tightlist
+\item
+  Many legal rewrites\\
+\item
+  Rules overlap gracefully
+\item
+  Nearby worlds behave similarly
+\item
+  Small changes produce small effects
+\item
+  Debugging feels ``easy''
+\item
+  Optimization feels ``natural''
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{Jagged
+regions}}{Jagged regions}}\label{jagged-regions}
+
+\begin{itemize}
+\tightlist
+\item
+  Few legal rewrites\\
+\item
+  Invariants clash
+\item
+  Minor changes blow up behavior
+\item
+  Worlds diverge sharply
+\item
+  Debugging feels like chasing ghosts
+\item
+  Optimization feels brittle and risky
+\end{itemize}
+
+Every engineer has experienced both. Now you know the geometric reason
+why. The ``feel'' of a codebase is just:
+
+\begin{quote}
+\textbf{The local geometry of its rewrite neighborhood.}
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{7.4 --- The Kairos Plane
+Expanded}}{7.4 --- The Kairos Plane Expanded}}\label{the-kairos-plane-expanded}
+
+Earlier, we treated Kairos as the Time Cube --- the slice of legal next
+options.
+
+Now we zoom out one level:
+
+\begin{quote}
+\textbf{Kairos is actually a plane ---} \textbf{the entire local surface
+of rewrites reachable from your worldline.}
+\end{quote}
+
+Your cone is just one vertical slice. But the surface around you is
+broader and more interesting.
+
+Diagrammatically:
+
+\begin{lstlisting}
+               (Kairos Plane)
+             {\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}
+           {\bfseries ?}                   {\bfseries ?}
+ Past {\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?}{\bfseries ?} Future
+   Chronos      {\textuparrow}
+              Cone
+\end{lstlisting}
+
+The Kairos Plane is:
+
+\begin{itemize}
+\tightlist
+\item
+  the ``horizon'' of legal moves
+\item
+  the surface of possible local universes
+\item
+  a finite portion of Aios
+\item
+  reshaped every tick
+\item
+  governed by DPO interfaces
+\item
+  sculpted by structure
+\item
+  defined by rule semantics
+\end{itemize}
+
+It's where most reasoning happens.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{7.5 --- Navigating
+Neighborhoods}}{7.5 --- Navigating Neighborhoods}}\label{navigating-neighborhoods}
+
+When you debug, you're looking at nearby failures. When you optimize,
+you're looking at nearby improvements. When you refactor, you're
+navigating between worlds in your neighborhood.
+
+Every software engineering activity --- literally all of them --- is
+neighborhood navigation:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Debugging:} ``Which nearby world fixes the problem?''
+\item
+  \textbf{Refactoring:} ``Which nearby world preserves behavior but
+  improves structure?''
+\item
+  \textbf{Optimization:} ``Which nearby world is closer to the
+  geodesic?''
+\item
+  \textbf{Design:} ``What neighborhood are we entering with this
+  architecture?''
+\item
+  \textbf{Type systems:} ``Which worlds are forbidden by invariants?''
+\item
+  \textbf{Version control:} ``Which worldlines converge or diverge?''
+\end{itemize}
+
+Once you see computation as neighborhoods, you stop reasoning about code
+as text and start reasoning about code as geometry.
+
+This is when everything starts to click.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{FOR THE
+NERDS{\texttrademark}}}{FOR THE NERDS{\texttrademark}}}\label{for-the-nerds}
+
+\subsection{\texorpdfstring{\textbf{Why This Is Not Quantum
+Superposition}}{Why This Is Not Quantum Superposition}}\label{why-this-is-not-quantum-superposition}
+
+Some readers will feel a structural resemblance:
+
+\begin{itemize}
+\tightlist
+\item
+  adjacent universes
+\item
+  many possible futures
+\item
+  collapse into one worldline
+\item
+  geometry of alternatives
+\end{itemize}
+
+This is resemblance, not equivalence.
+
+Here's the clean split: \#\#\# \textbf{Quantum:}
+
+\begin{itemize}
+\tightlist
+\item
+  amplitudes
+\item
+  interference
+\item
+  probability
+\item
+  physical
+\item
+  wavefunctions
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{RMG+DPO:}}{RMG+DPO:}}\label{rmgdpo}
+
+\begin{itemize}
+\tightlist
+\item
+  legality
+\item
+  adjacency
+\item
+  combinatorics
+\item
+  rewrite rules
+\item
+  abstract structure
+\end{itemize}
+
+No amplitudes. No probability waves. No physical claims.
+
+Just structured nondeterministic geometry. \emph{(End sidebar.)}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{7.6 --- Transition: From Neighborhoods
+to
+MRMW}}{7.6 --- Transition: From Neighborhoods to MRMW}}\label{transition-from-neighborhoods-to-mrmw}
+
+You've seen:
+
+\begin{itemize}
+\tightlist
+\item
+  the shape of possibility (Time Cube)
+\item
+  the path you take (worldline)
+\item
+  the geometry around that path (neighborhoods)
+\end{itemize}
+
+Now we zoom out one more level:
+
+\begin{quote}
+\textbf{How do you map the entire phase space of your computational
+universe?}
+\end{quote}
+
+Not just:
+
+\begin{itemize}
+\tightlist
+\item
+  the path you took,
+\item
+  or the paths you could take next,
+\item
+  or the worlds nearby\ldots{}
+\end{itemize}
+
+But \textbf{the full structure} of:
+
+\begin{itemize}
+\tightlist
+\item
+  all possible rewrite models (rule-sets),
+\item
+  all possible worldlines for each model,
+\item
+  and all the relationships between them.
+\end{itemize}
+
+This is MRMW.
+
+The cosmology of your computational universe.
+
+And that's Chapter 8.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

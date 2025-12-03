@@ -1,0 +1,13 @@
+\begin{tikzpicture}[
+    petal/.style={draw=blue!60, thick}
+]
+
+\foreach \a in {0,45,...,315}{
+    \draw[petal] (0,0) ellipse [x radius=2, y radius=0.5, rotate=\a];
+}
+
+\node[circle,fill=black,minimum size=5pt] at (0,0) {};
+
+\node at (0,-2.5) {\small $\Omega$---RMG Blossom};
+
+\end{tikzpicture}

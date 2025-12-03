@@ -1,0 +1,84 @@
+\sectionbreak
+\section{Introduction}
+\label{sec:intro}
+
+Modern computation is built on mutable state and loosely specified
+concurrency. As systems become distributed, multicore, and
+AI-mediated, this leads to nondeterminism, opaque failure modes,
+unreproducible behavior, and fundamentally incomplete provenance.
+
+The goal of this work is to develop a mathematically precise alternative
+model in which:
+
+\begin{itemize}[leftmargin=*]
+  \item global state is represented as a recursively nested,
+    graph-shaped object;
+  \item all evolution of that state is given by well-typed graph
+    rewrites;
+  \item under an explicit independence discipline and
+    no-delete/no-clone-under-descent invariants, the operational
+    semantics is deterministic (up to typed open graph isomorphism)
+    and confluent at the level of ``ticks'' of computation
+    (\cref{thm:tick-confluence,thm:two-plane,thm:global}); and
+  \item the \emph{entire} interior evolution of a computation is stored
+    in a compact \emph{provenance payload} attached to a single edge,
+    yielding an information-complete holographic encoding.
+\end{itemize}
+
+Our technical starting point is algebraic graph transformation via
+double-pushout (DPO) graph rewriting in adhesive categories. We pair this with
+the Recursive Metagraph (RMG) object model introduced in
+Section~\ref{sec:rmg}. We extend this setting with:
+
+\begin{enumerate}[leftmargin=*]
+  \item a precise notion of RMG state and its category;
+  \item a two-plane concurrent operational semantics with
+    attachment--then--skeleton publication, together with
+    confluence results: tick-level determinism and two-plane
+    commutation (Theorems~\ref{thm:tick-confluence} and
+    \ref{thm:two-plane}), and---under the standing assumptions and
+    standard rewrite-theoretic conditions---global confluence
+    (Theorem~\ref{thm:global});
+  \item a provenance payload calculus yielding \emph{computational
+    holography};
+  \item an MDL-based quasi-pseudometric on observers, the \emph{rulial
+    distance}, and a correspondence between RMG derivations and
+    multiway systems that clarifies the relationship to Wolfram's
+    Ruliad.
+\end{enumerate}
+
+We keep the system-level \AION{} stack\footnote{% 
+Pronounced ``eye-ON'' (rhymes with \emph{aeon}), with stress on the second syllable.}
+(AIONOS, Echo, Wesley, etc.) largely offstage, mentioning it only to
+motivate the mathematical structure; we assume only that implementations
+respect the axioms and invariants stated in Sections~\ref{sec:rmg}--\ref{sec:discussion},
+with scheduling, representation, and persistence details intentionally
+out of scope. A companion ``\COMPUTER{}'' paper will build on these
+results to define the full machine model and operating system.
+
+\medskip
+\noindent
+\textbf{Key contributions.}
+The main results of this paper are:
+\begin{enumerate}[leftmargin=5mm]
+  \item \emph{Tick-level confluence} (Theorem~\ref{thm:tick-confluence}):
+    parallel independent RMG rewrites commute, yielding per-tick
+    deterministic semantics independent of scheduler serialization
+    order;
+  \item \emph{Two-plane commutation} (Theorem~\ref{thm:two-plane}):
+    attachment and skeleton updates commute up to isomorphism;
+  \item \emph{Worldline uniqueness} (Corollary~\ref{cor:worldline-uniqueness}):
+    under the standing assumptions (tick confluence, two-plane
+    commutation, conditional global confluence, and holography), the
+    boundary data $(S_0,P)$ determines the interior derivation uniquely
+    up to typed open graph isomorphism, extending per-tick commutation
+    to whole-run semantics;
+  \item \emph{Computational holography} (Theorem~\ref{thm:holography}):
+    the boundary data $(S_0,P)$ is information-complete with respect to
+    the interior evolution, enabling reconstruction of the full
+    derivation volume;
+  \item \emph{Rulial distance} (Theorem~\ref{thm:rulial-triangle}):
+    the triangle-inequality property of an MDL-based quasi-pseudometric
+    on observers, capturing the complexity of translating between
+    different computational views.
+\end{enumerate}

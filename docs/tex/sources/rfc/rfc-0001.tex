@@ -1,0 +1,345 @@
+\section{\texorpdfstring{\textbf{JIT
+RFC-0001}}{JIT RFC-0001}}\label{jit-rfc-0001}
+
+\subsection{\texorpdfstring{\textbf{Node Identity \& Canonical Encoding
+(NICe
+v1.0)}}{Node Identity \& Canonical Encoding (NICe v1.0)}}\label{node-identity-canonical-encoding-nice-v1.0}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{1.
+Summary}}{1. Summary}}\label{summary}
+
+This RFC defines:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{how nodes are identified}
+\item
+  \textbf{how nodes are serialized}
+\item
+  \textbf{how node integrity is guaranteed}
+\item
+  \textbf{how node equality is evaluated}
+\item
+  \textbf{how canonical encoding is achieved}
+\end{itemize}
+
+This establishes the foundational invariant of JIT:
+
+\begin{quote}
+\textbf{Node identity is a pure function of its content and parent
+list.}
+\end{quote}
+
+This RFC is the ground truth that allows:
+
+\begin{itemize}
+\tightlist
+\item
+  determinism
+\item
+  idempotence
+\item
+  reproducibility
+\item
+  causal ordering
+\item
+  infinite auditability
+\item
+  distributed correctness
+\end{itemize}
+
+Without this, JIT collapses.
+
+With it, JIT becomes physically sound.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{2.
+Motivation}}{2. Motivation}}\label{motivation}
+
+JIT relies on an immutable, append-only DAG.
+
+This requires:
+
+\begin{itemize}
+\tightlist
+\item
+  stable identity
+\item
+  canonical encoding
+\item
+  deterministic hashing
+\item
+  cross-machine consistency
+\item
+  architecture independence
+\end{itemize}
+
+If ANY machine in the network produces different node IDs for the same
+logical content, \textbf{the universe fractures.} So this RFC formalizes
+the physics of node identity.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{3.
+Requirements}}{3. Requirements}}\label{requirements}
+
+Node identity must be:
+
+\subsection{\texorpdfstring{\textbf{Deterministic}}{Deterministic}}\label{deterministic}
+
+Same input $\rightarrow$ same output, across all architectures.
+
+\subsection{\texorpdfstring{\textbf{Order-sensitive}}{Order-sensitive}}\label{order-sensitive}
+
+Parents must be hashed in deterministic order.
+
+\subsection{\texorpdfstring{\textbf{Type-sensitive}}{Type-sensitive}}\label{type-sensitive}
+
+Different node types produce different encodings.
+
+\subsection{\texorpdfstring{\textbf{Encoding-stable}}{Encoding-stable}}\label{encoding-stable}
+
+Versioning cannot alter identity retroactively.
+
+\subsection{\texorpdfstring{\textbf{Hash-secure}}{Hash-secure}}\label{hash-secure}
+
+Strong cryptographic guarantees.
+
+\subsection{\texorpdfstring{\textbf{Provenance-faithful}}{Provenance-faithful}}\label{provenance-faithful}
+
+Parent list is required and must not be empty (except for the root
+node).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{4. Canonical Node
+Structure}}{4. Canonical Node Structure}}\label{canonical-node-structure}
+
+All nodes have the structure:
+
+\begin{lstlisting}
+Node {
+    type: NodeType
+    parents: list<NodeID>
+    payload: bytes
+    metadata: Metadata
+}
+\end{lstlisting}
+
+Metadata fields:
+
+\begin{itemize}
+\tightlist
+\item
+  timestamp (logical + wall clock)
+\item
+  author ID
+\item
+  signature (optional)
+\item
+  compression flags
+\item
+  schema version
+\end{itemize}
+
+Metadata must be strictly ordered.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{5. Canonical Serialization
+Format}}{5. Canonical Serialization Format}}\label{canonical-serialization-format}
+
+JIT \textbf{MUST} use \textbf{canonical CBOR} (RFC 8949 {\textsection}4.2):
+
+\begin{itemize}
+\tightlist
+\item
+  sorted map keys
+\item
+  minimal integer encoding
+\item
+  UTF-8 canonical strings
+\item
+  deterministic floats
+\item
+  no ambiguous structures
+\end{itemize}
+
+This ensures:
+
+\begin{itemize}
+\tightlist
+\item
+  architecture-independent serialization
+\item
+  byte-stable hashing
+\item
+  reproducibility across time
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{6. Hashing
+Algorithm}}{6. Hashing Algorithm}}\label{hashing-algorithm}
+
+JIT \textbf{MUST} use \textbf{BLAKE3-256} as the node identity hash.
+
+Justification:
+
+\begin{itemize}
+\tightlist
+\item
+  extremely fast
+\item
+  cryptographically strong
+\item
+  parallelizable
+\item
+  tree-hash capable
+\item
+  flexible
+\item
+  future-proof
+\end{itemize}
+
+\begin{lstlisting}
+NodeID = blake3(canonical_encoding(node)).
+\end{lstlisting}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{7. Parent Ordering
+Rule}}{7. Parent Ordering Rule}}\label{parent-ordering-rule}
+
+Parents \textbf{MUST} be sorted lexicographically by NodeID prior to
+serialization.
+
+This ensures:
+
+\begin{itemize}
+\tightlist
+\item
+  determinism
+\item
+  order independence of logical causal descent
+\item
+  reproducible merges
+\item
+  identical rewrites under identical conditions
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{8. Signature Layer
+(Optional)}}{8. Signature Layer (Optional)}}\label{signature-layer-optional}
+
+Signatures are not part of NodeID.
+
+They are stored in metadata.
+
+This ensures:
+
+\begin{itemize}
+\tightlist
+\item
+  same node \ensuremath{\neq} same identity as signed node
+\item
+  signatures don't alter causal truth
+\end{itemize}
+
+Node signature \textbf{MUST} be:
+
+\begin{lstlisting}
+sig = sign(private_key, NodeID)
+\end{lstlisting}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{9. Root
+Node}}{9. Root Node}}\label{root-node}
+
+The root node (the initial event of the universe):
+
+\begin{lstlisting}
+type = "root"
+parents = []
+payload = empty
+metadata = minimal
+\end{lstlisting}
+
+Hashing rules apply; this produces a deterministic root ID.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{10. Backwards
+Compatibility}}{10. Backwards Compatibility}}\label{backwards-compatibility}
+
+If future schemas add fields:
+
+\begin{itemize}
+\tightlist
+\item
+  new fields \textbf{MUST} serialize to canonical defaults
+  (0/null/empty)
+\item
+  missing fields \textbf{MUST} be interpreted as canonical default
+\item
+  \textbf{identity cannot change retroactively}
+\end{itemize}
+
+We do not mutate the past.
+
+Ever.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{11. Security
+Considerations}}{11. Security Considerations}}\label{security-considerations}
+
+\begin{itemize}
+\tightlist
+\item
+  BLAKE3-256 ensures strong collision resistance.
+\item
+  CBOR canonicalization ensures no cross-machine divergence.
+\item
+  Parent sorting ensures rewrite determinism.
+\item
+  Metadata versioning ensures forward compatibility.
+\item
+  Signatures separate identity from attestation.
+\end{itemize}
+
+This RFC provides \textbf{cryptographic grounding} for the entire JIT
+universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{12. Status \& Next
+Steps}}{12. Status \& Next Steps}}\label{status-next-steps}
+
+Once accepted, RFC-0001 becomes:
+
+\begin{itemize}
+\tightlist
+\item
+  mandatory for JITD prototypes
+\item
+  referenced by \href{./RFC-0002.md}{RFC-0002} (DAG Invariants)
+\item
+  foundational for JITOS v0.1
+\item
+  the backbone of all future JIT systems
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

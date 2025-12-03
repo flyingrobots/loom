@@ -1,0 +1,421 @@
+This is the ADR that seals the ontology.
+
+That ties together:
+
+\begin{itemize}
+\tightlist
+\item
+  The RMG substrate
+\item
+  The causal DAG
+\item
+  Human-scale events
+\item
+  Machine-scale events
+\item
+  Semantic events
+\item
+  Keystrokes
+\item
+  Refactors
+\item
+  Thought processes
+\item
+  Provenance reasoning
+\item
+  Multi-agent concurrency
+\item
+  Time perception
+\item
+  Collapse physics
+\item
+  The very nature of ``a change''
+\end{itemize}
+
+This ADR is where your big insight becomes law:
+
+``A commit is not a node. A commit is an RMG. Humans and machines differ
+only by zoom level.''
+
+Let's carve it into the immutable ledger.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{ADR-0004 --- RMG Scale Invariance: Multi-Scale Event
+Geometry}\label{adr-0004-rmg-scale-invariance-multi-scale-event-geometry}
+
+\begin{quote}
+``Macro = Micro compressed.''
+\end{quote}
+
+\subsection{1. Context}\label{context}
+
+After ADR-0003, the substrate of JITOS is formally defined as a
+Recursive Meta-Graph (RMG).
+
+This means:
+
+\begin{itemize}
+\tightlist
+\item
+  nodes can contain graphs
+\item
+  graphs describe nodes
+\item
+  rewrite rules operate across layers
+\item
+  provenance is semantic structure
+\item
+  agent reasoning is nested structure
+\item
+  overlay graphs are structured trees
+\item
+  ASTs and diffs are both RMG artifacts
+\end{itemize}
+
+This reveals something profound:
+
+Not all ``events'' occur at the same scale.
+
+Humans conceptualize changes at a macro level:
+
+``I updated this function.''
+
+Machines operate at micro levels:
+
+\begin{itemize}
+\tightlist
+\item
+  keystrokes
+\item
+  AST edits
+\item
+  diff hunks
+\item
+  symbol resolutions
+\item
+  semantic transforms
+\item
+  reasoning traces
+\end{itemize}
+
+But inside the substrate?
+
+These are all the same thing:
+
+\begin{itemize}
+\tightlist
+\item
+  subgraphs
+\item
+  graphs-of-graphs
+\item
+  meta-graphs
+\end{itemize}
+
+Compressed or expanded.
+
+Thus the actual question is:
+
+What is the ``unit of change'' in JITOS?
+
+The answer cannot be ``a node.'' The answer is:
+
+An RMG region.
+
+And the substrate must support multi-scale, reversible views.
+
+This ADR defines that principle.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Decision}\label{decision}
+
+JITOS treats all changes---human or machine---as RMGs with internal
+substructure. The apparent granularity of a change is determined by the
+viewer's ``zoom level.''
+
+This means:
+
+{\bfseries ?} A human sees ONE ``commit''
+
+But the RMG contains:
+
+\begin{itemize}
+\tightlist
+\item
+  \textasciitilde30 keystroke nodes
+\item
+  \textasciitilde12 diff hunks
+\item
+  \textasciitilde4 semantic rewrites
+\item
+  \textasciitilde1 macro intent
+\item
+  \textasciitilde1 provenance graph
+\end{itemize}
+
+All compressed into a macro-event view.
+
+{\bfseries ?} A machine sees ALL internal nodes
+
+But recognizes the macro node as:
+
+\begin{itemize}
+\tightlist
+\item
+  a collapsed subgraph
+\item
+  a semantically grouped region
+\item
+  a scale-invariant event window
+\end{itemize}
+
+{\bfseries ?} Both are correct.
+
+Because both views are projections of the same RMG.
+
+{\bfseries ?} Collapse (commit) happens at the macro-level
+
+But the internal nodes are preserved in semantic/provenance layers.
+
+{\bfseries ?} SWS are multi-scale compute containers
+
+They hold:
+
+\begin{itemize}
+\tightlist
+\item
+  micro-events
+\item
+  macro-events
+\item
+  hypergraphs
+\item
+  ASTs
+\item
+  overlays
+\end{itemize}
+
+All as an RMG region.
+
+{\bfseries ?} The kernel DOES NOT enforce a single ``event granularity''
+
+Because the substrate is inherently recursive.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Rationale}\label{rationale}
+
+\subsubsection{3.1 Humans and machines operate at different
+temporal/semantic
+scales}\label{humans-and-machines-operate-at-different-temporalsemantic-scales}
+
+Humans care about conceptual edits. Machines care about granular
+transformations.
+
+JITOS must unify them.
+
+RMG gives a single substrate for both.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.2 Collapse operator must operate on RMG regions, not
+single
+nodes}\label{collapse-operator-must-operate-on-rmg-regions-not-single-nodes}
+
+A collapse event (commit) creates a new snapshot node representing the
+entire RMG region of speculation.
+
+The internal structure is:
+
+\begin{itemize}
+\tightlist
+\item
+  preserved
+\item
+  nested
+\item
+  navigable
+\item
+  provenance-rich
+\item
+  semantically meaningful
+\item
+  searchable via JQL
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.3 Git vs jj
+reconciliation}\label{git-vs-jj-reconciliation}
+
+\begin{itemize}
+\tightlist
+\item
+  Git: commit = aggregate diff (macro)
+\item
+  jj: commit = every change is a node (micro)
+\end{itemize}
+
+JITOS:
+
+commit = macro view of a nested micrograph.
+
+Both philosophies become projections of the same substrate.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.4 Provenance nodes naturally belong INSIDE RMG
+regions}\label{provenance-nodes-naturally-belong-inside-rmg-regions}
+
+An edit session includes:
+
+\begin{itemize}
+\tightlist
+\item
+  keystrokes
+\item
+  refactors
+\item
+  AI reasoning
+\item
+  human decision
+\item
+  tool transformations
+\item
+  semantic explanations
+\end{itemize}
+
+All should be recorded.
+
+RMG allows provenance to sit inside the event it describes.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.5 RMG supports
+scale-invariance}\label{rmg-supports-scale-invariance}
+
+The same ``change'' may be:
+
+\begin{itemize}
+\tightlist
+\item
+  seen as 1 event (macro)
+\item
+  navigated as 100 events (micro)
+\item
+  analyzed as semantic deltas (meso)
+\item
+  interpreted by agents through reasoning chains
+\item
+  compressed into meta-nodes
+\item
+  expanded into fine-grained structure
+\end{itemize}
+
+Scale is not a property of the change. It's a property of the view.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Alternatives Considered}\label{alternatives-considered}
+
+\subsubsection{4.1 Everything is a single commit
+node}\label{everything-is-a-single-commit-node}
+
+Rejected: loses micro detail and semantics.
+
+\subsubsection{4.2 Every micro-change becomes a top-level DAG
+event}\label{every-micro-change-becomes-a-top-level-dag-event}
+
+Rejected: DAG becomes noisy, unreadable, not human-friendly.
+
+\subsubsection{4.3 Per-file or per-hunk
+nodes}\label{per-file-or-per-hunk-nodes}
+
+Rejected: arbitrary heuristic, not philosophically grounded.
+
+\subsubsection{4.4 Different node types per
+scale}\label{different-node-types-per-scale}
+
+Rejected: misleading, too rigid.
+
+The RMG model solves all of these elegantly.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Consequences}\label{consequences}
+
+Positive:
+
+\begin{itemize}
+\tightlist
+\item
+  unified model for all participants
+\item
+  perfect human-machine parity
+\item
+  natural multi-agent workflows
+\item
+  reversible zoom
+\item
+  strong provenance
+\item
+  collapse expresses intent, not mechanics
+\item
+  elegant C\ensuremath{\Omega}MPUTER alignment
+\item
+  scalable semantic reasoning
+\item
+  natural federation and subgraph export
+\end{itemize}
+
+Negative:
+
+\begin{itemize}
+\tightlist
+\item
+  visualization complexity
+\item
+  requires good tooling
+\item
+  requires RMG queries in JQL
+\item
+  requires RMG-aware Inversion Engine
+\end{itemize}
+
+These are manageable.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Required Follow-Ups}\label{required-follow-ups}
+
+This ADR mandates:
+
+\begin{itemize}
+\tightlist
+\item
+  Section 4: Collapse semantics must reference RMG regions
+\item
+  Section 6: Memory model recognizes micro/macro overlay graphs
+\item
+  Updates to provenance (RFC-0016)
+\item
+  Updates to diffusion of machine-generated transforms
+\item
+  Federation must consider RMG region transfer
+\item
+  JQL must support RMG zoom operations
+\item
+  Visualization tools must support subgraph zoom
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Decision}\label{decision-1}
+
+\textbf{Accepted}. JITOS treats every change as a multi-scale RMG
+region, with zoom-level-dependent projections.
+
+Humans see events. Machines see subgraphs. The kernel sees structure.
+Truth sees geometry.

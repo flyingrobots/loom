@@ -1,0 +1,366 @@
+\section{RFC-0016}\label{rfc-0016}
+
+RFC-0016
+
+JIT RFC-0016
+
+Semantic Provenance Nodes (SPN v1.0)
+
+Causal Narratives, Scientific Lineage \& the Ontology of ``Why''
+
+Status: Draft\\
+Author: James Ross\\
+Contributors: JIT Community\\
+Requires:\\
+- RFC-0001 Node Identity\\
+- RFC-0002 DAG Invariants\\
+- RFC-0005 Inversion Engine\\
+- RFC-0015 JQL\\
+Start Date: 2025-11-29\\
+Target Spec: JITOS v0.x\\
+License: TBD**
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines the Semantic Provenance Node (SPN)--- a special node
+type in the causal DAG that encodes WHY something happened.
+
+While:\\
+- snapshot nodes represent what happened\\
+- rewrite nodes represent how it changed\\
+- chunk nodes represent literal content\\
+- metadata represents when and who
+
+provenance nodes represent WHY.
+
+These nodes attach semantic meaning, intent, context, method, reasoning,
+and description to events in the causal universe.
+
+This is what makes JIT not just a version-control system,\\
+but a computational narrative engine.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Motivation
+\end{enumerate}
+
+In computing, we rarely answer why something happened.\\
+Git tells you:\\
+- who did it\\
+- when they did it\\
+- what changed
+
+\ldots but Git CANNOT tell you:\\
+- why a change was made\\
+- what experiment it belonged to\\
+- what assumptions were involved\\
+- what tools produced it\\
+- what tasks it relates to\\
+- what model or dataset it depended upon\\
+- what semantic transformation occurred
+
+JIT must support:\\
+- scientific reproducibility\\
+- ML provenance\\
+- CI/CD traceability\\
+- distributed agent reasoning\\
+- semantic code modifications\\
+- meta-information about rewrites\\
+- alignment \& safety auditing\\
+- academic workflows\\
+- simulation lineage
+
+Provenance is the missing piece.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Definition
+\end{enumerate}
+
+A Provenance Node is a causal event that encodes semantic information:
+
+ProvenanceNode \{\\
+type: ``provenance'',\\
+parents: list,\\
+metadata: \{\\
+agent: AgentID,\\
+created\_ts: u64,\\
+category: string,\\
+description: string,\\
+tags: list,\\
+properties: map\textless string, CBOR-value\textgreater{}\\
+\},\\
+payload: bytes \# structured CBOR semantic content\\
+\}
+
+Valid categories:\\
+- ``experiment''\\
+- ``analysis''\\
+- ``transformation''\\
+- ``reasoning''\\
+- ``evidence''\\
+- ``annotation''\\
+- ``intent''\\
+- ``constraint''\\
+- ``summary''\\
+- ``runtime''\\
+- ``explanation''\\
+- ``tool-action''\\
+- ``model-run''
+
+The system is extensible.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Attachments \& Linkages
+\end{enumerate}
+
+Provenance nodes MUST attach to:\\
+- snapshot nodes\\
+- rewrite nodes\\
+- chunk nodes\\
+- other provenance nodes\\
+- shadow working sets (via references, not causal parents)
+
+This models a semantic graph layered atop the causal graph.
+
+A graph of meaning atop a graph of events.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Semantic Payloads
+\end{enumerate}
+
+Payload examples:
+
+5.1 Natural Language Reasoning
+
+``payload'': \{\\
+``explanation'': ``Refactored module X for performance.'',\\
+``context'': ``Agent performed structure analysis.'',\\
+``risk'': ``low''\\
+\}
+
+5.2 LLM Thought Trace
+
+``payload'': \{\\
+``thought'': ``\ldots longform reasoning\ldots''\\
+\}
+
+5.3 Experiment Details
+
+``payload'': \{\\
+``hyperparameters'': \{\ldots\},\\
+``dataset\_version'': ``v3.2'',\\
+``runtime\_env'': \{\ldots\}\\
+\}
+
+5.4 Semantic Transformation Descriptor
+
+``payload'': \{\\
+``transformation'': ``rename\_method'',\\
+``from'': ``foo'',\\
+``to'': ``bar''\\
+\}
+
+JIT does NOT interpret meaning;\\
+it stores meaning.
+
+The meaning becomes part of the universe.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Provenance Rules
+\end{enumerate}
+
+6.1 Semantic Information MUST NOT affect node identity
+
+No causal invariants changed by provenance.
+
+6.2 Provenance nodes MUST be immutable
+
+Like all nodes.
+
+6.3 Provenance MAY be attached retroactively
+
+Parents MUST be valid DAG nodes\\
+but parents may precede creation.
+
+6.4 Provenance MUST NOT affect collapse
+
+Collapse uses:\\
+- chunk nodes\\
+- rewrite nodes\\
+- snapshot nodes
+
+Provenance is advisory/semantic only.
+
+6.5 Provenance MUST support multi-agent authors
+
+Metadata MUST record:\\
+- agent\\
+- tool\\
+- human\\
+- LLM\\
+- system task
+
+Transparent lineage.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  JQL Integration
+\end{enumerate}
+
+JQL MUST support:
+
+select provenance\\
+where category == ``experiment''
+
+Or:
+
+match \{\\
+type: ``provenance'',\\
+metadata.agent: ``agent-34'',\\
+tags: {[}``autofix''{]}\\
+\}
+
+This allows:\\
+- reasoning trace queries\\
+- semantic filtering\\
+- experiment lineage retrieval\\
+- conceptual graph querying\\
+- model provenance reconstruction
+
+This is crucial for scientific/ML workflows.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Tooling Integration
+\end{enumerate}
+
+Tools MUST be able to generate provenance nodes:\\
+- LLMs annotate their reasoning\\
+- CI documents test runs\\
+- build systems attach metadata\\
+- simulation engines attach parameters\\
+- compilers attach analysis\\
+- editors attach semantic actions
+
+This creates a layer of explanation above all computation.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Why Provenance Nodes Matter
+\end{enumerate}
+
+Because they enable:
+
+Scientific Reproducibility
+
+Every run, every transformation, every parameter stored forever.
+
+Safe Automated Code Editing
+
+Agents can justify edits.
+
+Auditable AI Systems
+
+LLMs can record thought traces.
+
+Workflow Traceability
+
+Every action in CI/CD is captured.
+
+Semantic Code Intelligence
+
+Refactoring becomes meaningful, not textual.
+
+Alignment \& Monitoring
+
+We can track the intent behind agent actions.
+
+Differentiable Programming of Reality
+
+The DAG becomes a semantic universe, not just a structural one.
+
+This is a new capability for computing.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  Status \& Next Steps
+\end{enumerate}
+
+Now we can build:\\
+- Semantic execution\\
+- Reasoning engines\\
+- Visualization tools\\
+- Reproducible simulation systems\\
+- Scientific JIT workflows\\
+- LLM supervision layers\\
+- ``auditability by construction'' pipelines
+
+Next recommended RFCs:\\
+- RFC-0017---Agent Identity \& Signing Layer\\
+- RFC-0018---Causal Garbage Isolation\\
+- RFC-0019---SWS Memory Model\\
+- RFC-0020---Security \& Permissions
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

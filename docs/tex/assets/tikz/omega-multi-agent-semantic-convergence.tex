@@ -1,0 +1,15 @@
+\begin{tikzpicture}[
+    agent/.style={circle,draw=black,fill=white,minimum size=5pt},
+    arrow/.style={->, thick}
+]
+
+\node[agent] (A) at (-2,1) {};
+\node[agent] (B) at (-2,-1) {};
+\node[agent] (C) at (2,0) {};
+
+\draw[arrow] (A)--(C);
+\draw[arrow] (B)--(C);
+
+\node at (0,-2) {\small $\Omega$---Semantic Convergence};
+
+\end{tikzpicture}

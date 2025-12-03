@@ -1,0 +1,14 @@
+\begin{tikzpicture}[
+    ring/.style={circle, draw=blue!70, thick},
+    center/.style={circle, fill=black, minimum size=7pt}
+]
+
+\node[center] at (0,0) {};
+
+\foreach \r/\c in {0.5/blue!50,1/blue!40,1.5/blue!30,2/blue!20,2.5/blue!10}{
+  \draw[ring,\c] (0,0) circle (\r);
+}
+
+\node at (0,-3) {\small $\Omega$---RMG Manifold};
+
+\end{tikzpicture}

@@ -1,0 +1,55 @@
+<svg width="860" height="320" viewBox="0 0 860 320" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .box { fill:#ffffff; stroke:#000000; stroke-width:2; rx:8; ry:8; }
+    .label { font-family: system-ui, -apple-system, sans-serif; font-size:13px; }
+    .title { font-weight:bold; font-size:15px; }
+    .arrow { stroke:#000000; stroke-width:2; marker-end:url(#arrowhead); }
+    .topic { fill:#f5f5f5; stroke:#000000; stroke-width:1.5; rx:6; ry:6; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#000000" />
+    </marker>
+  </defs>
+
+  <!-- GITD -->
+  <rect class="box" x="350" y="120" width="180" height="90"/>
+  <text class="label title" x="440" y="145" text-anchor="middle">GITD</text>
+  <text class="label" x="440" y="165" text-anchor="middle">SWS registry</text>
+  <text class="label" x="440" y="183" text-anchor="middle">authoritative state</text>
+
+  <!-- Shadow sets -->
+  <rect class="box" x="320" y="230" width="110" height="60"/>
+  <text class="label" x="375" y="252" text-anchor="middle">SWS #1</text>
+  <text class="label" x="375" y="270" text-anchor="middle">shadow-id=…</text>
+
+  <rect class="box" x="470" y="230" width="110" height="60"/>
+  <text class="label" x="525" y="252" text-anchor="middle">SWS #2</text>
+  <text class="label" x="525" y="270" text-anchor="middle">shadow-id=…</text>
+
+  <line class="arrow" x1="406" y1="210" x2="375" y2="230"/>
+  <line class="arrow" x1="474" y1="210" x2="505" y2="230"/>
+
+  <!-- Agents -->
+  <rect class="box" x="60" y="40" width="140" height="60"/>
+  <text class="label title" x="130" y="65" text-anchor="middle">Agent A</text>
+  <text class="label" x="130" y="83" text-anchor="middle">LLM / tool</text>
+
+  <rect class="box" x="60" y="190" width="140" height="60"/>
+  <text class="label title" x="130" y="215" text-anchor="middle">Agent B</text>
+  <text class="label" x="130" y="233" text-anchor="middle">CI / bot</text>
+
+  <!-- Message plane -->
+  <rect class="topic" x="250" y="40" width="360" height="60"/>
+  <text class="label title" x="430" y="63" text-anchor="middle">Message Plane</text>
+  <text class="label" x="430" y="82" text-anchor="middle">sws.&lt;id&gt;.patch / commit / discard</text>
+
+  <!-- arrows Agents -> MP -->
+  <line class="arrow" x1="200" y1="70" x2="250" y2="70"/>
+  <line class="arrow" x1="200" y1="220" x2="350" y2="220"/>
+
+  <!-- MP -> GITD -->
+  <line class="arrow" x1="450" y1="100" x2="440" y2="120"/>
+
+  <text class="label" x="260" y="205" text-anchor="start">SWS lifecycle via messages</text>
+</svg>

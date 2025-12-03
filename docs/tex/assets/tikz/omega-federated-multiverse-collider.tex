@@ -1,0 +1,14 @@
+\begin{tikzpicture}[
+    uni/.style={ellipse, draw=black, thick, fill=gray!10, minimum width=3cm, minimum height=1.6cm},
+    link/.style={->, thick, draw=purple!80}
+]
+
+\node[uni] (A) at (-2,0) {};
+\node[uni] (B) at (2,0) {};
+
+\draw[link] (-0.4,0.4) -- (0.4,0.4);
+\draw[link] (-0.4,-0.4) -- (0.4,-0.4);
+
+\node at (0,-1.5) {\small $\Omega$---Federated Universe Collision};
+
+\end{tikzpicture}

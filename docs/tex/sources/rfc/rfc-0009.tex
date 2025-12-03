@@ -1,0 +1,494 @@
+\section{JIT RFC-0009}\label{jit-rfc-0009}
+
+\subsection{Storage Tiering \& Rehydration (STR
+v1.0)}\label{storage-tiering-rehydration-str-v1.0}
+
+\subsubsection{Thermodynamics of a Post-File Causal
+Universe}\label{thermodynamics-of-a-post-file-causal-universe}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{1. Summary}\label{summary}
+
+This RFC defines the multi-tiered storage model of the JIT substrate and
+the deterministic rehydration semantics that allow nodes to move
+between:
+
+\begin{itemize}
+\tightlist
+\item
+  Hot tier (fast local SSD)
+\item
+  Warm tier (compressed local storage)
+\item
+  Cold tier (remote object store)
+\end{itemize}
+
+Tiering allows JIT to:
+
+\begin{itemize}
+\tightlist
+\item
+  retain infinite history
+\item
+  keep the graph immutable
+\item
+  avoid garbage collection
+\item
+  support massive datasets and deep provenance
+\item
+  operate efficiently on commodity hardware
+\item
+  work equally well on laptops, servers, and clusters
+\end{itemize}
+
+At the same time, rehydration ensures:
+
+\begin{itemize}
+\tightlist
+\item
+  nodes appear ``present'' when needed
+\item
+  deterministic reconstruction
+\item
+  transparent access
+\item
+  no correctness loss
+\item
+  no identity mutation
+\item
+  flawless causal replay
+\end{itemize}
+
+This RFC describes JIT's storage physics.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Motivation}\label{motivation}
+
+JIT is an append-only causal universe. It grows forever. Nodes
+accumulate indefinitely.
+
+But:
+
+\begin{itemize}
+\tightlist
+\item
+  SSD is finite
+\item
+  RAM is finite
+\item
+  compute is bounded
+\end{itemize}
+
+Therefore, JIT must support tiered storage analogous to:
+
+\begin{itemize}
+\tightlist
+\item
+  LSM-leveling
+\item
+  CPU cache hierarchies
+\item
+  memory tiers
+\item
+  cold/warm/hot object lifecycles
+\item
+  database storage pyramids
+\end{itemize}
+
+Except:
+
+JIT cannot compact.
+
+JIT cannot rewrite.
+
+JIT cannot delete.
+
+JIT cannot mutate.
+
+So we must move, not mutate, nodes.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Tier Definitions}\label{tier-definitions}
+
+\subsubsection{3.1 Hot Tier}\label{hot-tier}
+
+Location:
+
+\begin{lstlisting}[language=bash]
+.gitd/nodes/hot/
+\end{lstlisting}
+
+Characteristics:
+
+\begin{itemize}
+\tightlist
+\item
+  SSD-backed
+\item
+  uncompressed node files
+\item
+  minimal latency
+\item
+  primary working set
+\item
+  required for:
+\item
+  active SWS
+\item
+  current HEAD
+\item
+  recent history
+\item
+  local operations
+\end{itemize}
+
+This is ``live memory.''
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3.2 Warm Tier}\label{warm-tier}
+
+Location:
+
+\begin{lstlisting}[language=bash]
+.gitd/nodes/warm/
+\end{lstlisting}
+
+Characteristics:
+
+\begin{itemize}
+\tightlist
+\item
+  compressed chunks (CDC or zstd)
+\item
+  indexed via LMDB
+\item
+  locally stored but slower than SSD
+\item
+  used for:
+\item
+  mid-range history
+\item
+  older builds
+\item
+  previous snapshots
+\item
+  CI data
+\end{itemize}
+
+Intermediate entropy state.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.3 Cold Tier}\label{cold-tier}
+
+Location:
+
+\begin{lstlisting}[language=bash]
+remote://<object-store>/jit/<repo>/<node-id>
+\end{lstlisting}
+
+Characteristics:
+
+\begin{itemize}
+\tightlist
+\item
+  object store (S3, GCS, Backblaze, R2, MinIO, ZFS remote)
+\item
+  content-addressed
+\item
+  compressed
+\item
+  deduplicated
+\item
+  extremely cheap
+\end{itemize}
+
+Cold tier holds:
+
+\begin{itemize}
+\tightlist
+\item
+  deep history
+\item
+  long-term provenance
+\item
+  giant payloads
+\item
+  scientific data
+\item
+  old builds
+\item
+  model checkpoints
+\end{itemize}
+
+This is the cryogenic freezer of truth.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Tier Promotion \& Eviction
+Rules}\label{tier-promotion-eviction-rules}
+
+Nodes naturally move:
+
+Hot $\rightarrow$ Warm $\rightarrow$ Cold
+
+Invariant:
+
+Tier changes MUST NOT alter NodeID or content.
+
+All rehydration MUST reconstruct the node exactly as originally created.
+
+\subsubsection{4.1 Eviction Triggers}\label{eviction-triggers}
+
+\begin{itemize}
+\tightlist
+\item
+  storage pressure
+\item
+  LRU heuristics
+\item
+  snapshot age
+\item
+  admin command
+\item
+  background tiering job
+\item
+  automatic because of DAG age
+\end{itemize}
+
+Eviction is safe because:
+
+\begin{itemize}
+\tightlist
+\item
+  nodes are immutable
+\item
+  refs don't change
+\item
+  DAG structure is preserved
+\end{itemize}
+
+Only location changes.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Rehydration Rules}\label{rehydration-rules}
+
+When a node is requested:
+
+\begin{itemize}
+\tightlist
+\item
+  MH
+\item
+  SWS
+\item
+  dag.get\_node
+\item
+  collapse
+\item
+  diff
+\item
+  projection
+\item
+  sync
+\end{itemize}
+
+\ldots it MUST be loaded from tiered storage.
+
+Rehydration algorithm:
+
+\begin{lstlisting}
+function load_node(id):
+    if hot.contains(id): return hot.read(id)
+    if warm.contains(id): decompress $\rightarrow$ promote to hot $\rightarrow$ return
+    if cold.contains(id): fetch $\rightarrow$ decompress $\rightarrow$ promote to warm $\rightarrow$ return
+    else: error("node not found")
+\end{lstlisting}
+
+Key points:
+
+\begin{itemize}
+\tightlist
+\item
+  cold fetch $\rightarrow$ warm
+\item
+  warm decompress $\rightarrow$ hot
+\item
+  hot remains until eviction
+\end{itemize}
+
+JIT MUST guarantee perfect reconstruction.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Indexing Requirements}\label{indexing-requirements}
+
+The LMDB index MUST store:
+
+\{id $\rightarrow$ tier\_location\} \{id $\rightarrow$ warm\_chunk\_offsets\} \{id $\rightarrow$
+cold\_storage\_url/hash\}
+
+Indexes MUST remain:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic
+\item
+  durable
+\item
+  recoverable via WAL + checkpoint
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. WAL Interaction}\label{wal-interaction}
+
+Tier movements MUST NOT be recorded in WAL.
+
+Why?
+
+WAL models temporal truth, not storage logistics.
+
+Storage is contingent. Truth is invariant.
+
+WAL MUST NOT care if nodes are in:
+
+\begin{itemize}
+\tightlist
+\item
+  hot
+\item
+  warm
+\item
+  cold
+\end{itemize}
+
+Replay MUST produce identical DAG independent of tiers.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{8. Distributed Sync}\label{distributed-sync}
+
+Cold tier is essential for distributed sync:
+
+\begin{itemize}
+\tightlist
+\item
+  nodes pushed to remote cold storage
+\item
+  references updated
+\item
+  peers rehydrate on demand
+\item
+  no requirement to store full history locally
+\end{itemize}
+
+This enables:
+
+\begin{itemize}
+\tightlist
+\item
+  lazy clone
+\item
+  partial repos
+\item
+  serverless compute
+\item
+  thin agents
+\item
+  low-storage CI workers
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{9. Edge Cases \& Guarantee}\label{edge-cases-guarantee}
+
+\subsubsection{9.1 If cold storage is
+unreachable}\label{if-cold-storage-is-unreachable}
+
+Node fetch MUST fail gracefully. System MUST NOT corrupt DAG.
+
+\subsubsection{9.2 Partial local copies}\label{partial-local-copies}
+
+Absolutely allowed. System MUST fetch missing nodes deterministically.
+
+\subsubsection{9.3 Compression
+incompatibility}\label{compression-incompatibility}
+
+Old cold nodes MUST be treated as opaque; decompressed to canonical
+encoding.
+
+\subsubsection{9.4 Duplicate storage}\label{duplicate-storage}
+
+Allowed but not required. Local caches may remain.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{10. Security}\label{security}
+
+Cold tier MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  verify BLAKE3 hashes
+\item
+  validate canonical encoding
+\item
+  enforce signature checks
+\item
+  reject corrupted data
+\end{itemize}
+
+Tier transitions MUST NOT alter content.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{11. Why Tiering Matters}\label{why-tiering-matters}
+
+Tiering allows:
+
+\begin{itemize}
+\tightlist
+\item
+  infinite history
+\item
+  safe immutability
+\item
+  distributed scalability
+\item
+  scientific reproducibility
+\item
+  artifact longevity
+\item
+  low-cost storage
+\item
+  high-performance compute
+\end{itemize}
+
+Without tiering: JIT becomes too expensive.
+
+With tiering: \emph{JIT becomes practically infinite.}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{12. Status \& Next Steps}\label{status-next-steps}
+
+\subsubsection{Next RFC:}\label{next-rfc}
+
+\href{./RFC-0010.md}{RFC-0010} --- Ref Management \& Branch Semantics
+(The Truth Pointers of the Universe)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

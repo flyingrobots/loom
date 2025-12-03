@@ -1,0 +1,39 @@
+<svg width="940" height="360" viewBox="0 0 940 360" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .box { fill:#fff; stroke:#000; stroke-width:2; rx:8; ry:8; }
+  .subbox { fill:#F4F6F7; stroke:#E67E22; stroke-width:2; rx:8; ry:8; }
+  .label { font-family:system-ui; font-size:13px; }
+  .title { font-family:system-ui; font-size:16px; font-weight:bold; }
+  .arrow { stroke:#E67E22; stroke-width:2; marker-end:url(#arrowhead); }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#E67E22"/>
+  </marker>
+</defs>
+
+<text class="title" x="470" y="35" text-anchor="middle">Shadow Working Set Commit Lifecycle</text>
+
+<!-- SWS -->
+<rect class="box" x="40" y="120" width="200" height="70"/>
+<text class="label" x="140" y="150" text-anchor="middle">Shadow Working Set</text>
+
+<!-- validation -->
+<rect class="subbox" x="300" y="120" width="220" height="70"/>
+<text class="label" x="410" y="150" text-anchor="middle">Validation + Patch Apply</text>
+
+<!-- inversion engine -->
+<rect class="subbox" x="560" y="100" width="220" height="110"/>
+<text class="label" x="670" y="130" text-anchor="middle">Inversion Engine</text>
+<text class="label" x="670" y="155" text-anchor="middle">merge / rebase / rewrite</text>
+
+<!-- snapshot -->
+<rect class="box" x="810" y="120" width="120" height="70"/>
+<text class="label" x="870" y="160" text-anchor="middle">Snapshot Node</text>
+
+<!-- arrows -->
+<line class="arrow" x1="240" y1="155" x2="300" y2="155"/>
+<line class="arrow" x1="520" y1="155" x2="560" y2="155"/>
+<line class="arrow" x1="780" y1="155" x2="810" y2="155"/>
+
+</svg>

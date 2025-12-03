@@ -1,0 +1,385 @@
+\section{ADR-0003 --- The Substrate Is a Recursive Meta-Graph
+(RMG)}\label{adr-0003-the-substrate-is-a-recursive-meta-graph-rmg}
+
+\begin{quote}
+``We said DAG, but we meant RMG.''
+\end{quote}
+
+\subsection{1. Context}\label{context}
+
+In early drafts and RFCs, the substrate of JITOS was described as:
+
+\begin{itemize}
+\tightlist
+\item
+  ``a causal DAG''
+\item
+  ``append-only event graph''
+\item
+  ``Git-like commit DAG''
+\end{itemize}
+
+This was correct only in the lowest layer of the reality stack.
+
+But as the system evolved, especially through:
+
+\begin{itemize}
+\tightlist
+\item
+  SWS overlays
+\item
+  inversion rewrite nodes
+\item
+  provenance nodes
+\item
+  semantic attachments
+\item
+  file-chunk graphs
+\item
+  multi-agent overlays
+\item
+  federation edges
+\item
+  schema evolution
+\item
+  the C\ensuremath{\Omega}MPUTER fusion layer
+\item
+  and the need for multi-scale event representation (ADR-0004)
+\end{itemize}
+
+\ldots it became clear that the DAG model is insufficient to describe
+the full substrate.
+
+A pure DAG cannot:
+
+\begin{itemize}
+\tightlist
+\item
+  store graphs as node payloads
+\item
+  express multi-level structure
+\item
+  represent ASTs
+\item
+  represent semantic provenance graphs
+\item
+  store internal micro-events
+\item
+  represent multi-agent reasoning traces
+\item
+  support schema evolution as graph-of-graph rewriting
+\item
+  unify micro/macro commit semantics
+\item
+  serve as a foundation for a multi-universe federation
+\item
+  integrate with the C\ensuremath{\Omega}MPUTER metaphysics
+\item
+  maintain reflexive, semantic meta-structure
+\end{itemize}
+
+The DAG is only the first-order projection of a much richer structure.
+
+Thus:
+
+\begin{quote}
+The substrate is not a DAG. The substrate is an RMG: a Recursive
+Meta-Graph.
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Decision}\label{decision}
+
+JITOS's substrate is a Recursive Meta-Graph (RMG). The causal DAG is one
+layer of this RMG, not the substrate itself.
+
+This decision establishes:
+
+\begin{itemize}
+\tightlist
+\item
+  Node payloads MAY themselves be graphs
+\item
+  Node types are defined by meta-graphs
+\item
+  Schema evolution is rewriting the meta-graph
+\item
+  Provenance nodes attach subgraphs
+\item
+  Multi-agent overlays form local meta-graphs
+\item
+  Semantic representations (ASTs, IR, reasoning traces) are RMG layers
+\item
+  RMG supports multi-scale event representation
+  (\href{./ADR-0004.md}{ADR-0004})
+\item
+  Federation is RMG-to-RMG linking
+\item
+  The kernel operates over structured, fractal, multi-layer graphs
+\item
+  The substrate is infinite in depth, not just length
+\end{itemize}
+
+The RMG is the true form of JITOS reality.
+
+The DAG is a shadow of it --- a human-interpretable, flattened timeline
+of causal events.
+
+In other words:
+
+\begin{quote}
+\textbf{The DAG is to the RMG what the filesystem is to Materialized
+Head. A projection, not the reality.}
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Rationale}\label{rationale}
+
+\subsubsection{3.1 RMG reflects the natural structure of
+computation}\label{rmg-reflects-the-natural-structure-of-computation}
+
+Code, data, semantics, transformations, provenance, and thought
+processes are not linearly structured.
+
+They are:
+
+\begin{itemize}
+\tightlist
+\item
+  nested
+\item
+  recursive
+\item
+  semantic
+\item
+  multi-level
+\item
+  graph-structured
+\item
+  fractal
+\item
+  self-referential
+\end{itemize}
+
+The RMG captures this truth.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.2 DAG-only cannot represent semantics or
+structure}\label{dag-only-cannot-represent-semantics-or-structure}
+
+A simple DAG fails to express:
+
+\begin{itemize}
+\tightlist
+\item
+  ASTs
+\item
+  reasoning trees
+\item
+  semantic diffs
+\item
+  provenance graphs
+\item
+  agent plans
+\item
+  build pipelines
+\item
+  dependency graphs
+\item
+  DPO rewrites
+\end{itemize}
+
+RMG allows all of these as first-class citizens.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.3 RMG enables multi-scale event representation
+(ADR-0004)}\label{rmg-enables-multi-scale-event-representation-adr-0004}
+
+Humans see:
+
+\begin{itemize}
+\tightlist
+\item
+  1 conceptual change
+\end{itemize}
+
+Machines see:
+
+\begin{itemize}
+\tightlist
+\item
+  30 keystrokes
+\item
+  12 semantic rewrites
+\item
+  1 macro refactor
+\item
+  1 merge resolution
+\item
+  1 causal collapse
+\end{itemize}
+
+These are not separate objects. They are different zoom levels of the
+same RMG.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.4 RMG naturally aligns with
+C\ensuremath{\Omega}MPUTER}\label{rmg-naturally-aligns-with-cux3c9mputer}
+
+C\ensuremath{\Omega}MPUTER states:
+
+\begin{itemize}
+\tightlist
+\item
+  Computation = geometry
+\item
+  Forms = structured graphs
+\item
+  Shadows = observer projections
+\item
+  Collapse = rewrite application
+\item
+  Provenance = meta-structure
+\item
+  Universes = recursive graphs
+\item
+  Reasoning = tree expansion
+\end{itemize}
+
+RMG is the direct implementation of this metaphysics.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{3.5 RMG supports multi-universe federation
+(RFC-0021)}\label{rmg-supports-multi-universe-federation-rfc-0021}
+
+A DAG cannot link to another DAG without:
+
+\begin{itemize}
+\tightlist
+\item
+  collapsing them, or
+\item
+  creating brittle, hacky foreign pointers.
+\end{itemize}
+
+But an RMG can link:
+
+\begin{itemize}
+\tightlist
+\item
+  graph $\rightarrow$ graph
+\item
+  universe $\rightarrow$ universe
+\item
+  meta-graph $\rightarrow$ meta-graph
+\end{itemize}
+
+with no loss of structure or consistency.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Alternatives Considered}\label{alternatives-considered}
+
+\subsubsection{4.1 Raw DAG}\label{raw-dag}
+
+\textbf{Rejected}: too weak, no semantic layering.
+
+\subsubsection{4.2 DAG + JSON payloads}\label{dag-json-payloads}
+
+\textbf{Rejected}: does not model structure or semantics; loses
+composability.
+
+\subsubsection{4.3 DAG + ``side graphs''}\label{dag-side-graphs}
+
+\textbf{Rejected}: results in fragmentation, not a unified substrate.
+
+\subsubsection{4.4 RMG}\label{rmg}
+
+\textbf{Accepted}: unifies all layers; scale invariant; meta-capable;
+aligns with physics; supports future universes.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Consequences}\label{consequences}
+
+Positive:
+
+\begin{itemize}
+\tightlist
+\item
+  Coherent substrate
+\item
+  Multi-layer modeling
+\item
+  Semantic richness
+\item
+  AST and graph-native transforms
+\item
+  Clean mapping to machine reasoning
+\item
+  Perfect match to C\ensuremath{\Omega}MPUTER theory
+\item
+  Smooth introduction of future node types
+\item
+  Native support for provenance
+\item
+  True multi-universe capabilities
+\item
+  Real multi-scale editing semantics
+\end{itemize}
+
+Negative:
+
+\begin{itemize}
+\tightlist
+\item
+  Increases conceptual complexity
+\item
+  Requires more formalism
+\item
+  Demands a stronger architecture document
+\item
+  Requires RMG-aware tooling
+\item
+  Increases burden on visualization tools
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Required Follow-Ups}\label{required-follow-ups}
+
+This ADR mandates:
+
+\begin{itemize}
+\tightlist
+\item
+  Updating Section 3 of the Architecture Doc to describe the substrate
+  as an RMG, with the DAG as the first-order projection.
+\item
+  Introducing RMG scale-invariance in \href{.ADR-0004.md}{ADR-0004}.
+\item
+  Updating collapse semantics to operate on RMG regions.
+\item
+  Updating provenance semantics (\href{../RFC/RFC-0016.md}{RFC-0016}) to
+  attach semantic subgraphs.
+\item
+  Updating federation to treat universes as RMGs.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Decision}\label{decision-1}
+
+\textbf{Accepted}.
+
+The substrate of JITOS is a Recursive Meta-Graph. The DAG is a
+first-order, human-scale projection of it.
+
+This ADR corrects the ontology of the system and sets the stage for
+\href{./ADR-0004.md}{ADR-0004}.

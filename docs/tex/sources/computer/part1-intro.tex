@@ -1,0 +1,129 @@
+% TODO: Convert from ../007-part-1-intro.md
+\section*{A New Language for Thinking About Thinking Machines}
+
+\textbf{Computers are nowhere near as simple as we pretend.}
+
+We describe them with metaphors from the 1970s: files, processes, threads, stacks, heaps, ``the cloud.'' But beneath those metaphors lies something stranger, deeper, and more universal: a world made of transformations.
+
+Every program, every system, every database, every simulation, every AI model, every bug report, every scientific computation --- all of it --- is ultimately built from rules acting on structured data, step by step, state to state, change to change.
+
+Yet despite building our entire civilization on this substrate, we lack a vocabulary for the shape of computation. We lack a way to talk about how programs evolve, how state transforms, how alternative possibilities relate, how execution histories converge or diverge, and how different ``universes'' of behavior coexist inside even the simplest system.
+
+We lack a physics of computation.
+
+This book is an attempt to build that vocabulary.
+
+\section*{Why This Book Exists}
+
+I didn't write this because I discovered a fundamental law of reality. I wrote it because I've spent two decades as a systems engineer wrestling with the complexity of real software --- at game studios, startups, devtools companies, and open-source projects --- and I kept running into the same pattern:
+
+The tools we use to describe software are radically weaker than the tools we use to build it.
+
+Version control shows us the linear history of a project, but not the branching space of what could have happened. Debuggers show us a single execution trace, but not the alternative worldlines that almost occurred. Type systems show us structure, but not the dynamic rewrites that give that structure life. Graph theory gives us nodes and edges, but not rules. Physics gives us equations of motion, but not semantics.
+
+And modern AI systems --- LLMs, agents, reasoning engines --- are beginning to operate in spaces even less describable than code.
+
+So this book begins from a simple question:
+
+\begin{quote}
+\textbf{What if we had a unified way to think about computation --- structure, change, history, and possibility --- all at once?}
+\end{quote}
+
+Not as an analogy. \\
+Not as a metaphor. \\
+Not as hype.
+
+As a working model.
+
+\section*{What This Book Is Not}
+
+This is not a manifesto claiming to have derived the ultimate truth of the universe. This is not a replacement for physics, mathematics, or computer science. This is not a new religion or a theory of everything.
+
+This book is simply:
+
+\begin{itemize}
+\item a framework
+\item a lens
+\item a way to organize thinking
+\item a practical architecture
+\item a narrative that ties together ideas normally kept separate
+\end{itemize}
+
+It is a computational cosmology, but only in the sense that it unifies many views of computation under a single roof.
+
+\section*{What This Book Is}
+
+C$\\Omega$MPUTER is a system built from three simple primitives:
+
+\begin{enumerate}
+\item Graphs that can contain other graphs (recursive meta-graphs, or RMGs)
+\item Rules that rewrite those graphs (double-pushout rewriting, or DPO)
+\item Histories of those rewrites (execution worldlines, provenance, and alternative possibilities)
+\end{enumerate}
+
+From these ingredients, a surprising amount of structure falls out:
+
+\begin{itemize}
+\item execution = a path through state space
+\item alternative executions = nearby paths
+\item optimizations = different routes to the same destination
+\item concurrency = overlapping transformations
+\item bugs = divergent trajectories
+\item debugging = comparing worldlines
+\item security analysis = exploring adversarial transforms
+\item simulation = rule-driven evolution
+\item reasoning = navigating a graph of possibilities
+\end{itemize}
+
+None of this is magic. \\
+All of it is computable. \\
+All of it can be implemented today.
+
+This book isn't about ``discovering reality.'' It's about giving builders better tools to understand the realities they create.
+
+\section*{Who This Book Is For}
+
+This book is for:
+
+\begin{itemize}
+\item software engineers who feel constrained by the abstractions we inherited
+\item systems thinkers who want a unified mental model
+\item researchers exploring graph rewrite systems
+\item AI developers frustrated by opaque reasoning
+\item simulation designers
+\item game engine architects
+\item distributed systems engineers
+\item creators of devtools, compilers, runtimes, and languages
+\item and anyone who senses that ``computation'' is far bigger than our textbooks claim
+\end{itemize}
+
+It is also for people who like big ideas, strange ideas, or beautifully structured ideas.
+
+\section*{Why I Had to Write It}
+
+Because I couldn't not write it.
+
+Because after building game engines, distributed systems, deterministic runtimes, AI agents, devtools, provenance systems, and graph-based architectures, I kept seeing the same pattern emerge:
+
+Everything is rewrite. \\
+Everything is transformation. \\
+Everything is history. \\
+Everything is structure.
+
+And I wanted --- needed --- a way to think about all of it at once.
+
+This book is my attempt to build that tool. \\
+A tool for myself first. \\
+A tool for other builders second. \\
+A tool for anyone curious about the shape of computation.
+
+Whether the ideas here stand the test of time isn't the point.
+
+The point is exploration. \\
+The point is possibility.
+
+The point is building something cool, something interesting, something joyful, something that makes complexity feel navigable instead of overwhelming.
+
+This is my exploration.
+
+\textbf{Welcome to C$\\Omega$MPUTER.}

@@ -1,0 +1,16 @@
+\begin{tikzpicture}[
+    sem/.style={circle,draw=black,fill=white,minimum size=5pt},
+    edge/.style={->, thick}
+]
+
+\node[sem] (A) at (0,1) {};
+\node[sem] (B) at (-1,-0.5) {};
+\node[sem] (C) at (1,-0.5) {};
+
+\draw[edge] (A) -- (B);
+\draw[edge] (A) -- (C);
+\draw[edge, dashed, red] (B) -- (C);
+
+\node at (0,-2) {\small $\Omega$---Semantic Collision};
+
+\end{tikzpicture}

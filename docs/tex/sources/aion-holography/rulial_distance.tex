@@ -1,0 +1,250 @@
+\sectionbreak
+\section{Rulial Distance: A Computable Quasi-Pseudometric on Observer Space}
+\label{sec:rulial}
+
+We next formalize observers and an MDL-based distance between them, the
+\emph{rulial distance}.  This endows observer space with a computable
+geometry on different descriptions of the same underlying RMG universe.
+
+\subsection{Observers as functors}
+
+Fix an RMG universe $\mathcal{U}$ together with a rule pack $R$ and its
+history category $\Hist(\mathcal{U},R)$ whose objects are states
+$U,V \in \mathcal{U}$ and whose morphisms are derivation paths between
+them.  An \emph{observer} is a functor
+\[
+  O : \Hist(\mathcal{U},R) \To \mathcal{Y},
+\]
+where $\mathcal{Y}$ is a suitable category of observations (symbol
+streams, trace graphs, etc.).  We assume that $O$ is realised by some
+algorithm subject to fixed time and memory budgets $(\tau,m)$; these
+budgets are reflected in the subscript of $D_{\tau,m}$ below.
+Different observers may:
+
+\begin{itemize}[leftmargin=*]
+  \item choose different projections of the same wormhole payloads;
+  \item aggregate or forget structure;
+  \item expose different notions of causality.
+\end{itemize}
+Figure~\ref{fig:observer-projections} illustrates several such
+projections.
+
+\subsection{Translators, MDL Complexity, and Distortion}
+
+A \emph{translator} between observers $O_1$ and $O_2$ is a functorial
+construction
+\[
+  T_{12} : O_1 \Rightarrow O_2
+\]
+realised as a small DPOI transducer: for each history
+$h \in \Hist(\mathcal{U},R)$ it maps the trace $O_1(h)$ to a trace
+$T_{12}(O_1(h))$ in the observation category~$\mathcal{Y}$.  Likewise
+we consider translators $T_{21} : O_2 \Rightarrow O_1$.
+
+\paragraph{Example (SQL$\leftrightarrow$AST translator).}
+Consider two observers of an RMG universe modeling a database
+query planner.  Observer $O_1$ sees the wormhole payload $P$ as
+a sequence of AST transformations (parse tree $\to$ optimized AST
+$\to$ query plan), while observer $O_2$ sees only the initial SQL
+string and final execution trace.  A translator $T_{12}$ must
+reconstruct the SQL from the AST evolution: it can parse the initial
+AST root, emit the corresponding SQL, and summarize the execution
+steps by their side effects.  The reverse translator $T_{21}$ parses
+the SQL and heuristically infers an AST evolution consistent with the
+execution trace, incurring some distortion.  The description lengths
+$\mathrm{DL}(T_{12}), \mathrm{DL}(T_{21})$ and distortion costs
+quantify how ``close'' these two viewpoints are in rulial space.
+
+Let $\mathrm{DL}(T)$ be a prefix-code description length for a
+translator $T$ (its MDL cost).  Let
+\[
+  \mathrm{dist}_{\mathrm{tr}} : \mathcal{Y} \times \mathcal{Y}
+    \to \mathbb{R}_{\ge 0}
+\]
+be a metric on individual traces (for example, an $L_1$ distance on
+symbol streams or an edit distance on labelled paths).  We lift this
+pointwise to observers
+by defining, for observers $O,O' : \Hist(\mathcal{U},R) \to \mathcal{Y}$,
+\[
+  \mathrm{Dist}(O,O')
+  := \sup_{h \in \Hist(\mathcal{U},R)}
+       \mathrm{dist}_{\mathrm{tr}}\bigl(O(h),O'(h)\bigr).
+\]
+We assume all observers considered produce traces in a common metric
+space of uniformly bounded diameter, so the supremum above is finite.
+We also assume that post-composition by any translator is
+$1$-Lipschitz:
+\[
+  \mathrm{Dist}(T\circ O, T\circ O')
+  \le \mathrm{Dist}(O,O')
+\]
+for all translators $T$ and observers $O,O'$.
+
+Fix a weighting parameter $\lambda>0$ that trades off description
+length against distortion.
+
+For time and memory budgets $(\tau,m)$ we write
+$\Trans_{\tau,m}(O_1,O_2)$ for the set of translators from $O_1$ to
+$O_2$ realisable within those budgets, and assume each budget class is
+closed under finite composition.  We also assume a distinguished
+identity translator $I_O : O \Rightarrow O$ for every observer $O$
+with $\mathrm{DL}(I_O)=0$ and
+$\mathrm{Dist}(O, I_O \circ O)=0$, corresponding to a null program
+that simply re-emits its input.
+
+We then define the budgeted MDL-based distance
+\[
+  D_{\tau,m}(O_1,O_2)
+   := \inf_{\substack{
+         T_{12}\in\Trans_{\tau,m}(O_1,O_2)\\
+         T_{21}\in\Trans_{\tau,m}(O_2,O_1)}}
+      \Bigl(
+        \mathrm{DL}(T_{12}) + \mathrm{DL}(T_{21})
+        + \lambda \bigl(
+           \mathrm{Dist}(O_2, T_{12}\circ O_1) +
+           \mathrm{Dist}(O_1, T_{21}\circ O_2)
+        \bigr)
+      \Bigr).
+\]
+
+\begin{theorem}[Basic properties of $D_{\tau,m}$]\label{thm:rulial-basic}
+For all observers $O_1,O_2$ and budgets $(\tau,m)$, the distance
+$D_{\tau,m}(O_1,O_2)$ is nonnegative and symmetric, and
+$D_{\tau,m}(O,O)=0$ for every observer $O$.
+\end{theorem}
+
+\begin{proof}
+Nonnegativity and symmetry are immediate from the definition of
+$D_{\tau,m}$ as an infimum over sums of nonnegative symmetric terms.
+
+For self-distance, consider the pair of identity translators
+$(I_O,I_O)$.  By assumption $\mathrm{DL}(I_O)=0$ and the distortions
+$\mathrm{Dist}(O,I_O\circ O)$ vanish, so the objective value of
+$(I_O,I_O)$ is zero.  Hence $D_{\tau,m}(O,O)\le 0$, and
+nonnegativity implies $D_{\tau,m}(O,O)=0$.
+\end{proof}
+
+\begin{theorem}[Main theorem on rulial distance (triangle inequality)]\label{thm:rulial-triangle}
+Assume:
+\begin{enumerate}[leftmargin=*]
+  \item the description length $\mathrm{DL}$ is based on a prefix code
+    and satisfies, for some constant $c\ge 0$,
+    \[
+      \mathrm{DL}(T_{13})
+      \le \mathrm{DL}(T_{12}) + \mathrm{DL}(T_{23}) + c
+    \]
+    whenever $T_{13}$ is a composition $T_{23}\circ T_{12}$;
+  \item the lifted distortion measure $\mathrm{Dist}$ is a metric on
+    observers and post-composition by any translator is
+    $1$-Lipschitz:
+    $\mathrm{Dist}(T\circ O,T\circ O') \le \mathrm{Dist}(O,O')$;
+  \item for each budget $(\tau,m)$ the classes
+    $\Trans_{\tau,m}(O_i,O_j)$ are closed under finite composition.
+\end{enumerate}
+Then $D_{\tau,m}$ satisfies the triangle inequality up to an additive
+constant:
+\[
+  D_{\tau,m}(O_1,O_3)
+  \le D_{\tau,m}(O_1,O_2) + D_{\tau,m}(O_2,O_3) + 2c.
+\]
+In particular, together with \cref{thm:rulial-basic} this makes
+$D_{\tau,m}$ a quasi-pseudometric (a pseudometric up to additive slack
+$2c$) on observers.
+\end{theorem}
+
+\begin{proof}
+Fix $\varepsilon>0$ and choose near-optimal translators
+$(T_{12},T_{21})$ and $(T_{23},T_{32})$ attaining the infima for
+$D_{\tau,m}(O_1,O_2)$ and $D_{\tau,m}(O_2,O_3)$ up to $\varepsilon/2$.
+Form composite translators $T_{13}=T_{23}\circ T_{12}$ and
+$T_{31}=T_{21}\circ T_{32}$.  By the subadditivity of $\mathrm{DL}$,
+\[
+  \mathrm{DL}(T_{13}) \le \mathrm{DL}(T_{12})+\mathrm{DL}(T_{23})+c,
+  \qquad
+  \mathrm{DL}(T_{31}) \le \mathrm{DL}(T_{21})+\mathrm{DL}(T_{32})+c.
+\]
+By the triangle inequality for $\mathrm{Dist}$ and the $1$-Lipschitz
+property of post-composition, we have
+\begin{align*}
+  \mathrm{Dist}(O_3,T_{13}\circ O_1)
+    &= \mathrm{Dist}(O_3,T_{23}\circ T_{12}\circ O_1)\\
+    &\le \mathrm{Dist}(O_3,T_{23}\circ O_2)
+        + \mathrm{Dist}(T_{23}\circ O_2, T_{23}\circ T_{12}\circ O_1)\\
+    &\le \mathrm{Dist}(O_3,T_{23}\circ O_2)
+        + \mathrm{Dist}(O_2, T_{12}\circ O_1),
+\end{align*}
+and similarly with roles reversed.
+
+Summing these bounds and using the near-optimality of the chosen
+translators yields
+\[
+  D_{\tau,m}(O_1,O_3)
+  \le D_{\tau,m}(O_1,O_2) + D_{\tau,m}(O_2,O_3) + 2c + \varepsilon.
+\]
+Since $\varepsilon>0$ was arbitrary, the inequality without
+$\varepsilon$ follows.
+\end{proof}
+
+The quantity $D_{\tau,m}$ is the \emph{rulial distance} between
+observers: it measures how hard it is to translate between descriptions
+of the same underlying history.  Observers with small distance live in
+nearby ``frames''; those with large distance inhabit distant regions of
+the Ruliad.
+
+\subsection{Observer projections of wormholes}
+
+Given a wormhole $(S_0,P)$, different observers may:
+
+\begin{itemize}[leftmargin=*]
+  \item expose only coarse-grained stages of $P$ (e.g.\ AST$\to$IR$\to$SQL);
+  \item restrict to semantic effects (e.g.\ DB schema, invariants);
+  \item highlight only adversarial branches;
+  \item or inspect every microstep.
+\end{itemize}
+
+The holographic encoding thus supports a wide range of observer
+perspectives from a single payload.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      wormhole/.style={rectangle,draw=green!60!black,fill=green!5,thick,rounded corners,
+                       minimum width=32mm,minimum height=14mm,align=center},
+      observer/.style={rectangle,draw=blue!70!black,fill=blue!8,thick,rounded corners=3pt,
+                       minimum width=18mm,minimum height=8mm,align=center,font=\small},
+      arrow/.style={-Latex,thick},
+      >=Latex
+    ]
+
+    % Central wormhole
+    \node[wormhole] (W) at (0,0)
+      {wormhole\\[-1pt]
+       \scriptsize $(S_0,P)$};
+
+    % Observers
+    \node[observer] (O1) at (-3.5,2.2) {$O_1$\\[-2pt]\scriptsize coarse stages};
+    \node[observer] (O2) at (3.5,2.2) {$O_2$\\[-2pt]\scriptsize semantic};
+    \node[observer] (O3) at (-3.5,-2.2) {$O_3$\\[-2pt]\scriptsize adversarial};
+    \node[observer] (O4) at (3.5,-2.2) {$O_4$\\[-2pt]\scriptsize full microsteps};
+
+    % Projections
+    \draw[arrow,blue!70!black] (W.north west) -- (O1.south east);
+    \draw[arrow,blue!70!black] (W.north east) -- (O2.south west);
+    \draw[arrow,blue!70!black] (W.south west) -- (O3.north east);
+    \draw[arrow,blue!70!black] (W.south east) -- (O4.north west);
+
+    % Labels on arrows
+    \node[rotate=45,font=\scriptsize] at (-1.8,1.2) {project};
+    \node[rotate=-45,font=\scriptsize] at (1.8,1.2) {project};
+    \node[rotate=-45,font=\scriptsize] at (-1.8,-1.2) {project};
+    \node[rotate=45,font=\scriptsize] at (1.8,-1.2) {project};
+
+  \end{tikzpicture}
+  \caption{Multiple observers projecting the same wormhole $(S_0,P)$
+  into different trace formats.  Each observer $O_i$ extracts a
+  different view of the interior evolution: coarse-grained stages,
+  semantic invariants, adversarial branches, or full microsteps.
+  The rulial distance measures the complexity of translating
+  between these views.}
+  \label{fig:observer-projections}
+\end{figure}

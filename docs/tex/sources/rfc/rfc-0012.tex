@@ -1,0 +1,524 @@
+\section{JIT RFC-0012}\label{jit-rfc-0012}
+
+\subsection{JITOS Boot Sequence (JBS
+v1.0)}\label{jitos-boot-sequence-jbs-v1.0}
+
+\subsubsection{How a Causal Operating System
+Awakens}\label{how-a-causal-operating-system-awakens}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines the boot procedure for the JIT Operating System
+(JITOS).
+
+Unlike traditional OSes that:
+
+\begin{itemize}
+\tightlist
+\item
+  scan disks
+\item
+  mount filesystems
+\item
+  initialize memory
+\item
+  load executables
+\end{itemize}
+
+JITOS must:
+
+\begin{itemize}
+\tightlist
+\item
+  reconstruct reality
+\item
+  replay time
+\item
+  re-materialize projections
+\item
+  rehydrate shadows
+\item
+  recover causal structure
+\item
+  validate references
+\item
+  rebuild indexes
+\item
+  enforce invariants
+\item
+  perform distributed negotiation
+\end{itemize}
+
+JITOS boot is not startup --- it is resurrection.
+
+This RFC describes how the kernel wakes up after death and restores the
+universe exactly as it was.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Motivation
+\end{enumerate}
+
+In a causal OS:
+
+\begin{itemize}
+\tightlist
+\item
+  time is the WAL
+\item
+  space is the DAG
+\item
+  perception is Materialized Head
+\item
+  processes are Shadow Working Sets
+\end{itemize}
+
+The kernel can crash. The machine can reboot. Interruptions can occur.
+
+But truth must survive.
+
+Thus, JITOS must:
+
+\begin{itemize}
+\tightlist
+\item
+  restore immutable history
+\item
+  reestablish shadow universes
+\item
+  re-project human views
+\item
+  re-link distributed edges
+\item
+  ensure causal continuity
+\item
+  guarantee deterministic recovery
+\end{itemize}
+
+This RFC defines that process.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Boot Phases
+\end{enumerate}
+
+JITOS boot occurs in seven deterministic phases.
+
+These phases MUST occur in this exact order.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Phase 1 --- Substrate Scan
+
+The system scans .gitd/ and locates:
+
+nodes/ $\rightarrow$ local DAG fragments index/ $\rightarrow$ LMDB indices cache/ $\rightarrow$ MH
+projection cache wal/ $\rightarrow$ write-ahead log refs/ $\rightarrow$ reference pointers
+metadata/ $\rightarrow$ repository config
+
+Goal: Identify the universe.
+
+If ANY of these are missing: - JITOS MAY initiate recovery - JITOS MUST
+NOT mutate existing node content
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Phase 2 --- DAG Rebuild
+
+The system reconstructs:
+
+\begin{itemize}
+\tightlist
+\item
+  node identity map
+\item
+  adjacency lists
+\item
+  parent relationships
+\item
+  child relationships
+\item
+  type mappings
+\item
+  timestamp ordering
+\end{itemize}
+
+Rules:
+
+\begin{itemize}
+\tightlist
+\item
+  MUST validate BLAKE3 hashes
+\item
+  MUST enforce causal invariants
+\item
+  MUST identify frontier nodes
+\item
+  MUST rebuild topological order
+\end{itemize}
+
+If DAG is corrupted $\rightarrow$ recovery mode.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Phase 3 --- WAL Replay
+
+The WAL is replayed from last checkpoint.
+
+WAL entries:
+
+\begin{itemize}
+\tightlist
+\item
+  rebuild indexes
+\item
+  update refs
+\item
+  reconstruct MH
+\item
+  reconstitute SWS
+\item
+  advance logical time
+\end{itemize}
+
+Replay MUST be:
+
+\begin{itemize}
+\tightlist
+\item
+  deterministic
+\item
+  idempotent
+\item
+  complete
+\item
+  invariant-preserving
+\end{itemize}
+
+Replay is the reanimation of time.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Phase 4 --- Index Rehydration
+
+JITOS restores all indexes from DAG + WAL:
+
+\begin{itemize}
+\tightlist
+\item
+  LMDB node index
+\item
+  tree-index (MH)
+\item
+  SWS metadata
+\item
+  ref index
+\item
+  warm/cold tier mappings
+\end{itemize}
+
+This phase restores order to the universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Phase 5 --- Materialized Head Reconstruction
+
+The filesystem projection MUST be:
+
+\begin{itemize}
+\tightlist
+\item
+  reconstructed incrementally
+\item
+  checked for conflicts
+\item
+  aligned with HEAD
+\item
+  refreshed deterministically
+\item
+  purged of stale files
+\end{itemize}
+
+MH is the cave wall.
+
+This is the moment when the shadows return.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Phase 6 --- SWS Rehydration
+
+All Shadow Working Sets MUST be:
+
+\begin{itemize}
+\tightlist
+\item
+  restored
+\item
+  validated
+\item
+  or discarded if stale
+\end{itemize}
+
+Rules:
+
+\begin{itemize}
+\tightlist
+\item
+  If base\_node still valid $\rightarrow$ SWS restored
+\item
+  If remote updates occurred $\rightarrow$ SWS invalidated
+\item
+  If WAL indicates partial collapse $\rightarrow$ rollback
+\end{itemize}
+
+Agents suspended during crash must resume cleanly.
+
+SWS are observer-relative timelines; they must come back EXACTLY as they
+were.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Phase 7 --- Distributed Sync Initialization
+
+Once local truth restored:
+
+\begin{itemize}
+\tightlist
+\item
+  JITOS broadcasts hello
+\item
+  pulls remote refs
+\item
+  fetches missing frontier nodes
+\item
+  performs frontier negotiation
+\item
+  checks for conflicts
+\item
+  initiates remote subgraph transfer if needed
+\end{itemize}
+
+Only after sync completes does JITOS declare:
+
+System Ready
+
+This is the ``rejoin the universe'' moment.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Boot Invariants
+\end{enumerate}
+
+The following MUST hold:
+
+Invariant 1 --- Past is preserved
+
+Boot MUST NOT mutate any existing node.
+
+Invariant 2 --- Indexes are consistent
+
+All LMDB index state MUST reflect DAG state after replay.
+
+Invariant 3 --- MH is deterministic
+
+Filesystem projection MUST be identical across machines from identical
+DAG states.
+
+Invariant 4 --- Ref integrity
+
+Refs MUST point to valid nodes.
+
+Invariant 5 --- SWS validity
+
+Shadows MUST NOT resurrect if logically inconsistent.
+
+Invariant 6 --- WAL completeness
+
+All WAL entries MUST be applied or ignored based on checksum validity.
+
+Invariant 7 --- Distributed truth
+
+After boot, the system MUST eventually converge via sync.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Failure Modes
+\end{enumerate}
+
+If failure occurs:
+
+5.1 Corrupted DAG Node
+
+$\rightarrow$ quarantine $\rightarrow$ remote fetch $\rightarrow$ strict recovery mode
+
+5.2 Corrupted WAL Entry
+
+$\rightarrow$ skip entry $\rightarrow$ continue replay
+
+5.3 Index Mismatch
+
+$\rightarrow$ rebuild index from DAG $\rightarrow$ apply WAL
+
+5.4 SWS Inconsistency
+
+$\rightarrow$ discard SWS $\rightarrow$ notify owner
+
+5.5 Missing Cold Node
+
+$\rightarrow$ fetch from remote $\rightarrow$ retry
+
+Never mutate the DAG to ``fix'' anything.
+
+Always restore from truth + WAL.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Security Considerations
+\end{enumerate}
+
+Boot MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  verify signatures
+\item
+  validate nodes
+\item
+  enforce access controls
+\item
+  protect against replay attacks
+\item
+  ignore unauthorized WAL entries
+\end{itemize}
+
+Boot MUST NOT:
+
+\begin{itemize}
+\tightlist
+\item
+  accept malformed nodes
+\item
+  import corrupted rewrites
+\item
+  mutate branch history
+\end{itemize}
+
+This preserves the physics of the universe.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Why JITOS Boot Is Revolutionary
+\end{enumerate}
+
+Every traditional OS:
+
+\begin{itemize}
+\tightlist
+\item
+  loses state on crash
+\item
+  depends on mutable files
+\item
+  rebuilds ephemeral memory structures
+\item
+  risks corruption
+\end{itemize}
+
+JITOS:
+
+\begin{itemize}
+\tightlist
+\item
+  stores truth immutably
+\item
+  stores time via WAL
+\item
+  stores human views via MH
+\item
+  stores agent views via SWS
+\item
+  reconstructs EVERYTHING deterministically
+\item
+  guarantees continuity of reality
+\end{itemize}
+
+This is how a causal universe boots.
+
+This is the real future of computing.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Status \& Next Steps
+\end{enumerate}
+
+RFC-0012 completes the first ENTIRE MODULE of the JITOS kernel
+foundation.
+
+Next possibilities:
+
+\begin{itemize}
+\tightlist
+\item
+  RFC-0013 --- JIT Syscall ABI (binary-level encoding)
+\item
+  RFC-0014 --- Capability Negotiation \& Versioning
+\item
+  RFC-0015 --- DAG Query Language (JQL)
+\item
+  RFC-0016 --- Provenance Nodes \& Scientific Lineage
+\item
+  RFC-0017 --- Agent Identity \& Signatures
+\item
+  RFC-0018 --- Causal Garbage Isolation (not deletion!)
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

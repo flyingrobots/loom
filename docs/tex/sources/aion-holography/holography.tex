@@ -1,0 +1,303 @@
+\sectionbreak
+\section{Provenance Payloads and Computational Holography}
+\label{sec:holography}
+
+We now make precise the idea that the entire interior evolution of a
+computation can be encoded on a ``boundary'': an initial state together
+with a finite provenance payload.  This is the formal content of
+\emph{computational holography}.
+
+\subsection{Microsteps and derivation graphs}
+
+Fix a rule set $R$ and tick semantics as in
+Theorem~\ref{thm:tick-confluence}.  A \emph{microstep} is a single
+scheduler tick whose batch contains exactly one skeleton DPOI step
+(possibly accompanied by attachment steps in preserved fibers).  We
+write
+\[
+  S_i \;\Rewrite^{\mu_i}\; S_{i+1}
+\]
+for such a microstep, where the label $\mu_i$ records:
+\begin{itemize}[leftmargin=*]
+  \item the rule identifier $p \in R$;
+  \item the match identifier for the skeleton step;
+  \item any attachment-rule identifiers used in the same tick;
+  \item auxiliary metadata (timestamps, policy hashes, etc.).
+\end{itemize}
+We abstract this as a finite record in some fixed alphabet; in
+particular, we assume it has a self-delimiting encoding.
+
+For a value $v$ in some state $S_i$ we define a \emph{derivation graph}
+$\mathcal{D}(v)$ whose nodes are intermediate values and whose edges are
+microstep applications that produced them; the construction is standard
+and we omit the routine details.  For a finite derivation
+\[
+  S_0 \Rewrite^{\mu_0} S_1 \Rewrite^{\mu_1} \cdots
+  \Rewrite^{\mu_{n-1}} S_n,
+\]
+each microstep reads values in some $S_j$ and produces new values in
+the immediately later state $S_{j+1}$, so every provenance edge in
+$\mathcal{D}(v)$ points from a value in $S_j$ to a value in $S_{j+1}$
+(hence tick indices strictly increase along edges).  Immutability
+ensures that values are never updated in-place, only created at later
+ticks.  Since each RMG state $S_j$ is finite and there are only $n+1$
+such states along the derivation, $\mathcal{D}(v)$ has finitely many
+nodes; and because tick indices strictly increase along edges, every
+causal chain leading to $v$ has length at most $n$, so $\mathcal{D}(v)$
+is a finite acyclic graph.
+
+\subsection{AION state packets as an instance}
+
+Operationally, the \AION{} runtime records each state transition as an
+\emph{Aion State Packet} (ASP)
+\[
+  \alpha = (S_{\mathrm{in}}, S_{\mathrm{out}}, R, P, t, \sigma),
+\]
+where $S_{\mathrm{in}}$ and $S_{\mathrm{out}}$ are content-addressed
+graph states, $R$ identifies the ruleset, $t$ is a Chronos index,
+$\sigma$ is an integrity/authentication tag, and $P$ is a
+\emph{provenance payload}.  In the formal development below, we work
+with abstract microsteps and payloads; the ASP is one concrete
+instantiation of this pattern.
+
+\paragraph{Example (Toy \AION{} state packet).}
+As a toy example, consider a computation that increments an integer.
+The input state $S_{\mathrm{in}}$ contains a literal $x=5$, the output
+state $S_{\mathrm{out}}$ contains both $x=5$ and a result $y=6$, the
+ruleset $R$ includes a rule $\mathsf{inc}$ that adds one, and the
+payload $P$ consists of a single microstep:
+``read $x$, apply $+1$, write $y$''.  This entire evolution is recorded
+as a single ASP
+$\alpha = (S_{\mathrm{in}}, S_{\mathrm{out}}, R, P, t, \sigma)$.
+This illustrates how a seemingly atomic step at the outer RMG layer
+can internally encode many microsteps.
+
+\begin{definition}[Provenance payload and wormhole]
+Let $S_0$ be an initial RMG state.  A \emph{provenance payload} of
+length $n$ is a sequence
+\[
+  P = (\mu_0,\mu_1,\dots,\mu_{n-1})
+\]
+of microstep labels such that, by determinism of the tick semantics,
+there exists a unique (up to isomorphism) sequence of states
+\[
+  S_0 \Rewrite^{\mu_0} S_1 \Rewrite^{\mu_1} \cdots
+       \Rewrite^{\mu_{n-1}} S_n
+\]
+obtained by applying the corresponding ticks under the scheduler.
+We call the pair $(S_0,P)$ a \emph{wormhole}, reflecting that it
+collapses an entire derivation into a single boundary edge.  Its
+\emph{volume} is the derivation path $S_0 \Rewrite^\ast S_n$, and its
+\emph{boundary} is the pair $(S_0,P)$.
+\end{definition}
+
+By tick-level confluence
+(Theorem~\ref{thm:tick-confluence}), any interleaving of concurrent
+matches compatible with $P$ yields a final state isomorphic to $S_n$.
+
+\subsection{Backward provenance completeness}
+
+We first show that provenance is complete in the backward direction:
+every value admits a unique causal history inside the wormhole.
+
+As a design constraint on the runtime, we assume:
+\begin{itemize}[leftmargin=*]
+  \item \emph{No re-derivation (single producer):} if a microstep
+    would produce a value whose content hash already appears in any
+    stored state, the runtime reuses the existing value instead of
+    recording a new producing microstep.  Thus every content-addressed
+    value has a unique producing microstep in the ledger prefix.
+\end{itemize}
+
+\begin{theorem}[Backward provenance completeness]\label{thm:backward}
+Let $(S_0,P)$ be a wormhole with volume
+$S_0 \Rewrite^{\mu_0} \cdots \Rewrite^{\mu_{n-1}} S_n$, and let
+$v^\ast$ be a value occurring in $S_n$.  Under the assumptions of
+total provenance capture, immutable content-addressed values, and the
+no re-derivation (single-producer) property, the derivation graph
+$\mathcal{D}(v^\ast)$ inside this wormhole is unique up to
+isomorphism.
+\end{theorem}
+
+\begin{proof}
+We proceed by induction on the depth of $v^\ast$ in the derivation
+graph.
+
+By total provenance capture, every value in any $S_i$ is either present
+in the initial state $S_0$ or produced as the output of some microstep
+labelled by $\mu_j$ whose inputs are values in an earlier state $S_j$.
+By immutability and content addressing, equal hashes coincide with
+equal values; there is no aliasing of distinct values.
+
+Define the depth of a value to be the length of the longest path in
+$\mathcal{D}(v)$ from a root (an initial literal in $S_0$) to $v$.
+Because each microstep increases depth by at most one and the payload
+is finite, every $v$ has finite depth.
+
+\emph{Base case.}
+If $v^\ast$ has depth $0$, then it is a literal occurring already in
+$S_0$; its derivation graph consists of a single node and is therefore
+unique.
+
+\emph{Inductive step.}
+Assume the statement holds for all values of depth at most $k$, and let
+$v^\ast$ have depth $k+1$.  By total provenance capture, $v^\ast$ is
+the output of at least one microstep in $P$.  By the no re-derivation
+(single-producer) assumption, there is in fact a unique producing
+microstep $\mu_j$ with output position $o$, applied at state $S_j$;
+its inputs $v_1,\dots,v_m$ are values in $S_j$ of depth at most $k$.
+By the induction hypothesis, each $\mathcal{D}(v_i)$ is unique up to
+isomorphism.  Determinism of the tick semantics ensures that the
+microstep $\mu_j$ applied to these inputs produces $v^\ast$ uniquely.
+
+Thus $\mathcal{D}(v^\ast)$ is obtained by gluing together the unique
+graphs $\mathcal{D}(v_i)$ along the unique producing microstep
+$\mu_j$.  Any alternative derivation graph for $v^\ast$ would either
+change the last producing microstep or some subgraph $\mathcal{D}(v_i)$.
+The former is ruled out by the single-producer assumption, and the
+latter by the induction hypothesis.  Hence $\mathcal{D}(v^\ast)$ is
+unique up to isomorphism.
+\end{proof}
+
+\subsection{Computational holography}
+
+The key insight is that the payload $P$ carries precisely the
+information required to reconstruct the entire interior evolution.
+We now formalise the ``boundary encodes volume'' slogan.
+
+\begin{definition}[Reconstruction procedure]
+Given a wormhole $(S_0,P)$ with
+$P = (\mu_0,\dots,\mu_{n-1})$, define
+\[
+  \Recon(S_0,P) = (S_0,S_1,\dots,S_n)
+\]
+by the recursion
+\[
+  S_{i+1} \;=\; \Apply(S_i,\mu_i)
+\]
+for $0 \le i < n$, where $\Apply$ executes the unique microstep
+described by~$\mu_i$ under the deterministic tick semantics.
+Determinism ensures that each $S_{i+1}$ is uniquely determined (up to
+isomorphism).  Furthermore, tick-level confluence
+(Theorem~\ref{thm:tick-confluence}) guarantees that any internal
+interleaving of concurrent matches compatible with $\mu_i$ yields an
+isomorphic successor.
+\end{definition}
+
+\begin{theorem}[Computational holography]
+\label{thm:holography}
+Let $(S_0,P)$ be a wormhole.  Then:
+\begin{enumerate}[leftmargin=*]
+  \item The reconstruction procedure terminates and produces a unique
+    (up to isomorphism) volume $S_0 \Rewrite^\ast S_n$.
+  \item Conversely, any finite derivation
+    $S_0 \Rewrite^{\mu_0} \cdots \Rewrite^{\mu_{n-1}} S_n$
+    induces a wormhole $(S_0,P)$ with $P=(\mu_0,\dots,\mu_{n-1})$
+    whose reconstruction yields an isomorphic volume.
+\end{enumerate}
+Thus the boundary data $(S_0,P)$ is information-complete with respect
+to the interior evolution: up to isomorphism, each finite derivation
+volume corresponds to a unique boundary and vice versa.  In particular,
+boundaries (considered up to isomorphism of $S_0$) are in bijection
+with isomorphism classes of finite derivation volumes.
+\end{theorem}
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      state/.style={rectangle,draw=blue!70!black,fill=blue!5,thick,minimum width=8mm,
+                    minimum height=6mm,inner sep=1pt},
+      payload/.style={rectangle,draw=green!60!black,fill=green!5,thick,rounded corners,
+                      minimum width=35mm,minimum height=16mm,
+                      align=center},
+      arrow/.style={-Latex,thick,blue!70!black},
+      brace/.style={decorate,decoration={brace,amplitude=5pt}},
+      >=Latex
+    ]
+
+    % Volume side
+    \node at (0,2.0) {\small \textbf{Interior evolution (volume)}};
+
+    \node[state] (S0) at (0,1.0) {$S_0$};
+    \node[state] (S1) at (1.5,1.0) {$S_1$};
+    \node[state] (S2) at (3.0,1.0) {$S_2$};
+    \node            (dots) at (4.2,1.0) {$\cdots$};
+    \node[state] (Sn) at (5.4,1.0) {$S_n$};
+
+    \draw[arrow] (S0) -- node[above,sloped]{\scriptsize $\mu_0$} (S1);
+    \draw[arrow] (S1) -- node[above,sloped]{\scriptsize $\mu_1$} (S2);
+    \draw[arrow] (S2) -- node[above,sloped]{\scriptsize $\mu_2$} (dots);
+    \draw[arrow] (dots) -- node[above,sloped]{\scriptsize $\mu_{n-1}$} (Sn);
+
+    \draw[brace,thick] ([yshift=-4pt]S0.south west) --
+                       ([yshift=-4pt]Sn.south east)
+       node[midway,below=6pt]{\scriptsize explicit derivation path};
+
+    % Boundary side
+    \node at (0,-0.4) {\small \textbf{Boundary encoding}};
+
+    \node[payload] (Boundary) at (3.0,-1.3)
+      {%
+      initial state: $S_0$\\[-2pt]%
+      \rule{30mm}{0.3pt}\\[-2pt]%
+      payload: $P=(\mu_0,\dots,\mu_{n-1})$%
+      };
+
+    \draw[brace,thick] ([yshift=-4pt]Boundary.south west) --
+                       ([yshift=-4pt]Boundary.south east)
+      node[midway,below=6pt]{\scriptsize stored as a single edge label};
+
+    % Mapping arrow
+    \draw[<->,arrow] (Sn.south) .. controls +(0,-0.9) and +(0,0.9) ..
+                     (Boundary.north)
+      node[midway,right=2pt,align=left,inner sep=1pt]
+        {\scriptsize computational\\[-1pt] \scriptsize holography};
+
+  \end{tikzpicture}
+  \caption{Computational holography: the full interior evolution
+  $S_0 \Rewrite S_1 \Rewrite \cdots \Rewrite S_n$ (volume) is uniquely
+  reconstructible from the boundary data $(S_0,P)$, where $P$ is the
+  provenance payload attached to a \textbf{single RMG edge}.}
+  \label{fig:holography-volume-boundary}
+\end{figure}
+
+\begin{proof}
+(1) Termination is immediate from the finiteness of $P$: the recursion
+defining $\Recon(S_0,P)$ executes exactly $n$ steps.  At each step,
+$\Apply$ is defined because $\mu_i$ was assumed to be a valid
+microstep label; determinism and tick-level confluence guarantee that
+the resulting state $S_{i+1}$ is unique up to isomorphism.
+
+(2) Given a finite derivation as in the statement, simply take
+$P=(\mu_0,\dots,\mu_{n-1})$.  The reconstruction procedure follows
+exactly the same sequence of microsteps from $S_0$; by determinism,
+the reconstructed states are isomorphic to the original ones at each
+index, hence the reconstructed volume is isomorphic to the given
+volume.
+
+The two directions together induce a bijection between isomorphism
+classes of finite derivations and isomorphism classes of boundaries
+$(S_0,P)$, where boundaries are quotiented by isomorphism of the
+initial state $S_0$.
+\end{proof}
+
+\begin{remark}[Relation to physical holographic principles]
+\label{rem:physical-holography}
+The term ``holography'' is used in several distinct communities.  In
+high-energy physics, the holographic principle---most prominently
+realised in the AdS/CFT correspondence---asserts that the information
+content of a bulk spacetime region can be encoded on a lower-dimensional
+boundary.  Our use of ``computational holography'' is a precise,
+information-theoretic analogue in a discrete, deterministic setting:
+the ``volume'' is the interior derivation sequence
+$S_0 \Rewrite S_1 \Rewrite \cdots \Rewrite S_n$, and the ``boundary''
+is the pair $(S_0,P)$, where $P$ is a provenance payload.
+Theorem~\ref{thm:holography} establishes that this boundary is
+information-complete with respect to the volume in the sense of
+algorithmic reconstruction.  We do not assume any geometric or
+quantum-mechanical structure, though it is tempting to speculate about
+future connections.
+\end{remark}
+
+Thus the entire ``volume'' of the computation is encoded on the
+boundary.  We will refer to this property as computational holography.

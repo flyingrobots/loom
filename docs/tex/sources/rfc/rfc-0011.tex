@@ -1,0 +1,305 @@
+JIT RFC-0011
+
+Distributed Sync: Frontier Negotiation \& Subgraph Transfer (DST v1.0)
+
+Truth Reconciliation in a Causal Universe
+
+Status: Draft\textbf{ Author: James Ross Contributors: JIT Community
+Requires: {\textbullet} RFC-0001 Node Identity {\textbullet} RFC-0002 DAG Invariants {\textbullet} RFC-0003
+SWS {\textbullet} RFC-0005 Inversion Engine {\textbullet} RFC-0006 WAL {\textbullet} RFC-0010 Ref Semantics}
+Start Date: 2025-11-28\textbf{ Target Spec: JITOS v0.x} License: TBD**
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines the Distributed Sync Protocol used by JIT to: {\textbullet}
+synchronize repositories {\textbullet} replicate causal DAGs {\textbullet} negotiate frontiers {\textbullet}
+exchange missing nodes {\textbullet} update refs {\textbullet} reconcile divergent histories
+
+Unlike Git, JIT sync is: {\textbullet} causality-aware {\textbullet} branch-consistent {\textbullet}
+rewrite-safe {\textbullet} deterministic {\textbullet} immutable {\textbullet} subgraph-based
+
+Sync becomes a geometric reconciliation between worldlines.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Motivation
+\end{enumerate}
+
+Git sync is built for: {\textbullet} files {\textbullet} snapshots {\textbullet} patches {\textbullet} textual diffs {\textbullet}
+mutation
+
+JIT is built for: {\textbullet} nodes {\textbullet} causal chains {\textbullet} rewrites {\textbullet} collapse events {\textbullet}
+worldlines
+
+The protocols cannot be the same.
+
+Distributed systems demand: {\textbullet} efficient frontier comparison {\textbullet} safe
+transfer of immutable nodes {\textbullet} conflict-safe ref updates {\textbullet} deterministic
+reconstruction {\textbullet} efficient rehydration {\textbullet} precise provenance integrity
+
+This RFC defines the rules.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Core Concepts
+\end{enumerate}
+
+3.1 Frontier
+
+A frontier is a set of nodes representing the ``tips'' of the local
+universe.
+
+Formally:
+
+frontier = \{ f \textbar{} f \ensuremath{\in} DAG and \ensuremath{\nexists} child such that f is a parent
+of child \}
+
+Comparable to Git's ``heads'', but purely causal, not Git's commit
+model.
+
+{\bfseries ?}
+
+3.2 Delta Set
+
+The delta is the set of nodes one peer has that the other does not.
+
+delta(A $\rightarrow$ B) = nodes(A) - nodes(B)
+
+This must be computed without sending full DAGs.
+
+{\bfseries ?}
+
+3.3 Subgraph Transfer
+
+Nodes transfer in closure form:
+
+subgraph(root) = \{ all reachable ancestors of root \}
+
+Transfers MUST send: {\textbullet} the snapshot node {\textbullet} any rewrite nodes {\textbullet}
+file-chunk nodes {\textbullet} provenance nodes {\textbullet} metadata
+
+Never only partial information.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Sync Stages
+\end{enumerate}
+
+Sync occurs in 3 stages:
+
+{\bfseries ?}
+
+4.1 Stage 1: Frontier Exchange
+
+Peers exchange:
+
+local\_frontier = list refs = list capabilities = list
+
+Comparison determines: {\textbullet} common ancestors {\textbullet} divergence points {\textbullet} delta
+sets {\textbullet} missing subgraphs
+
+Frontier negotiation MUST be efficient (logarithmic).
+
+{\bfseries ?}
+
+4.2 Stage 2: Delta Computation
+
+The delta MUST satisfy:
+
+delta = minimal set of nodes that B needs to become causally consistent
+with A
+
+The delta is a set of root nodes; B will request full subgraphs.
+
+Peers MUST support: {\textbullet} prefix indexing {\textbullet} hash queries {\textbullet} chunked node
+lists {\textbullet} topological ordering queries
+
+{\bfseries ?}
+
+4.3 Stage 3: Subgraph Transfer
+
+Transfer MUST be: {\textbullet} chunked {\textbullet} deduplicated {\textbullet} content-addressed {\textbullet}
+BLAKE3-verified {\textbullet} resumable
+
+Each subgraph MUST be: {\textbullet} validated {\textbullet} appended to DAG {\textbullet} indexed {\textbullet}
+WAL-logged
+
+No mutation allowed --- all new truth accumulates.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Ref Synchronization
+\end{enumerate}
+
+After DAG sync, references MUST be synchronized:
+
+Rules:
+
+5.1 Fast-Forward Ref Update
+
+If remote ref target is a DAG descendant of local target:
+
+local\_ref = remote\_ref
+
+5.2 Divergent Ref Update
+
+If both refs diverged: {\textbullet} perform inversion rewrite {\textbullet} produce rewrite
+node {\textbullet} update ref to merged snapshot
+
+5.3 Tag Handling
+
+Tags MUST NOT move. If remote tag conflicts: {\textbullet} local tag remains {\textbullet}
+remote tag stored under distinct namespace
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  DAG Validation
+\end{enumerate}
+
+Every received node MUST be validated: 1. BLAKE3 hash 2. canonical
+encoding 3. parent existence 4. type validation 5. rewrite rules (if
+rewrite node) 6. provenance correctness
+
+Invalid nodes MUST be rejected.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Cold Storage Integration
+\end{enumerate}
+
+Nodes fetched from remote storage MUST: {\textbullet} be decompressed {\textbullet} be
+rehydrated {\textbullet} be promoted to warm or hot tier {\textbullet} be indexed {\textbullet} be checked
+against WAL
+
+This ensures local replicas remain consistent.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Performance Requirements {\textbullet} Frontier exchange \textless{} 20ms {\textbullet} DAG
+  delta computation \textless{} O(n) in frontier size {\textbullet} Subgraph
+  transfer parallelized {\textbullet} Cold storage fetch pipelined {\textbullet} Rehydration
+  amortized
+\end{enumerate}
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Security Considerations {\textbullet} signature verification (optional now,
+  mandatory later) {\textbullet} MITM protection {\textbullet} authorized ref updates {\textbullet} denylist
+  of malicious nodes {\textbullet} remote capability negotiation
+\end{enumerate}
+
+DAG cannot be polluted.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  Failure Modes
+\end{enumerate}
+
+10.1 Partial Sync
+
+Must resume without corruption.
+
+10.2 Ref Conflict
+
+Must resolve through inversion, not mutation.
+
+10.3 Node Corruption
+
+Must reject and quarantine.
+
+10.4 Protocol Divergence
+
+Must fallback to safe mode.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{10}
+\tightlist
+\item
+  Why Distributed Sync Matters
+\end{enumerate}
+
+Because JIT is: {\textbullet} global {\textbullet} multi-user {\textbullet} agent-native {\textbullet}
+eventually-consistent {\textbullet} append-only {\textbullet} immutable {\textbullet} causally structured
+
+Distributed sync is the mechanism by which: {\textbullet} universes converge {\textbullet}
+agents collaborate {\textbullet} worldlines integrate {\textbullet} truth expands {\textbullet} knowledge
+flows {\textbullet} replicas remain consistent
+
+This RFC defines the physics of synchronization.
+
+Without it, JIT cannot exist across multiple machines.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{11}
+\tightlist
+\item
+  Status \& Next Steps
+\end{enumerate}
+
+This completes the first block of foundational RFCs.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

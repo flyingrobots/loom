@@ -1,0 +1,389 @@
+\section{RFC-0018}\label{rfc-0018}
+
+JIT RFC-0018
+
+Causal Garbage Isolation (CGI v1.0)
+
+Entropy Management for an Immutable, Append-Only Universe
+
+Status: Draft\\
+Author: James Ross\\
+Contributors: JIT Community\\
+Requires:\\
+- RFC-0001 Node Identity\\
+- RFC-0002 DAG Invariants\\
+- RFC-0003 SWS\\
+- RFC-0005 Inversion Engine\\
+- RFC-0009 Storage Tiering**\\
+Start Date: 2025-11-29\\
+Target Spec: JITOS v0.x**\\
+License: TBD**
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Summary
+\end{enumerate}
+
+This RFC defines Causal Garbage Isolation (CGI)--- JIT's strategy for
+managing unused or unreachable nodes in an append-only DAG\\
+WITHOUT EVER DELETING ANYTHING.
+
+Unlike traditional garbage collection (GC), which mutates or removes
+data,\\
+JIT uses a purely structural, causal, and reversible isolation system.
+
+Causal Garbage Isolation:\\
+- identifies unreachable subgraphs\\
+- isolates them into ``dead zones''\\
+- moves them to cold storage tiers\\
+- preserves causal truth\\
+- ensures deterministic replay\\
+- prevents storage explosion\\
+- enables long-term archiving\\
+- allows optional re-animation of old universes
+
+This turns ``garbage'' into dormant history, not trash.
+
+Because the universe remembers everything.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Motivation
+\end{enumerate}
+
+JIT is a:\\
+- causal universe\\
+- append-only timeline\\
+- multi-agent simulation\\
+- infinite DAG\\
+- provenance-rich system
+
+This means the DAG will grow forever.\\
+And deleting nodes would:\\
+- destroy reproducibility\\
+- invalidate provenance\\
+- break commits\\
+- violate semantics\\
+- erase realities\\
+- collapse worldlines\\
+- break physics
+
+Deletion is unacceptable.\\
+Mutation is forbidden.
+
+Thus, the challenge:
+
+How to manage infinite entropy without ever destroying truth?
+
+Answer:
+
+Causal Garbage Isolation.
+
+Move unused nodes out of the ``active universe''\\
+into frozen sectors of the graph-space\\
+where they remain valid but inert.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  What Counts as Garbage? (Formally)
+\end{enumerate}
+
+A node N is garbage-like if:\\
+- it is not reachable from any ref\\
+- it is not reachable from any active SWS\\
+- it is not part of any rewrite chain\\
+- it is not referenced in any provenance\\
+- it does not contribute to MH\\
+- it is older than a configurable threshold\\
+- it belongs to an abandoned branch\\
+- it was created by an ephemeral agent\\
+- it was a temporary result of an automated transformation
+
+BUT:
+
+A node is NEVER ``garbage.''\\
+Nodes are simply less relevant.
+
+Thus they are isolated, not deleted.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  The Isolation Process
+\end{enumerate}
+
+Isolation MUST follow this procedure:
+
+Step 1---Identify unreachable nodes
+
+Using graph traversal:
+
+reachable = union(refs, SWS roots, rewrite parents)\\
+all\_nodes - reachable = isolate\_candidates
+
+Step 2---Verify they are causally dead
+
+A node can only be isolated if:\\
+- no future node references it\\
+- no rewrite references it\\
+- no provenance references it
+
+Step 3---Move to Cold Tier
+
+Nodes are moved from:
+
+hot $\rightarrow$ warm $\rightarrow$ cold $\rightarrow$ deep-cold
+
+Step 4---Mark with Isolation Flag
+
+Index entry is updated:
+
+isolated: true
+
+This prevents:\\
+- unnecessary rehydration\\
+- unnecessary indexing\\
+- unnecessary MH/FST projections
+
+Step 5---Archive Subgraph
+
+Nodes MAY be grouped into archive bundles for:\\
+- backup\\
+- remote cold storage\\
+- long-term reproducibility\\
+- scientific experiments
+
+Step 6---Potential Reanimation
+
+Users MAY request a subgraph be:
+
+rehydrated $\rightarrow$ reintegrated $\rightarrow$ reattached
+
+This ``resurrection'' is fully supported.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Isolation Guarantees
+\end{enumerate}
+
+CGI MUST guarantee:
+
+5.1 No Deletion
+
+Nodes are never removed or destroyed.
+
+5.2 DAG Stability
+
+Isolation MUST never break invariants.
+
+5.3 Deterministic Replay
+
+Re-isolation MUST NOT alter future behavior.
+
+5.4 No Mutation of Node Identity
+
+Tier transitions preserve content.
+
+5.5 Reversible Archiving
+
+Nodes may be brought back.
+
+5.6 Zero Impact on Truth
+
+Isolation does not affect commit semantics.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Node States
+\end{enumerate}
+
+Nodes have four possible lifecycle states:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Hot
+\end{enumerate}
+
+Active, used by MH / SWS.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Warm
+\end{enumerate}
+
+Compressed, mid-term history.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Cold
+\end{enumerate}
+
+Long-term storage.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Isolated Cold
+\end{enumerate}
+
+Detached from working DAG, preserved indefinitely.
+
+Optionally:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Deep-Cryo Cold
+\end{enumerate}
+
+For extremely old histories, stored offline.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{6}
+\tightlist
+\item
+  Policies for Isolation
+\end{enumerate}
+
+JITD MUST allow:\\
+- time-based isolation\\
+- ref-based isolation\\
+- age-based isolation\\
+- branch abandonment isolation\\
+- agent-scoped isolation\\
+- SWS-scoped isolation\\
+- storage-pressure-based isolation
+
+Examples:\\
+- ``isolate anything older than 90 days not reachable from a ref''\\
+- ``isolate abandoned experimental branches''\\
+- ``isolate LLM-generated ephemeral edits''\\
+- ``only keep last 10K nodes in hot tier''
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Security Implications
+\end{enumerate}
+
+Isolation MUST NOT:\\
+- bypass signing\\
+- hide tampering\\
+- erase provenance\\
+- suppress audit data
+
+Isolated nodes are still:\\
+- queryable via JQL\\
+- signed\\
+- valid\\
+- reversible
+
+Just not active.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{8}
+\tightlist
+\item
+  Why Causal Garbage Isolation Matters
+\end{enumerate}
+
+Because:
+
+This is the ONLY GC model compatible with immutability, provenance,
+reproducibility, AND infinite DAG growth.
+
+It allows JIT to:\\
+- run forever\\
+- scale to billions of nodes\\
+- support scientific workloads\\
+- enable massive agent swarms\\
+- maintain universal reproducibility\\
+- archive entire universes\\
+- perform deep causal forensics
+
+JIT becomes:\\
+- a universal archive\\
+- a reproducible simulation environment\\
+- a multi-agent OS\\
+- a temporal database\\
+- a causal memory engine
+
+WITHOUT EVER THROWING ANYTHING AWAY.
+
+This is how a universe manages entropy.
+
+{\bfseries ?}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  Status \& Next Steps
+\end{enumerate}
+
+The next foundational RFCs we can generate are:\\
+- RFC-0019---SWS Memory Model\\
+- RFC-0020---Security \& Permissions Model\\
+- RFC-0021---Multi-Universe Federation Protocol (holy shit)\\
+- RFC-0022---JIT Visualization Protocol\\
+- RFC-0023---DAG Schema Evolution\\
+- RFC-0024---C\ensuremath{\Omega}MPUTER Fusion Layer ({\bfseries ?})
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

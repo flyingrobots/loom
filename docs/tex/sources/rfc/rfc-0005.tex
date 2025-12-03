@@ -1,0 +1,541 @@
+\section{JIT RFC-0005}\label{jit-rfc-0005}
+
+\subsection{The Inversion Engine Semantics (IES
+v1.0)}\label{the-inversion-engine-semantics-ies-v1.0}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Summary}\label{summary}
+
+This RFC defines the Inversion Engine, the subsystem responsible for:
+
+\begin{itemize}
+\tightlist
+\item
+  collapsing a Shadow Working Set (SWS) into a deterministic snapshot
+  node
+\item
+  integrating subjective edits into the objective causal DAG
+\item
+  resolving conflicts
+\item
+  performing merges and rebases
+\item
+  generating inversion-rewrite nodes
+\item
+  preserving immutability and causal order
+\item
+  producing the canonical next event in the universe
+\end{itemize}
+
+This subsystem is the computational analog of:
+
+\begin{itemize}
+\tightlist
+\item
+  quantum collapse
+\item
+  observer synchronization
+\item
+  relativistic frame merging
+\item
+  provenance validation
+\item
+  structural rewriting
+\end{itemize}
+
+Without the Inversion Engine, JIT cannot maintain truth.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Motivation}\label{motivation}
+
+Shadow Working Sets represent subjective, isolated, locally consistent
+worldlines that agents operate within.
+
+But the universe (the DAG) is singular. Only one version of history
+exists. Only one next event becomes real.
+
+The Inversion Engine provides the laws and machinery that:
+
+\begin{itemize}
+\tightlist
+\item
+  merge subjective changes into objective truth
+\item
+  reconcile divergent views
+\item
+  enforce determinism
+\item
+  preserve immutability
+\item
+  maintain causal invariants
+\end{itemize}
+
+It is the OS kernel's consistency layer, the physics engine's update
+loop, the version-control system's merge engine, and the distributed
+system's truth arbitrator.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Definitions}\label{definitions}
+
+\subsubsection{Inversion}\label{inversion}
+
+A transformation where: - the universe remains unchanged - but a new
+node representing a rewrite, merge, or collapse is appended - creating a
+new ``view'' of the past without modifying it
+
+This is how rebases, merges, cherry-picks, and amends occur without
+violating immutability.
+
+\subsubsection{Collapse}\label{collapse}
+
+Application of the collapse operator:
+
+\begin{lstlisting}
+collapse(sws, graph) $\rightarrow$ new_snapshot_node
+\end{lstlisting}
+
+\subsubsection{Rewrite Node}\label{rewrite-node}
+
+A node of type inversion-rewrite that expresses:
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!old-state -> new-state!} mapping
+\item
+  causal relationships
+\item
+  conflict resolutions
+\item
+  structural transformations
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Engine Responsibilities}\label{engine-responsibilities}
+
+The Inversion Engine MUST:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Anchor the SWS to its base node
+\item
+  Compare overlay graph against substrate
+\item
+  Detect conflicts
+\item
+  Derive minimal rewrite set
+\item
+  Validate all overlay nodes
+\item
+  Resolve divergences deterministically
+\item
+  Generate a new snapshot node
+\item
+  Emit an inversion-rewrite node if needed
+\item
+  Guarantee causal invariants
+\item
+  Finalize the collapse
+\end{enumerate}
+
+Failure of any step MUST abort commit.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Collapse Algorithm
+(Formal)}\label{collapse-algorithm-formal}
+
+Given:
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!base\_node!}
+\item
+  \passthrough{\lstinline!sws.overlay\_nodes!}
+\item
+  \passthrough{\lstinline!global\_dag!}
+\end{itemize}
+
+The engine MUST:
+
+function collapse(sws, dag):
+
+\begin{lstlisting}
+1. verify $$base_node \ensuremath{\in} dag$$
+2. compute $$latest reality = dag.head(ref)$$
+3. if `base_node != latest reality`:
+        `perform merge(base_node, latest reality)`
+4. apply overlays
+5. detect conflicts
+6. resolve conflicts deterministically
+7. compute final tree projection
+8. generate file-chunk nodes
+9. create new snapshot
+\end{lstlisting}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{9}
+\tightlist
+\item
+  create inversion-rewrite node if merge occurred
+\item
+  update DAG: append events
+\item
+  destroy SWS \passthrough{\lstinline!return new\_snapshot\_node!}
+\end{enumerate}
+
+All steps MUST be deterministic.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Merge Semantics
+\end{enumerate}
+
+If the SWS's base\_node does NOT match the current ref head:
+
+\begin{lstlisting}
+merge(base, head) $\rightarrow$ merged_structure
+\end{lstlisting}
+
+Merge MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  preserve both lineages
+\item
+  produce deterministic conflict sets
+\item
+  apply Git-compatible merge strategy
+\item
+  encode conflict data into rewrite node
+\end{itemize}
+
+After merging:
+
+\begin{itemize}
+\tightlist
+\item
+  MH updates for human users
+\item
+  SWS virtual index updates for agents
+\item
+  collapse continues
+\end{itemize}
+
+No merge ever mutates past events. Merge produces new structures, not
+edits.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Conflict Semantics}\label{conflict-semantics}
+
+Three kinds:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Structural conflicts
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  file added in one world, deleted in another
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Edit conflicts
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  overlapping modifications
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Semantic conflicts
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  unsafe state transitions (runtime-defined)
+\end{itemize}
+
+Conflicts MUST be:
+
+\begin{itemize}
+\tightlist
+\item
+  detected deterministically
+\item
+  resolved using canonical resolution order
+\item
+  represented as multi-stage entries in MH
+\item
+  returned to SWS for retry OR resolved via overlay
+\end{itemize}
+
+No conflict may EVER produce nondeterministic output.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{7}
+\tightlist
+\item
+  Rewrite Nodes
+\end{enumerate}
+
+If collapse involves a history divergence (merge/rebase/etc), the engine
+MUST produce a node:
+
+\begin{lstlisting}
+InversionRewrite {
+    parents: [old_nodes... new_nodes...]
+    mapping: old $\rightarrow$ new
+    merge_type: enum
+    conflicts: optional data
+    metadata: signatures, timestamps
+}
+\end{lstlisting}
+
+This node:
+
+\begin{itemize}
+\tightlist
+\item
+  documents the transformation
+\item
+  preserves immutability
+\item
+  enables provenance
+\item
+  maintains chronological truth
+\end{itemize}
+
+This is the mathematical identity of ``rebase without rewriting
+history.''
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{9. Deterministic Rewrite
+Rules}\label{deterministic-rewrite-rules}
+
+The engine MUST guarantee:
+
+\begin{itemize}
+\tightlist
+\item
+  same SWS + same DAG $\rightarrow$ same output snapshot
+\item
+  identical merges on different machines produce identical rewrite nodes
+\item
+  collapse is a pure function
+\item
+  no hidden state, randomness, or ordering bugs
+\end{itemize}
+
+This is vital for distributed correctness and replay.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{10. Collapse Outcome}\label{collapse-outcome}
+
+Collapse MUST produce exactly one:
+
+\begin{itemize}
+\tightlist
+\item
+  snapshot node (actual new state)
+\item
+  optional inversion-rewrite node (if a merge/rewrite occurred)
+\end{itemize}
+
+Both MUST be appended to the DAG atomically.
+
+Afterward:
+
+\begin{itemize}
+\tightlist
+\item
+  the SWS is destroyed
+\item
+  MH updates
+\item
+  refs update
+\item
+  full invariants guaranteed
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{11. Legal Rewrites}\label{legal-rewrites}
+
+Allowed:
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!merge!}
+\item
+  \passthrough{\lstinline!rebase!}
+\item
+  \passthrough{\lstinline!cherry-pick!}
+\item
+  \passthrough{\lstinline!commit amend!}
+\item
+  \passthrough{\lstinline!revert!}
+\item
+  \passthrough{\lstinline!structural transforms!} (future)
+\item
+  \passthrough{\lstinline!semantic rewrites!} (future)
+\end{itemize}
+
+Forbidden:
+
+\begin{itemize}
+\tightlist
+\item
+  altering existing nodes
+\item
+  deleting nodes
+\item
+  modifying previous causal links
+\end{itemize}
+
+\begin{quote}
+{[}!DANGER{]} History never mutates. \textbf{\emph{Ever.}} \emph{This is
+the core JIT philosophy.}
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{12. Inversion Engine
+Properties}\label{inversion-engine-properties}
+
+The Inversion Engine MUST be:
+
+\subsubsection{Deterministic}\label{deterministic}
+
+Pure function under fixed inputs.
+
+\subsubsection{Idempotent}\label{idempotent}
+
+Repeated attempts produce identical graphs.
+
+\subsubsection{Isolated}\label{isolated}
+
+Engine state cannot bleed between collapses.
+
+\subsubsection{Atomic}\label{atomic}
+
+Collapse either fully commits or fully aborts.
+
+\subsubsection{Serializable}\label{serializable}
+
+Concurrent collapses resolve via causal ordering.
+
+\subsubsection{Auditable}\label{auditable}
+
+Every rewrite is represented in the DAG.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{13. Security Considerations}\label{security-considerations}
+
+The engine MUST:
+
+\begin{itemize}
+\tightlist
+\item
+  validate shadow provenance
+\item
+  enforce signature rules
+\item
+  reject malformed overlays
+\item
+  reject inconsistent transformations
+\item
+  reject illegal rewrites
+\item
+  prevent history mutation attempts
+\end{itemize}
+
+Rewrite nodes MUST be cryptographically signed.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{14. Why This Matters}\label{why-this-matters}
+
+The Inversion Engine is the literal physics of JIT.
+
+It enforces:
+
+\begin{itemize}
+\tightlist
+\item
+  the arrow of time
+\item
+  observer collapse
+\item
+  causal consistency
+\item
+  determinism
+\item
+  worldline merging
+\item
+  conflict locality
+\item
+  immutability
+\item
+  reproducibility
+\item
+  truth maintenance
+\end{itemize}
+
+This subsystem is the soul of the Inversion Kernel.
+
+Without it, the universe is chaos. With it, the universe is computable.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{15. Status \& Next Steps}\label{status-next-steps}
+
+\subsubsection{Next RFC:}\label{next-rfc}
+
+\href{./RFC-0006.md}{RFC-0006} --- WAL Format \& Replay Semantics (The
+Temporal Backbone)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{\texorpdfstring{\textbf{C\ensuremath{\Omega}MPUTER {\textbullet}
+JITOS}}{C\ensuremath{\Omega}MPUTER {\textbullet} JITOS}}\label{cux3c9mputer-jitos}
+
+{\textcopyright} 2025 James Ross {\textbullet} \href{https://flyingrobots.dev}{Flying {\textbullet} Robots} All
+Rights Reserved

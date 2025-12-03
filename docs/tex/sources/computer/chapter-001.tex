@@ -1,0 +1,634 @@
+\section{Chapter 1 --- Computation Is Transformation}
+
+I didn  t start thinking in graphs because I read a paper, or because I was studying category theory, or because I had some grand revelation about the nature of computation.
+
+I started thinking in graphs because a game studio had a build system that \textbf{sucked}.
+
+Not    mildly inconvenient   sucked.  I mean, we had sixty developers and three build machines, and every morning the entire studio tried to merge their work into the same shared engine codebase like a stampede of buffalo diving into a single narrow canyon.
+
+If you fixed a bug at 11 a.m., good luck seeing it in QA  s hands before dinner.
+
+If you broke the build, you were that person --- the one who froze the pipeline, stalled the artists, ticked off the designers, and derailed the entire schedule.
+
+The    build debacle,   as we called it, wasn  t just annoying. It was structurally broken.
+
+Too many people trying to integrate at once.  Too few machines.
+
+No isolation between game teams.  No visibility.  Long rebuild times.  No incremental reasoning.
+
+No way to ask basic questions like:
+\begin{itemize}
+\item    What depends on what?  
+\item    What actually needs to rebuild?  
+\item    Why is this step even here?  
+\end{itemize}
+
+So I started digging.  Not because I wanted to --- because I had to.
+Someone needed to unfuck the pipeline, and apparently that someone was me.
+
+I didn  t have a plan.  I didn  t have experience writing build systems.
+I wasn  t even    the build guy.    I was just the person who couldn  t stop asking questions.
+
+And the first question I asked --- the one that changed everything --- was embarrassingly simple:
+
+   What \textit{is} a build, really?  
+
+Not the scripts.
+Not the tools.
+Not Jenkins.
+Not the machines.
+
+What \textit{is} it?
+
+\textit{What is a build?}
+
+---
+
+\subsubsection{1.1 The Day I Realized Everything Was a Graph}
+
+If you strip away the noise, a build is this:
+
+\begin{itemize}
+\item A bunch of inputs
+\item A bunch of outputs
+\item \textbf{And a set of transformations that turn one into the other}
+\end{itemize}
+
+That  s it.
+
+You can draw every build as:
+
+\begin{verbatim}
+[assets]   [compiler]   [objects]   [linker]   [executable]
+\end{verbatim}
+
+You can draw every dependency tree as a graph of \textit{   this depends on that.  }
+
+You can draw every version control DAG as a graph of \textit{   this comes after that.  }
+
+You can draw every merge conflict as a graph mismatch.
+
+You can draw every crash bug as:
+
+\begin{verbatim}
+State A   (code runs)   State B   (unexpected condition)   State C (boom)
+\end{verbatim}
+
+Everything I looked at --- builds, merges, crashes, assets, scripts, even the humans involved --- suddenly made more sense when drawn as nodes and edges.
+
+It wasn  t an epiphany. It was more like a slow, creeping realization:
+
+Everything we build is structure transforming into other structure.
+And the best way to see structure is to draw it.
+
+The more problems I solved using graphs, the more natural it felt.
+
+Build steps? Nodes.
+
+Dependencies? Edges.
+
+Failures? Dead ends.
+
+Parallelization? Independent branches.
+
+Caching? Reuse of previously visited nodes.
+
+Git branching? Literally a DAG.
+
+Gameplay systems? Graphs of state.
+
+NPC AI trees? Graphs.
+
+Physics collisions? Graphs.
+
+Data flow? Graphs.
+
+Event pipelines? Graphs.
+
+Everywhere I looked, the same pattern repeated.
+
+And the punchline was this: I didn  t choose graphs. The problems chose graphs.
+
+---
+
+\subsubsection{1.2 Graphs Reveal What the Code Is Actually Doing}
+
+We like to pretend code is a set of instructions, or a recipe, or a list of steps.
+
+But that  s not what code is.
+
+What code is, is a set of rules that transform one state into another.
+
+You can describe these transformations in many ways ---
+\begin{itemize}
+\item imperative
+\item functional
+\item object-oriented
+\item declarative
+\item reactive
+\end{itemize}
+
+---but the underlying operation is always the same:
+
+\begin{verbatim}
+State   (rules)   State  
+\end{verbatim}
+
+Which is  
+a graph rewrite.
+
+Just one nobody ever talks about.
+
+The reason graphs felt like the right hammer to me wasn  t because I was looking for a hammer.  It was because the thing I was trying to hit was already a nail.
+
+Dependencies? Graph.
+
+Flow of data? \textit{Graph.}
+
+Order of operations? \textit{Graph.}
+
+Transformations of state? \textit{Graph rewrites.}
+
+History of changes? \textit{Git DAG.}
+
+Conflicts? \textit{Non-isomorphic merges.}
+
+Parallel builds? \textit{Graph partitioning.}
+
+Race conditions? \textit{Incompatible update paths.}
+
+Debugging? \textit{Tracing a path through state space.}
+
+Optimizations? \textit{Shortening that path.}
+
+I didn  t know it yet, but I was staring at the core idea this book is built on:
+
+Computation isn  t made of instructions.
+\textbf{Computation is made of transformations.}
+
+\textit{And transformations have shape.}
+
+And shape is a graph.
+
+---
+
+\subsubsection{1.3 From Build Systems to a Theory of Everything-But-Physics}
+
+It took years for the pattern to fully sink in.
+
+I left that studio. I worked in backend systems. I built distributed pipelines. I led migrations, refactors, engines, toolchains.
+
+All the while, I kept seeing the same thing:
+
+Every problem became clearer--- more obvious, more tractable ---once I could draw it.
+
+And once you start thinking in transformations, you stop seeing code as something you    run   and start seeing it as something that moves.
+
+A program is a journey.
+
+An execution is a path.
+
+A bug is a wrong turn.
+
+A merge conflict is two incompatible routes.
+
+Concurrency is overlapping travel.
+
+Caching is revisiting past locations.
+
+Optimization is finding a shorter path.
+
+AI reasoning is exploring alternative paths.
+
+Simulation is repeated transformation under rules.
+
+The more modern software grew --- multi-threaded, distributed,
+async, reactive, stateful, data-heavy, AI-driven --- the more the old metaphors strained under the load.
+
+We don  t need new metaphors.
+
+We need a new language.
+
+Not to replace mathematics.
+Not to replace computer science.
+But to sit beside them ---
+and let us talk about computation as it actually feels today:
+\begin{itemize}
+\item structural
+\item dynamic
+\item historical
+\item branching
+\item concurrent
+\item emergent
+\item and made of transformations
+\end{itemize}
+
+That  s what this book is.
+A language for thinking in transformations.
+
+A language for the real shape of software.
+
+A language I wish I  d had the day I stared at a broken build system and realized I was seeing the edges of something big.
+
+---
+
+Chapter 1.2 --- How State Moves
+
+One of the weirdest things about being a software engineer is how often you  re working on a system without knowing what the system is.
+
+Not in a philosophical sense.
+I mean literally:
+
+You  re staring at logs, stack traces, telemetry, exceptions, wire traces, crash dumps, network graphs, build steps, shader compilations, AI behavior trees ---
+all these snapshots of state ---
+and the entire job is trying to figure out the one thing nobody ever actually says out loud:
+
+How did the system get here?
+
+Nobody writes documentation that explains movement.
+They document functions, modules, features, APIs, scripts, endpoints ---
+individual pieces frozen in time like photos in a crime scene.
+
+But what you actually need,
+what you  re really trying to reconstruct,
+is the movie.
+
+And the movie always starts the same way:
+
+Something changes.
+
+A value updates.
+A message arrives.
+An event fires.
+A collider triggers.
+An asset loads.
+A user taps a button.
+A network packet comes in.
+An AI agent evaluates a condition.
+A shader completes compiling.
+A JSON blob gets parsed.
+A database row gets mutated.
+A job gets queued.
+A coroutine yields.
+A thread wakes up.
+
+It  s all movement.
+
+You  re not just debugging code.
+You  re debugging motion.
+
+You  re tracing the path the system took.
+And you  re trying to see the shape of that path through a thousand tiny keyholes.
+
+This was the thing that finally broke my brain wide open.
+
+Because one day ---
+after chasing some janky asset-pipeline bug that only happened in the third build of the day under full moonlight ---
+I caught myself sketching the system out on the board, and it hit me:
+
+I wasn  t drawing code.
+
+I was drawing state moving through transformations.
+
+I looked at the whiteboard.
+It was just boxes and arrows ---
+but it told a story.
+
+It wasn  t pretty.
+It wasn  t formal.
+But it was a story of change:
+\begin{itemize}
+\item This asset caused that task
+\item which triggered that conversion
+\item which invoked that compiler
+\item which created that file
+\item which fed into that linker
+\item which produced that binary
+\item which crashed on that device
+\item because that metadata was malformed
+\item because that earlier job never reran
+\item because the change detection step skipped it
+\item because the dependency graph was wrong
+\item because someone    optimized   a build script six months ago
+\end{itemize}
+
+None of this was    business logic.  
+None of this was    gameplay.  
+None of this was    graphics   or    AI.  
+
+This was just state flowing through a sequence of transformations.
+
+And the more I stared at it, the more obvious it felt:
+
+Everything in software is just state moving around.
+
+The system  s behavior wasn  t in any one piece of code.
+It was in the connections between them.
+
+It wasn  t in the functions.
+It was in the flow.
+
+It wasn  t in the modules.
+It was in the motion.
+
+Every bug we ever solved ---
+every crash, every deadlock, every corrupted asset, every    why the hell is this build busted again   moment ---
+was ultimately just tracing a path through the system until we found the turn where the universe branched wrong.
+
+That was the moment I realized:
+
+The only honest representation of software is a map of how state moves.
+
+Not the code.
+Not the diagrams in Confluence.
+Not the    architecture deck   collecting dust in a forgotten Google Drive folder.
+Not the class hierarchy, or the UML, or the Gantt chart.
+
+Just  
+
+state $\rightarrow$ transform $\rightarrow$ state $\rightarrow$ transform $\rightarrow$ state
+
+Over and over again.
+
+Which is ---
+if you zoom out far enough ---
+a graph rewrite.
+
+I didn  t know the name for it then.
+But I could feel the shape of it.
+
+And once you see that shape,
+you can  t unsee it.
+
+Suddenly:
+\begin{itemize}
+\item compilers
+\item build systems
+\item asset pipelines
+\item physics engines
+\item networking
+\item distributed systems
+\item UIs
+\item AI planning
+\item databases
+\item version control
+\item even the goddamn game loop itself
+\end{itemize}
+
+  all look like the same thing:
+
+A world of states, and the rules that transform them.
+
+This is the moment where C$\\Omega$MPUTER really begins.
+
+Once you understand movement,
+you understand computation.
+And once you can draw movement,
+you can control it.
+
+Because if you can see the path  
+
+  you can change it.
+
+---
+
+\subsubsection{1.4 --- Why Structure Emerges Everywhere}
+
+There  s a moment in every engineer  s life --- even if they don  t talk about it --- where they  re staring at three totally different systems and suddenly think:
+
+   Why the hell do these all look the same?  
+
+The domains are wildly different.
+The problems are unrelated.
+The technologies are incompatible.
+
+And yet  
+
+They rhyme.
+
+They want to be graphs.
+
+They want to be structure.
+
+They want to be transformations.
+
+It  s eerie the first time you see it.
+It  s comforting the second.
+By the tenth, you just shrug and go:
+
+   Huh. Wouldn  t ya know it.  
+
+But here  s the thing:
+
+That repetition isn  t an accident.
+
+It  s a signal.
+
+Let me show you.
+
+---
+
+\paragraph{1.4.1 The Physics Engine That Looked Suspiciously Like a Compiler}
+
+Back at that studio --- long before I had the vocabulary for any of this --- I noticed something odd:
+
+Our physics engine  s collision pipeline looked   a lot like the compiler pipeline.
+
+I  m talking 1:1 structural rhyme.
+
+Physics engine:
+\begin{itemize}
+\item broadphase
+\item narrowphase
+\item contact generation
+\item solver
+\item integration
+\item state update
+\end{itemize}
+
+Compiler:
+\begin{itemize}
+\item lexing
+\item parsing
+\item AST generation
+\item IR
+\item optimization passes
+\item codegen
+\end{itemize}
+
+Totally different domains.
+Totally different math.
+Totally different problems.
+
+Same shape:
+
+input $\rightarrow$ transform $\rightarrow$ transform $\rightarrow$ transform $\rightarrow$ output
+
+A pipeline.
+A DAG.
+A rewrite sequence.
+
+That was weird.
+
+---
+
+\paragraph{1.4.2 The AI Behavior Tree That Looked Like a Build System}
+
+Then one day I was debugging a behavior tree bug.
+
+You know:
+NPC stands still because some leaf action fails silently.
+A classic    this tree is alive but has no soul   situation.
+
+And as I traced the logic, I thought:
+
+   Why does this feel like tracing build dependencies?  
+
+Nodes failing upstream.
+Subtrees retrying.
+Pending branches.
+Canceled branches.
+Cached results.
+Reactive triggers.
+Execution traces.
+State snapshots.
+
+A behavior tree and a build system?
+Come on.
+
+Except  
+they  re both just graphs of conditions and effects.
+
+Just different skins.
+
+---
+
+\paragraph{1.4.3 Distributed Systems and Animation Systems}
+
+Working on backend services years later, I had d\'ej\`a vu:
+\begin{itemize}
+\item queues
+\item events
+\item fan-out
+\item time slices
+\item cascades
+\item scheduling
+\item dependency ordering
+\item rollback
+\item replay
+\item eventual consistency
+\end{itemize}
+
+It felt exactly like  
+the animation system I  d worked on in games.
+
+Same pattern:
+
+independent nodes
+connected by flows
+updated according to rules
+dependent on previous state
+with branches for special cases
+
+Different domain.
+Same skeleton.
+
+---
+
+\paragraph{1.4.4 After a While, You Start Asking Different Questions}
+
+At first you ask:
+
+   Why does everything look like a graph?  
+
+Then you ask:
+
+   Is this just how my brain works?  
+
+Then you ask:
+
+   No seriously --- why is this everywhere?  
+
+And the answer you eventually land on ---
+if you follow that thread long enough ---
+is surprisingly simple:
+
+Systems that evolve under rules naturally collapse into graph structure.
+
+Or in plain English:
+
+If something has parts and those parts can change,
+you get a graph --- whether you want one or not.
+
+\begin{itemize}
+\item Atoms bond $\rightarrow$ graph
+\item Functions call each other $\rightarrow$ graph
+\item Assets depend on assets $\rightarrow$ graph
+\item Events fire events $\rightarrow$ graph
+\item AI nodes activate nodes $\rightarrow$ graph
+\item Game states transition $\rightarrow$ graph
+\item Machines coordinate $\rightarrow$ graph
+\item Humans coordinate $\rightarrow$ graph
+\end{itemize}
+
+Structure emerges because:
+\begin{itemize}
+\item dependencies are structure
+\item causality is structure
+\item concurrency is structure
+\item history is structure
+\item flow is structure
+\item rules operating on state create structure
+\end{itemize}
+
+So it  s not that your brain is    stuck in graph mode.  
+
+It  s that the world of engineered systems actually is graph-shaped.
+
+Because:
+
+Graphs are the natural mathematical home of relationships.
+And everything interesting in software is a relationship.
+
+\begin{center}
+* * *
+\end{center}
+
+1.4.5 The Important Boundary Line
+
+Now here  s the grounding point --- the thing keeping this book sane:
+
+Just because many engineered systems resemble graphs
+does not mean the universe literally is one.
+
+But the resemblance is interesting enough
+that the analogy has real explanatory power.
+
+C$\\Omega$MPUTER doesn  t try to redefine physics.
+It tries to give software engineers a way to reason about:
+\begin{itemize}
+\item structure
+\item movement
+\item history
+\item causality
+\item branching
+\item rules
+\item possibilities
+\end{itemize}
+
+  using the same language that pops up everywhere anyway.
+
+That  s why this chapter exists.
+
+To show the reader:
+
+You  re not imagining it
+and you  re not alone.
+The pattern is real ---
+and we  re going to formalize it.
+
+Which brings us to  
+
+---
+
+\section{\textbf{C$\\Omega$MPUTER \textbullet{} JITOS}}
