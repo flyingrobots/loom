@@ -1,0 +1,264 @@
+\section{\texorpdfstring{\textbf{Appendix C --- JS-ABI v1.0 Deterministic Compliance Gauntlet}}{Appendix C --- JS-ABI v1.0 Deterministic Compliance Gauntlet}}\label{adr-0013-appendix-c}
+
+This appendix defines a \textbf{minimum compliance suite} (the
+``Gauntlet'') for implementations of JS-ABI v1.0.
+
+An implementation \textbf{MUST} pass all tests in this appendix to be
+considered JS-ABI v1.0 compliant for the purposes of WAL, hashing, and
+deterministic replay.
+
+The Gauntlet is divided into:
+
+\begin{itemize}
+\tightlist
+  \item Encoder tests (behavior of the CBOR encoder),
+  \item Decoder tests (behavior of the CBOR decoder),
+  \item End-to-end tests (behavior of the kernel logical clock and WAL).
+\end{itemize}
+
+Test vector IDs (TV1, TV2, etc.) refer to Appendix~\ref{sec:appendix-test-vectors}.
+
+\subsection{\texorpdfstring{\textbf{C.1 Encoder Compliance Tests}}{C.1 Encoder Compliance Tests}}\label{encoder-compliance-tests}
+
+\subsubsection*{EC-01: Exact Encoding of Handshake (TV1)}
+
+\textbf{Input (logical form):} the JSON structure for the handshake in
+Appendix B, Section B.1.
+
+\textbf{Requirement:}
+
+\begin{itemize}
+\tightlist
+  \item When serialized by the implementation's CBOR encoder under
+        JS-ABI v1.0's deterministic profile, the payload bytes
+        \textbf{MUST EXACTLY MATCH} the hex string for TV1.
+  \item The length field in the packet header \textbf{MUST} be
+        \texttt{0x00000071} (113 decimal).
+\end{itemize}
+
+If the encoder produces any deviating CBOR bytes (even if semantically
+equivalent), it \textbf{fails} EC-01.
+
+\subsubsection*{EC-02: Exact Encoding of Error (TV3)}
+
+\textbf{Input (logical form):} the JSON structure for the error in
+Appendix B, Section B.2.
+
+\textbf{Requirement:}
+
+\begin{itemize}
+\tightlist
+  \item When serialized by the encoder, the payload
+        \textbf{MUST EXACTLY MATCH} the hex string for TV3.
+  \item The length field in the packet header \textbf{MUST} be
+        \texttt{0x00000076} (118 decimal).
+\end{itemize}
+
+Any deviation in encoding (different integer widths, map ordering,
+string lengths, etc.) \textbf{fails} EC-02.
+
+\subsubsection*{EC-03: Integer Minimal Width}
+
+\textbf{Input:} the following logical values encoded as CBOR integers:
+
+\begin{itemize}
+\tightlist
+  \item 0, 1, 10, 23
+  \item 24, 100, 255
+  \item 256, 1000, 65535
+  \item 65536, \(2^{32}-1\) (4294967295)
+\end{itemize}
+
+\textbf{Requirement:}
+
+\begin{itemize}
+\tightlist
+  \item For each value, the encoder \textbf{MUST} emit the shortest
+        possible CBOR integer form per RFC~8949 Preferred Serialization
+        (major type 0 / 1 with minimal additional length).
+  \item No value may be encoded with a larger-than-necessary integer
+        width (e.g., 23 may not be encoded using a 2-byte or 4-byte
+        integer).
+\end{itemize}
+
+Any larger-than-minimal integer representation \textbf{fails} EC-03.
+
+\subsubsection*{EC-04: Integer vs Float Encoding}
+
+\textbf{Input:} logical numeric values:
+0, 1, -1, 42, 0.0, 1.0, -1.0, 0.5, 1.5.
+
+\textbf{Requirement:}
+
+\begin{itemize}
+\tightlist
+  \item 0, 1, -1, 42, 0.0, 1.0, -1.0 \textbf{MUST} be encoded as
+        integers (major type 0 or 1), not as floating-point.
+  \item 0.5 and 1.5 \textbf{MUST} be encoded as floating-point using the
+        smallest width that preserves the value exactly (typically half
+        or single precision depending on implementation).
+  \item No numeric value that is mathematically an integer and within
+        CBOR integer range may be encoded as floating-point.
+\end{itemize}
+
+If the encoder emits any float where an integer is required, or uses a
+wider float than necessary, it \textbf{fails} EC-04.
+
+\subsubsection*{EC-05: Canonical Map Ordering}
+
+\textbf{Input:} CBOR maps with keys chosen to exercise canonical
+ordering, e.g.:
+
+\begin{verbatim}
+{
+  "a": 1,
+  "b": 2,
+  "aa": 3,
+  "Z": 4,
+  "op": "test",
+  "ts": 0,
+  "payload": {}
+}
+\end{verbatim}
+
+\textbf{Requirement:} keys must be ordered by their full CBOR encoding
+(bytewise increasing), matching the ordering implied by the canonical
+encodings in TV1 and TV3. Any mismatch \textbf{fails} EC-05.
+
+\subsubsection*{EC-06: No Tags, No Indefinite Length}
+
+\textbf{Input:} any \texttt{OpEnvelope} payload.
+
+\textbf{Requirement:} the encoder must not emit CBOR tags (major type
+6), indefinite-length strings, arrays, or maps, nor the break code
+(\texttt{0xff}). Any such encoding \textbf{fails} EC-06.
+
+\subsection{\texorpdfstring{\textbf{C.2 Decoder Compliance Tests}}{C.2 Decoder Compliance Tests}}\label{decoder-compliance-tests}
+
+\subsubsection*{DC-01: Accept Canonical TV1 and TV3}
+
+\textbf{Input:} the exact CBOR payload bytes of TV1 and TV3.
+
+\textbf{Requirement:} the decoder must successfully decode both payloads
+to the expected logical structures. Failure to decode these encodings
+fails DC-01.
+
+\subsubsection*{DC-02: Reject Indefinite-Length Encodings}
+
+\textbf{Input:} variants of TV1 in which maps, arrays, or strings use
+indefinite length with a break code but identical logical content.
+
+\textbf{Requirement:} the decoder must treat any use of
+indefinite-length encodings as non-compliant and reject the packet as
+JS-ABI v1.0 payload. Accepting such a payload \textbf{fails} DC-02.
+
+\subsubsection*{DC-03: Reject Non-Canonical Integers}
+
+\textbf{Input:} variants of TV1 in which an integer (e.g.
+\texttt{ts = 0} or \texttt{client\_version = 1}) is encoded using a
+wider-than-necessary integer format.
+
+\textbf{Requirement:} the decoder may parse such payloads for
+diagnostics, but must treat them as non-compliant with JS-ABI v1.0 and
+must not accept them into WAL or deterministic replay. Treating such a
+payload as normal input \textbf{fails} DC-03.
+
+\subsubsection*{DC-04: Reject Tags}
+
+\textbf{Input:} variants of TV3 that introduce a CBOR tag around one of
+the fields while preserving logical content.
+
+\textbf{Requirement:} any CBOR tag in the payload must cause the decoder
+to reject the packet as JS-ABI v1.0 input. Accepting a tagged payload
+\textbf{fails} DC-04.
+
+\subsubsection*{DC-05: Reject Duplicate Map Keys}
+
+\textbf{Input:} variants of TV1 or TV3 in which the top-level map or the
+\texttt{payload} map contain duplicate keys.
+
+\textbf{Requirement:} duplicate keys must be treated as a violation of
+the deterministic encoding profile and cause the payload to be
+rejected. Silently choosing one entry and continuing \textbf{fails}
+DC-05.
+
+\subsubsection*{DC-06: Map Key Ordering Independence (Strict Mode)}
+
+\textbf{Input:} variants of TV1 where map keys are emitted in
+non-canonical order while preserving logical fields.
+
+\textbf{Requirement:} in strict JS-ABI v1.0 mode, such non-canonical
+payloads must be rejected for use in WAL and deterministic replay. Using
+them as if they were canonical input \textbf{fails} DC-06. (A lenient
+tooling mode is outside JS-ABI v1.0 compliance.)
+
+\subsection{\texorpdfstring{\textbf{C.3 End-to-End Logical Clock and WAL Tests}}{C.3 End-to-End Logical Clock and WAL Tests}}\label{end-to-end-tests}
+
+\subsubsection*{EE-01: Server-Assigned Timestamps}
+
+\textbf{Scenario:}
+
+\begin{enumerate}
+\tightlist
+  \item Start with an empty kernel and WAL.
+  \item A client sends two requests (e.g., a handshake and a
+        state-mutating operation) with \texttt{ts = 0}.
+  \item The server processes both and appends the resulting operations
+        to the WAL.
+\end{enumerate}
+
+\textbf{Requirement:} WAL entries must have strictly increasing
+\texttt{ts} values, assigned by the kernel logical clock (not copied
+from the client). Any non-monotonic or zero \texttt{ts} in the WAL
+\textbf{fails} EE-01.
+
+\subsubsection*{EE-02: Monotonicity Under Concurrency}
+
+\textbf{Scenario:}
+
+\begin{enumerate}
+\tightlist
+  \item Multiple clients concurrently issue state-mutating operations
+        with arbitrary \texttt{ts} values (including 0 and stale
+        values).
+  \item The server interleaves processing and appends all committed
+        operations to the WAL.
+\end{enumerate}
+
+\textbf{Requirement:} WAL entries must have strictly increasing
+\texttt{ts} values forming a total order consistent with execution. Any
+duplicate or non-monotonic \texttt{ts} values \textbf{fail} EE-02.
+
+\subsubsection*{EE-03: Deterministic Replay}
+
+\textbf{Scenario:}
+
+\begin{enumerate}
+\tightlist
+  \item From a known initial state, execute a sequence of valid JS-ABI
+        operations, recording the resulting WAL and final state.
+  \item Reinitialize the kernel to the same initial state.
+  \item Replay the WAL entries in strictly increasing \texttt{ts} order,
+        using the recorded payloads verbatim.
+\end{enumerate}
+
+\textbf{Requirement:} the resulting kernel state and any observable
+\texttt{OpEnvelope} sequence must match the original. Failure to
+reproduce the same state or sequence \textbf{fails} EE-03.
+
+\subsection{\texorpdfstring{\textbf{C.4 Compliance Definition}}{C.4 Compliance Definition}}\label{compliance-definition}
+
+An implementation is JS-ABI v1.0 \emph{deterministic-compliant} for WAL
+and replay iff:
+
+\begin{itemize}
+\tightlist
+  \item It passes all encoder tests EC-01 through EC-06,
+  \item It passes all decoder tests DC-01 through DC-06, and
+  \item It passes all end-to-end tests EE-01 through EE-03.
+\end{itemize}
+
+Failing any test means the implementation may still interoperate in a
+best-effort fashion but cannot be trusted for cross-language
+deterministic WAL, hashing, or replay, and must not be advertised as
+JS-ABI v1.0 compliant.

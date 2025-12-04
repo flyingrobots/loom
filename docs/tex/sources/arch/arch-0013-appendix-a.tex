@@ -1,0 +1,121 @@
+\appendix
+
+\section{Deterministic Encoding Profile and CDDL}\label{sec:appendix-cddl}
+
+This appendix defines the deterministic encoding profile for JS-ABI
+v1.0 and provides a CDDL schema for CBOR \texttt{OpEnvelope} payloads.
+
+\subsection{Scope}\label{scope}
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{Structure}: defined by the CDDL below.
+\item
+  \emph{Encoding}: ADR-0012 Section 5.2 (Canonical CBOR), Section 5.2.1
+  (Strict Canonical CBOR), and RFC 8949 Sections 4.1 and 4.2.1.
+\end{itemize}
+
+Implementations \textbf{MUST} satisfy both shape and encoding to be
+JS-ABI v1.0 compliant.
+
+\subsection{CDDL Schema for \texttt{OpEnvelope}}\label{cddl-schema-for-openvelope}
+
+\begin{verbatim}
+; Top-level CBOR payload in each JS-ABI packet
+op-envelope = {
+  "op": tstr,    ; operation name (see RFC-0007)
+  "ts": uint,    ; logical timestamp (GITD logical clock)
+  "payload": any
+}
+
+; --- Handshake ---
+
+op-handshake = {
+  "op": "handshake",
+  "ts": uint,              ; may be 0 or last-seen ts from server
+  "payload": handshake-payload
+}
+
+handshake-payload = {
+  "client_version": uint,  ; implementation version, not wire version
+  "capabilities": [ tstr ], ; capability identifiers, e.g. "compression:zstd"
+  ? "agent_id": tstr,
+  ? "session_meta": meta-map
+}
+
+meta-map = {
+  * tstr => any
+}
+
+; --- Handshake Acknowledgement ---
+
+op-handshake-ack = {
+  "op": "handshake_ack",
+  "ts": uint,                 ; authoritative server ts for this event
+  "payload": handshake-ack-payload
+}
+
+handshake-ack-payload = {
+  "status": "OK" / "ERROR",
+  "server_version": uint,     ; implementation version, not wire version
+  "capabilities": [ tstr ],   ; capabilities enabled for this session
+  "session_id": tstr,
+  ? "error": error-payload    ; present iff status == "ERROR"
+}
+
+; --- Error ---
+
+op-error = {
+  "op": "error",
+  "ts": uint,               ; authoritative server ts for the error event
+  "payload": error-payload
+}
+
+error-payload = {
+  "code": uint,             ; numeric error code, e.g. 1, 2, 500
+  "name": tstr,             ; stable identifier, e.g. "E_INVALID_OP"
+  "message": tstr,          ; human-readable
+  ? "details": any          ; optional machine-readable context
+}
+
+; --- OpEnvelope type universe ---
+
+op-envelope =
+    op-handshake
+  / op-handshake-ack
+  / op-error
+  / op-other               ; all other ops defined in RFC-0007
+
+; Placeholder for operations defined in RFC-0007 (sync, query, etc.)
+op-other = {
+  "op": tstr .ne "handshake"
+             .ne "handshake_ack"
+             .ne "error",
+  "ts": uint,
+  "payload": any
+}
+\end{verbatim}
+
+\subsection{Deterministic Encoding Requirements (Summary)}\label{deterministic-encoding-requirements-summary}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Definite lengths only}: no indefinite strings/arrays/maps; no
+  break code \texttt{0xff}.
+\item
+  \textbf{Canonical numeric encoding}: shortest major type 0/1
+  representation; integers preferred over floats; smallest exact-width
+  floats only.
+\item
+  \textbf{No CBOR tags}: major type 6 forbidden anywhere.
+\item
+  \textbf{Canonical maps}: keys sorted by CBOR-encoded byte order; no
+  duplicates.
+\item
+  \textbf{Preferred serialization everywhere}: any deviation is
+  non-compliant for WAL, hashing, or deterministic replay.
+\end{itemize}
+
+Preferred Serialization is \emph{mandatory} for JS-ABI v1.0.

@@ -1,0 +1,136 @@
+\section{Reference Test Vectors}\label{sec:appendix-test-vectors}
+
+Concrete test vectors for JS-ABI v1.0 covering canonical CBOR payloads
+and packet layouts. Checksums are BLAKE3-256 over header \(\parallel\)
+payload (Section~\ref{packet-framing-structure}).
+
+\subsection{Handshake \texttt{OpEnvelope} (CBOR Payload)}\label{handshake-openvelope-cbor-payload}
+
+Logical structure:
+
+\begin{verbatim}
+{
+  "op": "handshake",
+  "ts": 0,
+  "payload": {
+    "client_version": 1,
+    "capabilities": [
+      "compression:zstd",
+      "stream:subgraph"
+    ],
+    "agent_id": "example-agent"
+  }
+}
+\end{verbatim}
+
+Canonical CBOR hex (113 bytes):
+
+\begin{verbatim}
+a3626f706968616e647368616b6562747300677061796c6f6164a3686167656e
+745f69646d6578616d706c652d6167656e746c6361706162696c697469657382
+70636f6d7072657373696f6e3a7a7374646f73747265616d3a73756267726170
+686e636c69656e745f76657273696f6e01
+\end{verbatim}
+
+\subsection{Error \texttt{OpEnvelope} (CBOR Payload)}\label{error-openvelope-cbor-payload}
+
+Logical structure:
+
+\begin{verbatim}
+{
+  "op": "error",
+  "ts": 42,
+  "payload": {
+    "code": 3,
+    "name": "E_BAD_PAYLOAD",
+    "message": "Invalid CBOR payload",
+    "details": {
+      "hint": "Check canonical encoding"
+    }
+  }
+}
+\end{verbatim}
+
+Canonical CBOR hex (118 bytes):
+
+\begin{verbatim}
+a3626f70656572726f72627473182a677061796c6f6164a464636f646503646e
+616d656d455f4241445f5041594c4f41446764657461696c73a16468696e7478
+18436865636b2063616e6f6e6963616c20656e636f64696e67676d6573736167
+6574496e76616c69642043424f52207061796c6f6164
+\end{verbatim}
+
+\subsection{Example Packets (Header + Payload)}\label{example-packets-header-payload}
+
+Shared constants:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{MAGIC} = \texttt{4a 49 54 21}
+\item
+  \textbf{VERSION} = \texttt{0x0100}
+\item
+  \textbf{FLAGS} = \texttt{0x0000}
+\item
+  \textbf{LENGTH} = payload length (big-endian)
+\end{itemize}
+
+\subsubsection{Handshake Packet (without CHECKSUM)}\label{handshake-packet-without-checksum}
+
+LENGTH = 113 decimal = \texttt{00 00 00 71}
+
+Header + payload (125 bytes before checksum):
+
+\begin{verbatim}
+4a4954210100000000000071
+a3626f706968616e647368616b6562747300677061796c6f6164a3686167656e
+745f69646d6578616d706c652d6167656e746c6361706162696c697469657382
+70636f6d7072657373696f6e3a7a7374646f73747265616d3a73756267726170
+686e636c69656e745f76657273696f6e01
+\end{verbatim}
+
+The complete packet is:
+
+\begin{verbatim}
+MAGIC || VERSION || FLAGS || LENGTH || PAYLOAD || CHECKSUM
+CHECKSUM = BLAKE3-256(MAGIC || VERSION || FLAGS || LENGTH || PAYLOAD)
+\end{verbatim}
+
+\subsubsection{Error Packet (without CHECKSUM)}\label{error-packet-without-checksum}
+
+LENGTH = 118 decimal = \texttt{00 00 00 76}
+
+Header + payload (130 bytes before checksum):
+
+\begin{verbatim}
+4a4954210100000000000076
+a3626f70656572726f72627473182a677061796c6f6164a464636f646503646e
+616d656d455f4241445f5041594c4f41446764657461696c73a16468696e7478
+18436865636b2063616e6f6e6963616c20656e636f64696e67676d6573736167
+6574496e76616c69642043424f52207061796c6f6164
+\end{verbatim}
+
+\subsection{Test Vector Summary}\label{test-vector-summary}
+
+\begin{longtable}{llllll}
+\toprule
+ID & Kind & Description & Len (bytes) & VERSION & LENGTH \\
+\midrule
+\endhead
+TV1 & OpEnvelope & \texttt{handshake} & 113 & 0x0100 & 0x00000071 \\
+TV2 & Packet & \texttt{handshake} & 113 payload & 0x0100 & 0x00000071 \\
+TV3 & OpEnvelope & \texttt{error} & 118 & 0x0100 & 0x00000076 \\
+TV4 & Packet & \texttt{error} & 118 payload & 0x0100 & 0x00000076 \\
+\bottomrule
+\end{longtable}
+
+\subsection{References}\label{references}
+
+\begin{itemize}
+\tightlist
+\item
+  ADR-0012: JS-ABI v1.0 Deterministic Encoding (Canonical CBOR and
+  timestamping) — primary structure and encoding rules for
+  \texttt{PAYLOAD}.
+\end{itemize}

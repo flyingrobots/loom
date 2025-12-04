@@ -2,6 +2,16 @@
 
 > ***JITOS is the operating system for CΩMPUTER.***
 
+## Quick Links
+
+- 🗺️ **[Terminology Guide (Git → JITOS)](docs/GLOSSARY-ROSETTA.md)** — If you know Git/Unix, start here
+- 📚 [Full Architecture](docs/ARCH/ARCH-0000-ToC.md) — Deep dive into JITOS design
+- 📋 [RFCs](docs/RFC/) — Technical specifications
+- 📝 [ADRs](docs/ADR/) — Architecture decision records
+- 📖 [Whitepaper](docs/WHITEPAPER.md) — High-level overview
+
+---
+
 ## What is CΩMPUTER?
 
 CΩMPUTER is a computational model based on deterministic graph rewrites applied to a Recursive Metagraph (RMG).
@@ -20,20 +30,20 @@ JITOS is the operating system that manages the CΩMPUTER. It acts as a bidirecti
 
 JITOS provides two distinct ways to interact with the universe, depending on who—or *what*—you are:
 
-* **For Humans (The Projection):** JITOS materializes a view of the causal DAG that behaves exactly like a standard filesystem. Humans see files; IDEs see folders; compilers see source trees. But these are just transient projections—holograms generated on-the-fly to make the graph intelligible to human brains and legacy tools.
-* **For Agents (The Reality):** AI agents bypass the projection entirely. They do not waste cycles parsing linear text files or navigating directory trees. Instead, they interact directly with the raw DAG, manipulating structure, dependencies, and provenance chains with zero serialization overhead.
+* **For Humans (The Projection):** JITOS materializes a view of the causal DAG that behaves exactly like a standard filesystem. Humans see files; IDEs see folders; compilers see source trees. But these are just transient projections—the **Materialized Head (MH)**—holograms generated on-the-fly to make the graph intelligible to human brains and legacy tools.
+* **For Agents (The Reality):** AI agents bypass the projection entirely. They do not waste cycles parsing linear text files or navigating directory trees. Instead, they interact directly with the raw **Recursive Meta-Graph (RMG)**, manipulating structure, dependencies, and provenance chains with zero serialization overhead.
 
-### Shadow Working Sets (Execution as Branching)
+### Shadow Working Sets (Processes as Branching)
 
-JITOS replaces the traditional concept of "processes" with **Shadow Working Sets**.
+JITOS replaces the traditional concept of "processes/threads" with **Shadow Working Sets (SWS)**.
 
 Using the semantics of Git, a "process" is simply a checked-out branch of the universal graph.
 
-* **Fork:** When you start a task, JITOS forks the current state into a Shadow Working Set (an isolated branch).
-* **Compute:** As the task runs, it appends new nodes to this branch. This allows for speculative execution and parallel "universes" held in superposition.
-* **Merge:** When the task completes, the branch is committed and merged back into the universal timeline.
+* **Fork (Process Creation):** When you start a task, JITOS forks the current state into a Shadow Working Set—an isolated branch of the causal DAG.
+* **Compute (Execution):** As the task runs, it appends overlay nodes to this branch. This allows for speculative execution and parallel "universes" held in superposition.
+* **Collapse (Commit):** When the task completes, the branch is collapsed via the **Collapse Operator**—transforming speculative edits into objective truth and merging back into the universal timeline.
 
-JITOS turns the entire runtime environment into a version-controlled graph. There are no files, only projections. There is no volatility, only unmerged branches.
+JITOS turns the entire runtime environment into a version-controlled graph. There are no files, only projections (the **Materialized Head**). There is no volatility, only unmerged branches (Shadow Working Sets).
 
 
 ### Using JITOS

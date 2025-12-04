@@ -22,7 +22,7 @@ SRC_MD_WHITEPAPER = ../../docs/WHITEPAPER.md
 # Tools
 CONVERT_MD_TO_TEX = $(SCRIPTS_DIR)/convert.sh
 CLEAN_UNICODE = $(PYTHON) $(SCRIPTS_DIR)/clean-unicode.py
-LATEX = pdflatex
+LATEX = xelatex
 LATEX_FLAGS = -interaction=nonstopmode -halt-on-error -shell-escape -output-directory=$(BUILD_DIR)
 
 # Color output
@@ -36,7 +36,7 @@ COLOR_PURPLE = \033[35m
 # Main Targets
 # =============================================================================
 
-.PHONY: all dark print clean init help
+.PHONY: all dark print template clean init help
 
 help:
 	@echo "$(COLOR_BOLD)JITOS Documentation Build System$(COLOR_RESET)"
@@ -53,6 +53,9 @@ help:
 	@echo ""
 	@echo "$(COLOR_PURPLE)Individual Regular PDFs (no suffix):$(COLOR_RESET)"
 	@echo "  make arch computer adrs rfcs whitepaper aion-holography master"
+	@echo ""
+	@echo "$(COLOR_PURPLE)Utility:$(COLOR_RESET)"
+	@echo "  make template - Build docs/tex/template.tex to build/template.pdf"
 
 all: dark print
 
@@ -61,6 +64,12 @@ dark: arch-dark computer-dark adrs-dark rfcs-dark whitepaper-dark aion-holograph
 
 print: arch computer adrs rfcs whitepaper aion-holography master
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ All 7 regular PDFs complete$(COLOR_RESET)"
+
+template: init
+	@echo "$(COLOR_BOLD)$(COLOR_BLUE)Building template.tex...$(COLOR_RESET)"
+	@$(LATEX) $(LATEX_FLAGS) template.tex
+	@$(LATEX) $(LATEX_FLAGS) template.tex > /dev/null
+	@echo "$(COLOR_BOLD)$(COLOR_BLUE)✓ build/template.pdf created$(COLOR_RESET)"
 
 init:
 	@mkdir -p $(BUILD_DIR)

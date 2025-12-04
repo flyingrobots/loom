@@ -2,9 +2,13 @@
 
 > *JITOS is the operating system for CΩMPUTER.*
 
+**New to JITOS?** See the [Terminology Guide](./GLOSSARY-ROSETTA.md) for translations from Git/Unix concepts.
+
+---
+
 ## What is CΩMPUTER?
 
-**CΩMPUTER** is a computational model based on deterministic graph rewrites applied to a **Recursive Metagraph** (RMG) with holographic properties.
+**CΩMPUTER** is a computational model based on deterministic graph rewrites applied to a **Recursive Metagraph (RMG)** with holographic properties.
 
 The system updates via a scheduler that applies rules to the RMG whenever specific conditions are met. Because the nodes are holographic, every calculated value carries its entire provenance.
 
@@ -23,10 +27,10 @@ JITOS is the operating system for CΩMPUTER.
 
 Its primary function is to bridge the gap between human workflow and machine reality via Holographic Projection.
 
-- **For Humans (The Projection):** JITOS materializes views of the causal DAG that look and behave exactly like a standard filesystem. Humans see files; IDEs see folders; compilers see source trees. But these are just transient projections—an interface layer generated on-the-fly from the underlying graph.
+- **For Humans (The Projection):** JITOS materializes views of the causal DAG that look and behave exactly like a standard filesystem. Humans see files; IDEs see folders; compilers see source trees. But these are just transient projections—an interface layer (the **Materialized Head (MH)**) generated on-the-fly from the underlying graph.
 - **For Agents (The Reality):** AI agents bypass the projection entirely. They do not need to parse linear text files or navigate directories. Instead, they interact directly with the causal DAG, manipulating the raw graph structure, dependencies, and provenance chains.
 
-There are no processes. Instead, agency occurs in shadow working sets—isolated, parallel branches of the universe held in superposition.
+There are no traditional processes (Process/Thread). Instead, agency occurs in **Shadow Working Sets (SWS)**—isolated, parallel branches of the universe held in superposition until they **collapse** (commit) into objective truth.
 
 JITOS is the interface. For humans, it simulates the familiar desktop. For AIs, it grants direct access to the physics of the system.
 

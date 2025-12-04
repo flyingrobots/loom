@@ -1,0 +1,295 @@
+\section{\texorpdfstring{\textbf{ADR-0013 --- JS-ABI v1.0 Deterministic Encoding}}{ADR-0013 --- JS-ABI v1.0 Deterministic Encoding}}\label{adr-0013-js-abi-deterministic-encoding}
+
+\textbf{Status:} Accepted \textbf{Date:} 2025-12-04 \textbf{Owner:}
+GITD Protocol Working Group \textbf{Depends on:} ADR-0001, ADR-0006,
+ADR-0007 \textbf{Relates to:} RFC-0007 (RPC), RFC-0013 (ABI),
+RFC-0012 (WAL)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{1. Context}}{1. Context}}\label{context}
+
+The JS-ABI v1.0 wire protocol rides on CBOR OpEnvelopes carried over the
+RPC layer. Deterministic encoding is required so that:
+
+\begin{itemize}
+\tightlist
+\item
+  WAL entries hash identically across nodes and languages.
+\item
+  Deterministic replay produces byte-for-byte identical OpEnvelopes.
+\item
+  Clients and servers share a single canonical shape for timestamps and
+  payloads.
+\end{itemize}
+
+Without a strict profile, implementations could diverge on map ordering,
+indefinite lengths, or floating-point widths, breaking content
+addressability and causal ordering guarantees.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{2. Decision}}{2. Decision}}\label{decision}
+
+\begin{quote}
+\textbf{All JS-ABI v1.0 OpEnvelopes MUST use the deterministic encoding
+profile defined here: a canonical payload envelope with authoritative
+logical timestamps and a strict, tag-free Canonical CBOR subset (definite
+lengths, preferred integer encodings, canonical map ordering).}
+\end{quote}
+
+\subsubsection{\texorpdfstring{\textbf{2.1 Payload Envelope}}{2.1 Payload Envelope}}\label{payload-envelope}
+
+Every JS-ABI packet carries a CBOR-encoded \texttt{OpEnvelope} with:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{op}: operation name
+\item
+  \texttt{ts}: logical timestamp
+\item
+  \texttt{payload}: operation-specific body
+\end{itemize}
+
+\paragraph{\texorpdfstring{\textbf{Logical timestamp semantics}}{Logical timestamp semantics}}\label{logical-timestamp-semantics}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Authoritative source (GITD logical clock)}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Each GITD instance maintains a monotonically increasing kernel
+    logical clock.
+  \item
+    For any state-mutating operation admitted to the WAL, the kernel
+    \textbf{MUST} assign \texttt{ts} from this clock at commit time.
+  \item
+    Within one GITD instance, \texttt{ts} values \textbf{MUST} be
+    strictly increasing (\(ts_{n+1} > ts_n\)) with no duplicates.
+  \end{itemize}
+\item
+  \textbf{Client role and request timestamps}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Client \texttt{ts} is non-authoritative; clients \textbf{MUST} send
+    either \texttt{0} or the last server-observed \texttt{ts}.
+  \item
+    Servers \textbf{MUST NOT} use client \texttt{ts} for ordering; they
+    \textbf{MUST} overwrite with the next kernel clock value before WAL
+    persistence and before emitting responses.
+  \item
+    Non-zero client \texttt{ts} may be used only as advisory metadata.
+  \end{itemize}
+\item
+  \textbf{Causal ordering guarantees}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Sorting WAL operations by \texttt{ts} defines the total causal order
+    inside one GITD instance.
+  \item
+    Deterministic replay \textbf{MUST} reapply operations in strictly
+    increasing \texttt{ts} order; any deviation is non-compliant.
+  \end{itemize}
+\end{enumerate}
+
+In summary, the kernel is the sole authority for WAL-participating
+\texttt{ts} values.
+
+\subsubsection{\texorpdfstring{\textbf{2.2 Canonical CBOR}}{2.2 Canonical CBOR}}\label{canonical-cbor}
+
+JS-ABI v1.0 uses CBOR (RFC 8949 / STD 94) but restricts it to a strict
+deterministic subset to guarantee hash-stable WAL records and
+cross-language reproducibility.
+
+\paragraph{\texorpdfstring{\textbf{Strict canonical rules}}{Strict canonical rules}}\label{strict-canonical-rules}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Definite lengths only}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Indefinite-length strings, arrays, and maps \textbf{MUST NOT} be
+    used; no \texttt{0xff} break codes.
+  \item
+    Every string, array, and map \textbf{MUST} encode a definite length.
+  \end{itemize}
+\item
+  \textbf{Numeric encoding}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Integers \textbf{MUST} use the shortest major type 0/1 encoding per
+    Preferred Serialization.
+  \item
+    Any mathematically integral value in range \textbf{MUST} be encoded
+    as an integer, not floating point.
+  \item
+    Floating point values \textbf{MUST} use the smallest width that
+    preserves the value exactly; NaN \textbf{MUST} use the canonical
+    NaN.
+  \end{itemize}
+\item
+  \textbf{Tags forbidden}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    CBOR tags (major type 6) \textbf{MUST NOT} appear; decoders
+    \textbf{MUST} reject tagged payloads.
+  \end{itemize}
+\item
+  \textbf{Maps and key ordering}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Maps \textbf{MUST} sort keys by increasing bytewise order of their
+    full CBOR encoding; duplicate keys are forbidden.
+  \end{itemize}
+\item
+  \textbf{Preferred serialization everywhere}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    All items follow RFC 8949 Section 4.1 Preferred Serialization; any
+    deviation renders the payload invalid for WAL, hashing, or replay.
+  \end{itemize}
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{3. Appendix A --- Deterministic Encoding Profile (JS-ABI v1.0)}}{3. Appendix A --- Deterministic Encoding Profile (JS-ABI v1.0)}}\label{appendix-a-deterministic-encoding-profile}
+
+This appendix scopes the deterministic profile to the CBOR payload
+(\texttt{OpEnvelope}) and provides a CDDL sketch for cross-language
+implementations.
+
+\subsubsection{\texorpdfstring{\textbf{Scope}}{Scope}}\label{scope}
+
+\begin{itemize}
+\tightlist
+\item
+  Structure is defined by the CDDL below.
+\item
+  Encoding rules are defined by Section~\ref{canonical-cbor} and RFC
+  8949 Sections 4.1 and 4.2.1.
+\end{itemize}
+
+Implementations \textbf{MUST} satisfy both shape and encoding to be
+JS-ABI v1.0 compliant.
+
+\subsubsection{\texorpdfstring{\textbf{CDDL schema for \texttt{OpEnvelope}}}{CDDL schema for OpEnvelope}}\label{cddl-schema-for-openvelope}
+
+\begin{verbatim}
+; Top-level CBOR payload in each JS-ABI packet
+op-envelope = {
+  "op": tstr,    ; operation name (see RFC-0007)
+  "ts": uint,    ; logical timestamp (GITD logical clock)
+  "payload": any
+}
+
+; --- Handshake ---
+
+op-handshake = {
+  "op": "handshake",
+  "ts": uint,              ; may be 0 or last-seen ts from server
+  "payload": handshake-payload
+}
+
+handshake-payload = {
+  "client_version": uint,   ; implementation version, not wire version
+  "capabilities": [ tstr ], ; capability identifiers, e.g. "compression:zstd"
+  ? "agent_id": tstr,
+  ? "session_meta": meta-map
+}
+
+meta-map = {
+  * tstr => any
+}
+
+; --- Handshake Acknowledgement ---
+
+op-handshake-ack = {
+  "op": "handshake_ack",
+  "ts": uint,                 ; authoritative server ts for this event
+  "payload": handshake-ack-payload
+}
+
+handshake-ack-payload = {
+  "status": "OK" / "ERROR",
+  "server_version": uint,     ; implementation version, not wire version
+  "capabilities": [ tstr ],   ; capabilities enabled for this session
+  "session_id": tstr,
+  ? "error": error-payload    ; present iff status == "ERROR"
+}
+
+; --- Error ---
+
+op-error = {
+  "op": "error",
+  "ts": uint,               ; authoritative server ts for the error event
+  "payload": error-payload
+}
+
+error-payload = {
+  "code": uint,             ; numeric error code, e.g. 1, 2, 500
+  "name": tstr,             ; stable identifier, e.g. "E_INVALID_OP"
+  "message": tstr,          ; human-readable
+  ? "details": any          ; optional machine-readable context
+}
+
+; --- OpEnvelope type universe ---
+
+op-envelope =
+    op-handshake
+  / op-handshake-ack
+  / op-error
+  / op-other               ; all other ops defined in RFC-0007
+
+; Placeholder for operations defined in RFC-0007 (sync, query, etc.)
+op-other = {
+  "op": tstr .ne "handshake"
+             .ne "handshake_ack"
+             .ne "error",
+  "ts": uint,
+  "payload": any
+}
+\end{verbatim}
+
+\subsubsection{\texorpdfstring{\textbf{Deterministic encoding requirements (summary)}}{Deterministic encoding requirements (summary)}}\label{deterministic-encoding-requirements-summary}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Definite lengths only}: no indefinite strings, arrays, maps;
+  no \texttt{0xff} breaks.
+\item
+  \textbf{Canonical numeric encoding}: shortest major type 0/1 integer
+  encodings; integers preferred over floats; smallest exact-width floats
+  only.
+\item
+  \textbf{No CBOR tags}: major type 6 is forbidden anywhere.
+\item
+  \textbf{Canonical maps}: keys sorted by CBOR-encoded byte order; no
+  duplicates.
+\item
+  \textbf{Preferred serialization everywhere}: any deviation is
+  non-compliant for WAL, hashing, or deterministic replay.
+\end{itemize}
+
+Preferred Serialization is \emph{mandatory} for JS-ABI v1.0.

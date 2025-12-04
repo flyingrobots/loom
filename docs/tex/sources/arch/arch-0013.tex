@@ -1,0 +1,138 @@
+\section{\texorpdfstring{\textbf{ARCH-0013 --- JS-ABI v1.0 Wire Protocol Framing}}{ARCH-0013 --- JS-ABI v1.0 Wire Protocol Framing}}\label{arch-0013-js-abi-wire-protocol-framing}
+
+\textbf{Status:} Accepted \textbf{Date:} 2025-12-04 \textbf{Owner:}
+GITD Protocol Working Group \textbf{Depends on:} ADR-0001, ADR-0006,
+ADR-0007, ADR-0012 \textbf{Relates to:} RFC-0007 (RPC),
+RFC-0013 (ABI), RFC-0012 (WAL)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{1. Status}}{1. Status}}\label{status}
+
+Accepted. This document defines the mandatory framing structure for all
+JS-ABI v1.0 network communication, ensuring reliable packet parsing,
+content integrity, and future-proofing. Compliance can be verified using
+the test vectors in Appendix~\ref{sec:appendix-test-vectors}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{2. Introduction and Goals}}{2. Introduction and Goals}}\label{introduction-and-goals}
+
+The JS-ABI v1.0 wire protocol is designed to be:
+
+\begin{enumerate}
+\tightlist
+\item
+  \textbf{Efficient}: low overhead and fast parsing.
+\item
+  \textbf{Deterministic}: consistent handling and hashing.
+\item
+  \textbf{Extensible}: future compression/streaming without breaking
+  compatibility.
+\item
+  \textbf{Reliable}: immediate integrity checks (checksums).
+\end{enumerate}
+
+All packets on a JS-ABI v1.0 stream \textbf{MUST} adhere to the framing
+defined here.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{3. Packet Framing Structure}}{3. Packet Framing Structure}}\label{packet-framing-structure}
+
+Every packet is a fixed-size 12-byte \textbf{Header}, a variable-length
+\textbf{Payload}, and a 32-byte \textbf{Checksum}:
+\(\mathrm{PACKET} = \mathrm{HEADER} \parallel \mathrm{PAYLOAD} \parallel \mathrm{CHECKSUM}\).
+
+\subsubsection{\texorpdfstring{\textbf{3.1 Overall Packet Format}}{3.1 Overall Packet Format}}\label{overall-packet-format}
+
+\begin{longtable}{p{0.22\textwidth} c p{0.64\textwidth}}
+\toprule
+\textbf{Field} & \textbf{Size (bytes)} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{MAGIC} & 4 & Protocol signature (\texttt{0x4a495421}) \\
+\texttt{VERSION} & 2 & Wire protocol major/minor version (\texttt{0x0001}) \\
+\texttt{FLAGS} & 2 & Reserved flags for future features \\
+\texttt{LENGTH} & 4 & Length of \texttt{PAYLOAD} in bytes (\(N\)) \\
+\textbf{HEADER TOTAL} & \textbf{12} &  \\
+\texttt{PAYLOAD} & \(N\) & Canonical CBOR \texttt{OpEnvelope} (see ADR-0012 and Appendix~\ref{sec:appendix-cddl}) \\
+\texttt{CHECKSUM} & 32 & BLAKE3-256 integrity hash \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{\texorpdfstring{\textbf{3.2 Field Definitions and Endianness}}{3.2 Field Definitions and Endianness}}\label{field-definitions-and-endianness}
+
+All multi-byte integers (\texttt{VERSION}, \texttt{FLAGS},
+\texttt{LENGTH}) \textbf{MUST} be big-endian (network order).
+
+\paragraph{\texorpdfstring{\textbf{MAGIC (4 bytes)}}{MAGIC (4 bytes)}}\label{magic-4-bytes}
+
+\texttt{0x4a495421} (ASCII \texttt{JIT!}). Parsers \textbf{MUST} reject
+streams lacking this prefix.
+
+\paragraph{\texorpdfstring{\textbf{VERSION (2 bytes)}}{VERSION (2 bytes)}}\label{version-2-bytes}
+
+Wire protocol version. For JS-ABI v1.0 this \textbf{MUST} be
+\texttt{0x0001}.
+
+\paragraph{\texorpdfstring{\textbf{FLAGS (2 bytes)}}{FLAGS (2 bytes)}}\label{flags-2-bytes}
+
+Reserved feature bits; set to \texttt{0x0000} unless a negotiated
+feature applies.
+
+\begin{itemize}
+\tightlist
+\item
+  Bit 0 (\texttt{0x8000}): reserved (future compression negotiation).
+\item
+  Bit 1 (\texttt{0x4000}): reserved (future streaming mode).
+\item
+  Bits 2--15: reserved, must be zero.
+\end{itemize}
+
+\paragraph{\texorpdfstring{\textbf{LENGTH (4 bytes)}}{LENGTH (4 bytes)}}\label{length-4-bytes}
+
+Unsigned 32-bit integer \(N\) giving payload size.
+
+\paragraph{\texorpdfstring{\textbf{PAYLOAD (\(N\) bytes)}}{PAYLOAD (N bytes)}}\label{payload-n-bytes}
+
+Single, deterministically encoded Canonical CBOR \texttt{OpEnvelope};
+encoding rules in ADR-0012 and Appendix~\ref{sec:appendix-cddl}.
+
+\paragraph{\texorpdfstring{\textbf{CHECKSUM (32 bytes)}}{CHECKSUM (32 bytes)}}\label{checksum-32-bytes}
+
+\begin{itemize}
+\tightlist
+\item
+  Algorithm: BLAKE3-256.
+\item
+  Input: \(\mathrm{MAGIC} \parallel \mathrm{VERSION} \parallel
+  \mathrm{FLAGS} \parallel \mathrm{LENGTH} \parallel \mathrm{PAYLOAD}\).
+\item
+  Recipients \textbf{MUST} verify and reject on mismatch.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{4. Packet Parsing Flow}}{4. Packet Parsing Flow}}\label{packet-parsing-flow}
+
+Compliant implementations \textbf{MUST} follow this sequence:
+
+\begin{enumerate}
+\tightlist
+\item
+  Read 12-byte header; validate \texttt{MAGIC} and \texttt{VERSION}.
+\item
+  Extract \texttt{LENGTH} (\(N\)).
+\item
+  Read \texttt{PAYLOAD} (\(N\) bytes).
+\item
+  Read \texttt{CHECKSUM} (32 bytes).
+\item
+  Compute BLAKE3-256 over header \(\parallel\) payload.
+\item
+  Compare to received checksum; on mismatch, discard and report error.
+\item
+  If valid, decode \texttt{PAYLOAD} using Appendix~\ref{sec:appendix-cddl}.
+\end{enumerate}
