@@ -1,0 +1,121 @@
+\section{\texorpdfstring{\textbf{ADR-0022 --- Ledger-Kernel Physical Persistence}}{ADR-0022 --- Ledger-Kernel Physical Persistence}}\label{adr-0022-ledger-kernel}
+
+\textbf{Status:} Draft \textbf{Date:} 2025-12-08 \textbf{Owner:} Architecture Review Board \textbf{Depends on:} ADR-0021 (Global Provenance Causal Graph) \textbf{Tags:} Storage, Git, CAS, Concurrency
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{partintro}
+\textit{This ADR specifies the physical storage layer for the Global Provenance Causal Graph (GPCG). It maps logical events to Git-native objects, defines Canonical CBOR layouts, outlines Variable-Scoped Timeline (VST) indexing, and sets optimistic concurrency protocols for safe distributed appends.}
+\end{partintro}
+
+\subsection{1. Context and Problem Statement}
+
+ADR-0021 defines the logical ontology of the GPCG (Events, VSTs, Canonical State). ADR-0022 bridges that mathematical model to physical disk storage.
+
+The storage layer must address:
+\begin{enumerate}
+    \item \textbf{Object Mapping:} Store Events without conflating them with standard Git SCM commits.
+    \item \textbf{Indexing:} Query a variable's history without an $O(N)$ graph scan.
+    \item \textbf{Concurrency:} Prevent race conditions when multiple agents append to the ledger.
+    \item \textbf{Bounding:} Manage storage growth for an effectively unbounded log.
+\end{enumerate}
+
+\subsection{2. Physical Object Mapping}
+
+\subsubsection{2.1 Event as a Git Blob}
+To separate the \textit{causal computation history} from the \textit{source control history}, GPCG Events are stored as **Git blobs**, not Git commits.
+
+The Event ID is the Git object ID of the blob content:
+\[ \text{Event.id} \equiv \text{GitObjectID}(\text{EventBlob}) \]
+
+\subsubsection{2.2 Serialization Layout (CBOR)}
+Event blobs use **Canonical CBOR** for deterministic serialization.
+
+\begin{itemize}
+    \item \textbf{Payload:}
+\begin{verbatim}
+Event := {
+  "v": 1,
+  "parents": [ Hash ],     // Parent Event blob references
+  "rule": RuleID,          // Reference to Rule Descriptor
+  "after": Hash,           // CAS reference to Canonical State blob
+  "writeset": [ VarKey ],  // Optimization for indexing
+  "delta": Hash,           // Optional: pre-computed State Delta
+  "meta": { ... }
+}
+\end{verbatim}
+    \item \textbf{Hashing Input:} Consistent with ADR-0021, the hash derives strictly from `parents`, `rule`, and `delta` (or `writeset`).
+\end{itemize}
+
+\subsubsection{2.3 Canonical State Storage}
+Canonical states are stored as separate Git blobs containing sorted, normalized key-value pairs, enabling delta compression.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[node distance=1.5cm, auto]
+        % Reference
+        \node[draw, rectangle, fill=red!20, minimum width=2.5cm] (Ref) {\texttt{refs/ledger/main}};
+
+        % Event Blob
+        \node[draw, rectangle, rounded corners, fill=gray!20, below=1cm of Ref, align=center] (Event) {\textbf{Event Blob} \\ \texttt{id: a1b2...} \\ \textit{(CBOR Payload)}};
+
+        % Parents
+        \node[draw, rectangle, rounded corners, fill=gray!10, left=2cm of Event, align=center, dashed] (Parent) {\textbf{Parent Event} \\ \texttt{id: 8f9e...}};
+
+        % State
+        \node[draw, rectangle, rounded corners, fill=green!15, below=1.2cm of Event, align=center] (State) {\textbf{Canonical State Blob} \\ \texttt{id: ca11...}};
+
+        % Writeset index
+        \node[draw, rectangle, rounded corners, fill=blue!10, right=2.5cm of State, align=center] (Index) {\textbf{VST Index} \\ (Var \textrightarrow{} Event IDs)};
+
+        % Arrows
+        \draw[-{Latex[length=3mm]}, thick] (Ref) -- (Event);
+        \draw[-{Latex[length=3mm]}, thick] (Parent) -- (Event);
+        \draw[-{Latex[length=3mm]}, thick] (Event) -- (State);
+        \draw[-{Latex[length=3mm]}, thick] (Event.east) -- (Index.north west);
+    \end{tikzpicture}
+    \caption{Git-native storage layout for GPCG Events and canonical states.}
+\end{figure}
+
+\subsection{3. Indexing Strategy (Variable-Scoped Timelines)}
+
+\subsubsection{3.1 VST Index Objects}
+Each variable $v$ has a monotone append-only index listing Event IDs that touched $v$:
+\begin{verbatim}
+VST_Index(v) := [ EventID_0, EventID_1, ... ]
+\end{verbatim}
+Stored as a Git blob referenced from `refs/ledger/index/v`.
+
+\subsubsection{3.2 Update Algorithm}
+\begin{enumerate}
+    \item Resolve parent index heads for all variables in the writeset.
+    \item Optimistically append new Event ID to each affected index.
+    \item Push updated blobs and ref moves using Git's compare-and-swap semantics; retry on failure.
+\end{enumerate}
+
+\subsection{4. Concurrency and Consistency}
+
+\subsubsection{4.1 Append Protocol}
+Ledger appends use a two-phase optimistic protocol:
+\begin{enumerate}
+    \item \textbf{Prepare:} Write Event blob + Canonical State blob to CAS.
+    \item \textbf{Publish:} Move `refs/ledger/main` from previous head to new Event ID via fast-forward; if rejected, rebase on new head and retry.
+\end{enumerate}
+
+\subsubsection{4.2 Conflict Handling}
+If the CAS write succeeds but ref update fails, the Event remains addressable and can be re-parented; no data loss occurs.
+
+\subsection{5. Bounding and Pruning}
+
+\begin{itemize}
+    \item \textbf{Packfiles:} Rely on Git's packfile GC for blob deduplication and delta compression.
+    \item \textbf{Checkpointing:} Periodically snapshot canonical state to bound replay time; older deltas can be pruned once checkpoints are committed.
+    \item \textbf{Cold Storage:} Archive ancient VST index segments to object storage, keeping only recent windows locally.
+\end{itemize}
+
+\subsection{6. Consequences}
+
+\begin{itemize}
+    \item \textbf{Positive:} Reuses hardened Git storage semantics; deterministic CBOR keeps hashes stable; optimistic CAS writes scale to distributed contributors.
+    \item \textbf{Negative:} Index maintenance adds write amplification; Git's ref locking may serialize bursts of writers; checkpoint cadence must balance replay latency vs. storage.
+\end{itemize}

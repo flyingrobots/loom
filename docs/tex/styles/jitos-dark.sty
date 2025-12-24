@@ -1,4 +1,11 @@
-\ProvidesPackage{jitos-dark}
+\ProvidesPackage{styles/jitos-dark}
+
+\RequirePackage{silence}
+\WarningFilter{latex}{Label `}               % suppress multiply-defined labels
+\WarningFilter{latex}{Overfull \\hbox}       % suppress overfull hbox warnings
+\WarningFilter{latex}{Underfull \\vbox}      % suppress underfull vbox warnings
+\WarningFilter{latex}{There were multiply-defined labels}
+\WarningFilter{rerunfilecheck}{File `}       % suppress rerunfilecheck warnings
 
 % ========================================
 % FULL DRACULA DARK MODE VERSION
@@ -79,12 +86,86 @@
 
 % Title formatting
 \usepackage{titlesec}
+\usepackage{newunicodechar}
+
+% ------------------------------------------------------------------
+% Tame LaTeX warnings (over/underfull boxes, hyperref chatter)
+% ------------------------------------------------------------------
+\hbadness=10000
+\hfuzz=2pt
+\vfuzz=30pt
+\emergencystretch=1em
+% Silence hyperref warnings (e.g., bookmark depth/duplicate anchors)
+\makeatletter
+\def\Hy@Warning#1{}
+\makeatother
+
+% Map common Unicode symbols to LaTeX equivalents (handles generated content)
+\newunicodechar{•}{\textbullet}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{↑}{\ensuremath{\uparrow}}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{∘}{\ensuremath{\circ}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{’}{'}
+\newunicodechar{“}{``}
+\newunicodechar{”}{''}
+\newunicodechar{…}{\ldots}
+\newunicodechar{₀}{\textsubscript{0}}
+\newunicodechar{┌}{+}
+\newunicodechar{┐}{+}
+\newunicodechar{┘}{+}
+\newunicodechar{┬}{+}
+\newunicodechar{┴}{+}
+
+% Relax box badness to avoid warnings
+\hbadness=10000
+\vbadness=10000
+\hfuzz=60pt
+\vfuzz=60pt
+\newunicodechar{’}{'}
+\newunicodechar{“}{``}
+\newunicodechar{”}{''}
+\newunicodechar{…}{\ldots}
+\newunicodechar{₀}{\textsubscript{0}}
+\newunicodechar{┌}{+}
+\newunicodechar{┐}{+}
+\newunicodechar{┘}{+}
+\newunicodechar{┬}{+}
+\newunicodechar{┴}{+}
+\newunicodechar{β}{\ensuremath{\beta}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{∪}{\ensuremath{\cup}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∅}{\ensuremath{\emptyset}}
+\newunicodechar{⊆}{\ensuremath{\subseteq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{∂}{\ensuremath{\partial}}
+\newunicodechar{∶}{:}
+\newunicodechar{—}{\textemdash}
+\newunicodechar{™}{\textsuperscript{TM}}
+\newunicodechar{✔}{\checkmark}
+\newunicodechar{✗}{\texttimes}
+\newunicodechar{●}{\textbullet}
+\newunicodechar{│}{|}
+\newunicodechar{─}{-}
+\newunicodechar{├}{|-}
+\newunicodechar{└}{|-}
+\newunicodechar{╱}{/}
+\newunicodechar{╲}{\textbackslash}
+\newunicodechar{📦}{[pkg]}
+\newunicodechar{👉}{\ensuremath{\rightarrow}}
+\newunicodechar{₁}{\ensuremath{_{1}}}
+\newunicodechar{₂}{\ensuremath{_{2}}}
+\newunicodechar{∇}{\ensuremath{\nabla}}
 
 % ========================================
 % Custom Styling
 % ========================================
 
 % Custom theorem environments
+\makeatletter
 \theoremstyle{definition}
 % Use section for article class, chapter for book class
 \@ifundefined{chapter}{%
@@ -98,6 +179,7 @@
   \newtheorem{lemma}{Lemma}[chapter]
   \newtheorem{example}{Example}[chapter]
 }
+\makeatother
 
 % Custom block quote style
 \newenvironment{partintro}
@@ -126,6 +208,26 @@
   {\par\vspace{0.5em}\noindent\textcolor{draculapurple}{\hrulefill}\newline\textbf{\textcolor{draculapink}{FOR THE NERDS™}}\newline\textcolor{draculapurple}{\hrulefill}\par\vspace{0.3em}\small}
   {\par\vspace{0.3em}\noindent\textcolor{draculapurple}{\hrulefill}\par\vspace{0.5em}}
 
+% ========================================
+% Page Styling
+% ========================================
+
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headwidth}{\textwidth}
+\fancyhead[LE]{\parbox{\textwidth}{\raggedright\small\nouppercase{\leftmark}}}
+\fancyhead[RO]{\parbox{\textwidth}{\raggedleft\small\nouppercase{\rightmark}}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Chapter page style
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
 % Pandoc compatibility macros
 \providecommand{\tightlist}{
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
@@ -142,8 +244,8 @@
 \newcommand{\COmega}{C$\Omega$MPUTER}
 \newcommand{\JITOS}{JITOS}
 
-% Wordmark commands - use SVG logos
-\newcommand{\computerwordmark}[1][4cm]{\includesvg[width=#1]{CΩMPUTER (4).svg}}
+% Wordmark commands - use SVG logos (ASCII filename to avoid active-char issues)
+\newcommand{\computerwordmark}[1][4cm]{\includesvg[width=#1]{COMPUTER.svg}}
 \newcommand{\codexwordmark}[1][3cm]{\includesvg[width=#1]{CΩDEX.svg}}
 \newcommand{\partwordmark}[2][5cm]{\includesvg[width=#1]{#2}}
 

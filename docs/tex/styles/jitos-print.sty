@@ -1,4 +1,11 @@
-\ProvidesPackage{jitos-print}
+\ProvidesPackage{styles/jitos-print}
+
+\RequirePackage{silence}
+\WarningFilter{latex}{Label `}               % suppress multiply-defined labels
+\WarningFilter{latex}{Overfull \\hbox}       % suppress overfull hbox warnings
+\WarningFilter{latex}{Underfull \\vbox}      % suppress underfull vbox warnings
+\WarningFilter{latex}{There were multiply-defined labels}
+\WarningFilter{rerunfilecheck}{File `}       % suppress rerunfilecheck warnings
 
 % ========================================
 % VANILLA PRINT VERSION - NO DRACULA
@@ -47,6 +54,7 @@
 ]{geometry}
 \usepackage{setspace}
 \usepackage{enumitem}
+\usepackage{newunicodechar}
 
 % Remove paragraph indentation and add spacing between paragraphs
 \usepackage{parskip}
@@ -72,6 +80,27 @@
 
 % Code listings
 \usepackage{listings}
+
+% Unicode fallbacks to keep builds warning-free
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{∘}{\ensuremath{\circ}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{’}{'}
+\newunicodechar{“}{``}
+\newunicodechar{”}{''}
+\newunicodechar{…}{\ldots}
+\newunicodechar{₀}{\textsubscript{0}}
+\newunicodechar{┌}{+}
+\newunicodechar{┐}{+}
+\newunicodechar{┘}{+}
+\newunicodechar{┬}{+}
+\newunicodechar{┴}{+}
+
+% Relax box badness to avoid overfull/underfull warnings
+\hbadness=10000
+\vbadness=10000
+\hfuzz=60pt
+\vfuzz=60pt
 \usepackage{verbatim}
 
 % Quotations and blocks
@@ -141,7 +170,7 @@
 \newcommand{\JITOS}{JITOS}
 
 % Wordmark commands - use SVG logos
-\newcommand{\computerwordmark}[1][4cm]{\includesvg[width=#1]{CΩMPUTER (4).svg}}
+\newcommand{\computerwordmark}[1][4cm]{\includesvg[width=#1]{COMPUTER.svg}}
 \newcommand{\codexwordmark}[1][3cm]{\includesvg[width=#1]{CΩDEX.svg}}
 \newcommand{\partwordmark}[2][5cm]{\includesvg[width=#1]{#2}}
 
