@@ -1,6 +1,6 @@
 # SPEC-0001: Canonical Encoding Standard
 
-**Status:** Draft - Awaiting Human Approval
+**Status:** Approved - Implementation Complete
 **Related:** NEXT-MOVES.md Phase 0.5.1
 **Estimated Effort:** 2-3 hours
 
@@ -27,17 +27,43 @@ BLAKE3 hashing over non-canonical serialization causes hash divergence. If two r
 
 ### Functional Requirements
 
+#### Core Principle: Structural Determinism
+
+**Canonical encoding prioritizes structural determinism over space efficiency.**
+
+- **Structural determinism:** There is nothing to decide. One logical value → one byte sequence.
+- **Procedural determinism:** If everyone runs the same algorithm, they'll agree (fragile across languages/runtimes).
+
+JITOS targets structural determinism. Float width selection is not permitted in canonical contexts.
+
+#### Encoding Rules
+
 1. **Choose Encoding Format:** Canonical CBOR (RFC 8949) for all ledger/events/archives
 2. **Non-Optional Rule:** All ledger events, receipts, snapshots, deltas, and archives **MUST** use canonical encoding. Non-canonical encoders (including `serde_json`) are **FORBIDDEN** in `jitos-provenance`. No "debug mode" bypass. No "temporary JSON". If something isn't canonical, it doesn't get a hash.
 3. **Strict Ordering:** Map entries sorted by the lexicographic ordering of the canonical CBOR encoding of their keys, per RFC 8949. This ensures correct ordering for non-string keys (byte strings, integers).
 4. **Definite Lengths:** No streaming/indefinite-length encoding
-5. **Float Canonicalization:**
-   - NaN → IEEE-754 quiet NaN with payload=0
-   - Bit pattern: `0x7FF8_0000_0000_0000`
+5. **Float Encoding:**
+   - **Integral values:** If `f.fract() == 0.0` and fits in i128, encode as integer
+   - **Non-integral floats:** Always encode as float64 (`0xfb` major type 7, ai=27)
+   - **Forbidden:** float16 (`0xf9`) and float32 (`0xfa`) in canonical encoding
+   - **Rationale:** Cross-language compatibility (JS, WASM, Python, SQL all use f64 natively). Eliminates width-selection heuristics.
+6. **Float Canonicalization:**
+   - NaN → IEEE-754 quiet NaN with payload=0, bit pattern: `0x7FF8_0000_0000_0000`
    - ±0 normalized to +0
+   - Subnormals → 0.0
    - ±∞ preserved as-is
-6. **No Duplicates:** Reject duplicate map keys
-7. **Test Vectors:** 100+ edge cases covering all data types
+7. **No Duplicates:** Reject duplicate map keys
+8. **Test Vectors:** 100+ edge cases covering all data types
+
+#### Optional Optimization Layer
+
+Echo's "smallest width that round-trips" logic (f16/f32/f64 selection) may be used in:
+- Non-canonical storage layers
+- Transport compression
+- Snapshot packing
+- Explicitly marked optimization paths
+
+But **never** in canonical event hashing, receipts, or replay bytes.
 
 ### Non-Functional Requirements
 
