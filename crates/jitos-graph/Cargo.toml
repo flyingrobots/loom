@@ -1,0 +1,13 @@
+[package]
+name = "jitos-graph"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+jitos-core = { path = "../jitos-core" }
+serde.workspace = true
+slotmap.workspace = true
+petgraph.workspace = true
+blake3.workspace = true

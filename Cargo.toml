@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "crates/jitos-core",
+    "crates/jitos-graph",
+    "crates/jitos-scheduler",
+    "crates/jitos-inversion",
+    "crates/jitos-policy",
+    "crates/jitos-planner",
+    "crates/jitos-provenance",
+    "crates/jitos-resilience",
+    "crates/jitos-io",
+    "crates/jitos-daemon",
+    "crates/jitos-wasm",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["James Ross <james@flyingrobots.dev>"]
+license = "Apache-2.0"
+repository = "https://github.com/flyingrobots/jitos"
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+blake3 = "1.5"
+rhai = "1.19"
+wasm-bindgen = "0.2"
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+thiserror = "1.0"
+slotmap = "1.0"
+petgraph = "0.6"

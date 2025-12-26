@@ -1,0 +1,12 @@
+[package]
+name = "jitos-scheduler"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+jitos-core = { path = "../jitos-core" }
+jitos-graph = { path = "../jitos-graph" }
+serde.workspace = true
+blake3.workspace = true
