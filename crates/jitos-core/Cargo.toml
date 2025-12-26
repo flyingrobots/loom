@@ -7,5 +7,8 @@ license.workspace = true
 
 [dependencies]
 serde.workspace = true
+serde_json.workspace = true  # TODO: Remove serde_json::Value from Slap enum per SPEC-0001
+ciborium.workspace = true
 blake3.workspace = true
+hex.workspace = true
 thiserror.workspace = true

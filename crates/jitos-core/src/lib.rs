@@ -2,6 +2,8 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+pub mod canonical;
+
 /// A 256-bit BLAKE3 hash.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Hash(pub [u8; 32]);
