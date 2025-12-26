@@ -1,0 +1,317 @@
+\ifdefined\SOTU2025INCLUDEONLY
+  % Included by SOTU wrappers; this file provides body content only.
+\else
+\documentclass[11pt,twoside]{article}
+
+% Allow this document to be built from repo root (e.g. `xelatex docs/REPORTS/...`)
+% while still finding the shared styles in docs/tex/.
+\makeatletter
+\def\input@path{{./}{../REPORTS/}{docs/REPORTS/}{./docs/REPORTS/}{../tex/}{../tex/styles/}{docs/tex/}{docs/tex/styles/}{./docs/tex/}{./docs/tex/styles/}}
+\makeatother
+
+\usepackage{styles/jitos-print}
+\usepackage{tabularx}
+
+% Reports should be standard paper size for printing/sharing.
+% The shared book styles default to 6"x9"; override to US Letter here.
+\geometry{letterpaper, margin=1in}
+\setlength{\headwidth}{\textwidth}
+\begin{document}
+\fi
+
+\title{JITOS State of the Union Report: The Convergence}
+\author{James Ross \& The AI Engineering Team}
+\date{\today}
+
+\maketitle
+
+\begin{abstract}
+This report serves as the definitive architectural blueprint for the \textbf{JITOS (Just-In-Time Operating System)} consolidation. It details the strategic pivot from a fragmented polyglot stack (JS/Rust/Go) to a unified \textbf{Rust Monorepo}. We provide an exhaustive specification of the repository structure, crate boundaries, type systems (SLAPS v2, HTN v1), and the deterministic execution pipeline. We align every software component with the theoretical foundations laid out in AION Papers I--VI, identifying drift and prescribing corrective implementation. Finally, we formalize the ``Hybrid Purity'' model, defining the boundary between Graph Rewriting (Control Plane) and Imperative Simulation (Data Plane).
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Executive Summary: The Two-Kernel Problem}
+
+JITOS faces a ``Split-Brain'' divergence:
+\begin{enumerate}
+    \item \textbf{The Soft Kernel (JavaScript):} Located in `flyingrobots.dev`. It successfully implements the \textit{Operating System} semantics (Daemon, RPC, WAL, Time Travel UI) but lacks computational rigor. It relies on `Map` based indexing and simple sorts, limiting it to $<5,000$ nodes.
+    \item \textbf{The Hard Kernel (Rust):} Located in `echo`. It implements the \textit{Physics} of determinism (Radix Sort $O(n)$, Bit-level Footprints, Strict Types) but lacks a body (UI, RPC, Persistence).
+\end{enumerate}
+
+\textbf{The Resolution:} We will perform a ``Brain Transplant.'' The Rust Kernel (`echo`) will become the authoritative core of the JITOS Monorepo. The JavaScript codebase will be demoted to a ``Shell''—a pure View/IO layer that renders the state emitted by the Rust/WASM kernel. The Go Planner will be retired and ported to Rust to eliminate serialization overhead.
+
+\section{Repository Architecture: The Rust Monorepo}
+
+We define a unified workspace `jitos` organized by functional layer.
+
+\subsection{Directory Structure}
+
+\begin{lstlisting}[breaklines=true,breakatwhitespace=false]
+jitos/
+|-- Cargo.toml                 # Workspace Root
+|-- docs/                      # RFCs, Specs, and Papers (LaTeX/Markdown)
+|   |-- ARCH/                  # Architecture Decision Records
+|   |-- RFC/                   # Request for Comments
+|   `-- REPORTS/               # SOTU and periodic audits
+|-- schema/                    # THE LAW (Language-Agnostic Types)
+|   |-- slaps.v2.cddl          # System Level Action Protocol (Concise Binary Object Rep)
+|   |-- htn.v1.cddl            # Hierarchical Task Network definitions
+|   `-- graph.v1.cddl          # WARP Graph Node/Edge schemas
+|-- crates/                    # THE ENGINE (Rust)
+|   |-- jitos-core/            # Shared Types, Traits, Error definitions
+|   |-- jitos-graph/           # WARP Graph Data Structure (Petgraph/Custom)
+|   |-- jitos-scheduler/       # The Echo Scheduler (Radix Sort, Footprints)
+|   |-- jitos-policy/          # Rhai Host, Policy Engine, Sandbox
+|   |-- jitos-planner/         # HTN Planner (Ported from Go)
+|   |-- jitos-provenance/      # Shiplog (WAL), Merkle Hashing, Receipting
+|   |-- jitos-resilience/      # (Was Ninelives) Deterministic I/O Patterns
+|   |-- jitos-io/              # Port Adapters (Kafka, HTTP, etc.)
+|   |-- jitos-daemon/          # The Native OS Process (jitd binary)
+|   `-- jitos-wasm/            # The Browser Bridge (wasm-bindgen)
+|-- shell/                     # THE VIEW (JS/React - flyingrobots.dev)
+|   |-- src/
+|   |   |-- warp/              # Legacy JS Kernel (To be deleted)
+|   |   `-- daemon/            # Worker wrapper for WASM
+|   `-- public/jitd.wasm       # Compiled Artifact
+`-- tools/                     # CI/CD, Benchmarks, Fuzzers
+\end{lstlisting}
+
+\section{Crate Specification: The Core Modules}
+
+This section details the responsibility and internal structure of each crate.
+
+\subsection{\texttt{jitos-core}: The Law}
+\textbf{Role:} Defines the vocabulary of the universe. No logic, only Types.
+\textbf{Paper Alignment:} Paper VI (ABI), Paper I (Structure).
+
+\begin{lstlisting}
+// src/slaps.rs
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum Slap {
+    // Structural
+    CreateNode(Node),
+    DeleteNode(NodeId),
+    Connect(Edge),
+    // Logic
+    InvokeScript { script_id: Hash, args: Vec<Value> },
+    // System
+    SetTime { tick: u64, dt: f64 },
+    Snapshot,
+}
+
+// src/receipt.rs
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Receipt {
+    pub tick: u64,
+    pub state_hash: Hash, // BLAKE3
+    pub events: Vec<Event>,
+    pub signature: Option<Signature>, // Ed25519
+}
+\end{lstlisting}
+
+\subsection{\texttt{jitos-graph}: The State}
+\textbf{Role:} In-memory graph database optimized for diffing and hashing.
+\textbf{Paper Alignment:} Paper I (WARP Graph).
+
+\begin{itemize}
+    \item \textbf{Storage:} Adjacency List with `slotmap` for $O(1)$ access.
+    \item \textbf{Content Addressing:} Every node has a `hash` computed from its canonical serialization.
+    \item \textbf{Recursive Attachments:} Nodes can contain `GraphId` references, loading sub-graphs lazily.
+\end{itemize}
+
+\subsection{\texttt{jitos-scheduler}: The Choice}
+\textbf{Role:} Deterministic ordering of concurrent intent.
+\textbf{Paper Alignment:} Paper II (Dynamics, Echo).
+
+\begin{itemize}
+    \item \textbf{Modules:} `radix`, `footprint`, `queue`.
+    \item \textbf{Algorithm:} 
+        1. Receive `Vec<Proposal>`.
+        2. Sort by `(ScopeHash, RuleID, Nonce)` using \textbf{MSD Radix Sort}.
+        3. Iterate sorted list.
+        4. Check `Footprint` (Read/Write sets) against `ActiveSet`.
+        5. If collision $\to$ Reject. Else $\to$ Accept.
+    \item \textbf{Output:} `Batch` (guaranteed non-interfering).
+\end{itemize}
+
+\subsection{\texttt{jitos-policy}: The Logic}
+\textbf{Role:} Hosting user-defined behavior in a sandbox.
+\textbf{Paper Alignment:} Paper VI (Agents).
+
+\begin{itemize}
+    \item \textbf{Engine:} Rhai (embedded scripting language for Rust).
+    \item \textbf{Sandbox:} Scripts have NO access to IO, Network, or Time. They only see `Graph` and `Args`.
+    \item \textbf{Determinism:} Instruction metering to prevent infinite loops.
+\end{itemize}
+
+\subsection{\texttt{jitos-provenance}: The Log}
+\textbf{Role:} The source of truth.
+\textbf{Paper Alignment:} Paper III (Holography).
+
+\begin{itemize}
+    \item \textbf{WAL Format:} Binary stream of `Receipt` structs.
+    \item \textbf{Indexing:} Maintains `Tick -> FileOffset` index.
+    \item \textbf{Hashing:} Computes the Merkle Root of the history.
+\end{itemize}
+
+\subsection{\texttt{jitos-resilience}: The No-Privilege Boundary}
+\textbf{Role:} Implementation of ARCH-0009 (No Privileged Side Effects).
+\textbf{Origin:} Ported from \texttt{ninelives}.
+
+We absorb the \texttt{ninelives} library to enforce I/O determinism.
+\begin{itemize}
+    \item \textbf{Transformation:} We strip `std::time` and `rand` dependencies.
+    \item \textbf{Clock:} The `Clock` trait consumes `WAL` time samples, not OS time.
+    \item \textbf{Jitter:} Uses a deterministic PRNG seeded by the Kernel entropy.
+    \item \textbf{Circuit Breakers:} State changes (Open/Closed) are emitted as Graph Rewrites, making system health time-travelable.
+\end{itemize}
+
+\section{Data Flow: The Tick Lifecycle}
+
+\colorlet{sotuDiagramFG}{.}
+
+\begin{figure}[h]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    node distance=2cm,
+    every node/.style={text=sotuDiagramFG},
+    block/.style={rectangle, draw=sotuDiagramFG, rounded corners, minimum width=3cm, minimum height=1.2cm, align=center, text=sotuDiagramFG},
+    arrow/.style={->, >=stealth, line width=0.5pt, draw=sotuDiagramFG}
+]
+
+% Nodes
+\node[block] (ui) {User Interaction (React)};
+\node[block, right=of ui] (rpc) {JIT Bridge (RPC/JSON)};
+\node[block, right=of rpc] (wasm) {JITOS WASM (Bindings)};
+\node[block, below=of wasm] (kernel) {Kernel (jitos-kernel)};
+\node[block, below=of kernel] (scheduler) {Scheduler (Radix Sort)};
+\node[block, left=of scheduler] (graph) {Graph (Mutation)};
+\node[block, left=of graph] (log) {WAL (Persistence)};
+\node[block, above=of log] (view) {Projection (Frame)};
+
+% Edges
+\draw[arrow] (ui) -- node[above] {1. Event} (rpc);
+\draw[arrow] (rpc) -- node[above] {2. SLAP} (wasm);
+\draw[arrow] (wasm) -- node[right] {3. Propose} (kernel);
+\draw[arrow] (kernel) -- node[right] {4. Queue} (scheduler);
+\draw[arrow] (scheduler) -- node[below] {5. Batch} (graph);
+\draw[arrow] (graph) -- node[below] {6. Receipt} (log);
+\draw[arrow] (log) -- node[left] {7. Confirm} (view);
+\draw[arrow] (view) -- node[left] {8. Render List} (ui);
+
+\end{tikzpicture}
+}%
+\caption{The Deterministic Tick Lifecycle}
+\end{figure}
+
+\subsection{Crate Dependencies}
+\begin{center}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    every node/.style={text=sotuDiagramFG},
+    crate/.style={rectangle, draw=sotuDiagramFG, minimum width=2.5cm, align=center, text=sotuDiagramFG},
+    dep/.style={->, >=stealth, dashed, line width=0.5pt, draw=sotuDiagramFG}
+]
+
+\node[crate] (core) {jitos-core};
+\node[crate, above left=of core] (graph) {jitos-graph};
+\node[crate, above right=of core] (prov) {jitos-provenance};
+\node[crate, above=of graph] (sched) {jitos-scheduler};
+\node[crate, above=of prov] (policy) {jitos-policy};
+\node[crate, above=of sched] (kernel) {jitos-kernel};
+\node[crate, right=of kernel] (res) {jitos-resilience};
+\node[crate, right=of res] (io) {jitos-io};
+\node[crate, right=of io] (planner) {jitos-planner};
+\node[crate, above=of kernel] (daemon) {jitos-daemon};
+\node[crate, right=of daemon] (wasm) {jitos-wasm};
+
+\draw[dep] (graph) -- (core);
+\draw[dep] (prov) -- (core);
+\draw[dep] (sched) -- (graph);
+\draw[dep] (policy) -- (graph);
+\draw[dep] (kernel) -- (sched);
+\draw[dep] (kernel) -- (policy);
+\draw[dep] (kernel) -- (prov);
+\draw[dep] (kernel) -- (res);
+\draw[dep] (io) -- (res);
+\draw[dep] (planner) -- (core);
+\draw[dep] (daemon) -- (kernel);
+\draw[dep] (daemon) -- (planner);
+\draw[dep] (daemon) -- (io);
+\draw[dep] (wasm) -- (kernel);
+\draw[dep] (wasm) -- (planner);
+
+\end{tikzpicture}
+}%
+\end{center}
+
+\section{Paper Alignment Matrix}
+
+This table audits the compliance of the proposed Rust Monorepo against the AION Foundation Papers.
+
+\begin{tabularx}{\linewidth}{|l|l|X|}
+\hline
+\textbf{Paper} & \textbf{Concept} & \textbf{Rust Implementation} \\
+\hline
+\textbf{Paper I} & \textbf{WARP Structure} & `jitos-graph` implements recursive attachments and atom storage. \\
+\hline
+\textbf{Paper II} & \textbf{Dynamics} & `jitos-scheduler` implements the strict deterministic commit rules (Ticks). \\
+\hline
+\textbf{Paper III} & \textbf{Holography} & `jitos-provenance` ensures the WAL is the only authoritative truth. Boot is replay. \\
+\hline
+\textbf{Paper IV} & \textbf{Geometry} & `jitos-core` defines the Rulial Distance metrics (implemented in `jitos-policy` for comparison). \\
+\hline
+\textbf{Paper V} & \textbf{Ethics} & `jitos-core/identity` enforces cryptographic signing of every SLAP (Agent Sovereignty). \\
+\hline
+\textbf{Paper VI} & \textbf{Architecture} & The `jitos-daemon` and `jitos-wasm` crate structure mirrors the OS/Kernel separation. \\
+\hline
+\textbf{ARCH-009} & \textbf{Time \& IO} & `jitos-resilience` implements the Clock View and Event-Driven I/O. \\
+\hline
+\end{tabularx}
+
+\section{Tooling Evolution}
+
+\subsection{The Time Travel Debugger}
+Currently, the Time Travel Debugger in the JS shell reads a JS array. In the new architecture:
+\begin{itemize}
+    \item It becomes a view into `jitos-provenance`.
+    \item \textbf{Operations:} `rewind(tick)`, `fork(tick)`, `diff(tickA, tickB)`.
+    \item These are executed by the WASM kernel, returning a lightweight `Frame` (View) rather than the heavy Graph.
+\end{itemize}
+
+\subsection{Echo WARP Graph Viewer}
+The standalone native GUI viewer in the `echo` repo is \textbf{deprecated}. The Web Shell (`flyingrobots.dev`) becomes the universal viewer for both local and remote kernels.
+
+\subsection{Network Layer}
+The custom TCP protocol in `echo` is replaced by:
+\begin{enumerate}
+    \item \textbf{Local:} SharedMemory / PostMessage (WASM).
+    \item \textbf{Remote:} WebSockets carrying serialized SLAPS (Binary).
+\end{enumerate}
+
+\section{The Purity Debate: A Pragmatic Boundary}
+
+In the web-based `WarpKernel`, we implemented UI toggles as graph rewrites. However, we delegated Cloth Physics to an imperative runner. Is this cheating?
+
+\textbf{Argument for Purity:} If it's not in the graph, it's not audited.
+\textbf{Argument for Performance:} Graph rewriting is $O(M \cdot N)$ where $M$ is pattern size. Array operations are $O(1)$.
+
+\textbf{The Verdict: The Port Model}
+We adopt the Hexagonal Architecture defined in Paper VI.
+\begin{itemize}
+    \item \textbf{Control Plane (Pure):} Decisions, Ownership, Configuration, Top-level State. Implemented as Graph Rewrites.
+    \item \textbf{Data Plane (Opaque):} Physics Meshes, Texture Bitmaps, Audio Buffers. Implemented as Imperative logic inside "Wormholes".
+\end{itemize}
+The Kernel sees the Physics Engine as an \textbf{Oracle}. It sends a `Step` command and receives a `Hash` (Integrity) and `RenderList` (View). It does \textit{not} track every vertex in the DAG.
+
+\section{Conclusion}
+
+The ``State of the Union'' is strong but fragmented. The Rust Monorepo Strategy resolves the technical debt, aligns the code with the theory, and provides a clear path to shipping a 60 FPS, cryptographically verifiable, time-traveling Operating System in the browser.
+
+\ifdefined\SOTU2025INCLUDEONLY
+  \expandafter\endinput\fi
+\end{document}
