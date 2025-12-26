@@ -1,0 +1,91 @@
+\section{1. Executive Summary: The Two-Kernel Problem}
+
+The JITOS project is currently at a critical inflection point. Our development velocity has been hampered by a ``Split-Brain'' architecture where the user-facing product and the underlying engine have diverged into two incompatible realities:
+
+\begin{enumerate}
+    \item \textbf{The Soft Kernel (JavaScript):} Residing in \texttt{flyingrobots.dev}. This implementation successfully pioneered the JITOS user experience, including the RPC boundary, the Write-Ahead Log (WAL), and the Time-Travel Debugger UI. However, it lacks the computational rigor required for a true Operating System. It relies on high-level JavaScript collections (\texttt{Map}, \texttt{Set}) and non-optimal sorting, limiting its scalability to small graphs ($<5,000$ nodes) and preventing formal cryptographic verification of state transitions.
+    \item \textbf{The Hard Kernel (Rust):} Residing in \texttt{echo}. This implementation provides the mathematical ``Physics'' of JITOS. It features an $O(n)$ Radix Scheduler, bit-level footprint checking for DPO independence, and strict memory safety. However, it is currently ``headless,'' lacking the persistence layer, the shell interface, and the application-level logic provided by the JS implementation.
+\end{enumerate}
+
+\textbf{The Resolution:} We are executing a ``Brain Transplant.'' We will consolidate all authoritative logic—the Scheduler, the Graph Store, the Inversion Engine, and the Planner—into a unified \textbf{Rust Monorepo}. The JavaScript codebase will be refactored into a pure \textbf{Shell}, acting as a high-fidelity terminal that renders view projections emitted by the Rust Kernel via WASM. This trades short-term refactoring overhead for the long-term inevitability of a unified, high-performance, and verifiable system.
+
+\section{2. Repository Architecture: The JITOS Monorepo}
+
+We are moving to a unified Cargo workspace to enforce type safety and binary stability across all JITOS components.
+
+\subsection{2.1 Crate Mapping and Conceptual Roles}
+
+The new repository structure maps existing research assets into stable JITOS crates:
+
+\begin{tabularx}{\linewidth}{|l|X|l|}
+\hline
+\textbf{Crate} & \textbf{Role & Replacement} & \textbf{Alignment} \\
+\hline
+\texttt{jitos-core} & \textbf{The Intent ABI.} Defines SLAPS v2 and HTN Method schemas. Replaces loose JSON definitions in JS and Go. & Paper VI \\
+\hline
+\texttt{jitos-graph} & \textbf{The State.} Implements the WARP Graph structure with BLAKE3 content-addressing. Replaces \texttt{kernel.js} in-memory object. & Paper I \\
+\hline
+\texttt{jitos-scheduler} & \textbf{The Choice.} The $O(n)$ Radix Scheduler for deterministic batching. Replaces \texttt{Scheduler.js} and \texttt{echo}'s internal scheduler. & Paper II \\
+\hline
+\texttt{jitos-inversion} & \textbf{The Merge.} Logic for collapsing Shadow Working Sets (SWS) into Truth. This handles deterministic conflict resolution. & Paper VI \\
+\hline
+\texttt{jitos-policy} & \textbf{The Logic.} Rhai VM for sandboxed, metered rule execution. Replaces hard-coded JS/Rust rules. & Paper VI \\
+\hline
+\texttt{jitos-provenance} & \textbf{The Log.} Manages the Shiplog (WAL) and BTR generation. Replaces the IndexedDB \texttt{WalAdapter}. & Paper III \\
+\hline
+\texttt{jitos-resilience} & \textbf{The Boundary.} Ported from \texttt{ninelives}. Provides deterministic retries and circuit breakers tied to logical time. & ARCH-0009 \\
+\hline
+\texttt{jitos-wasm} & \textbf{The Bridge.} \texttt{wasm-bindgen} glue for the JS Shell. & Paper VI \\
+\hline
+\end{tabularx}
+
+\section{3. The Inversion Engine: Handling SWS Collapse}
+
+The most significant missing piece in the previous prototype was the formal implementation of **SWS Collapse**. In JITOS, a Shadow Working Set is a speculative branch of reality. For that branch to become ``Truth,'' it must be merged via the **Inversion Engine**.
+
+\subsection{3.1 The Collapse Workflow}
+When an Agent triggers a \texttt{collapse.commit} syscall:
+\begin{enumerate}
+    \item \textbf{Identity Verification:} The Engine verifies the Agent's signature against the SWS ownership records.
+    \item \textbf{Causal Rebase:} The Engine identifies the delta between the SWS's base-hash and the current Truth frontier.
+    \item \textbf{Conflict Resolution:} It checks if any nodes modified in the SWS have been altered in the Truth since the fork. If a conflict exists, it applies the \textbf{ConflictPolicy} (e.g., recursive merge, abort, or Rhai-based resolution).
+    \item \textbf{Finalization:} If successful, a new \texttt{Receipt} is generated, the Graph Root is updated, and the event is appended to the Shiplog.
+\end{enumerate}
+
+\section{4. Data Flow: The Bionic Loop}
+
+The JITOS architecture follows a strict ``No Privileged Side Effects'' discipline. Input enters as events, time is a view, and output is a projection.
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=2cm,
+    block/.style={rectangle, draw, thick, rounded corners, minimum width=3cm, minimum height=1.2cm, align=center},
+    arrow/.style={->, >=stealth, thick}
+]
+\node[block, fill=blue!10] (ui) {Shell (JS)\\React/Three.js};
+\node[block, right=of ui] (wasm) {WASM Bridge\\
+(jitos-wasm)};
+\node[block, below=of wasm] (kernel) {Kernel (Rust)\\jitos-kernel};
+\node[block, left=of kernel] (wal) {Shiplog (WAL)\\jitos-provenance};
+
+\draw[arrow] (ui) -- node[above] {Syscall (SLAP)} (wasm);
+\draw[arrow] (wasm) -- node[right] {Execute} (kernel);
+\draw[arrow] (kernel) -- node[above] {Log Receipt} (wal);
+\draw[arrow] (kernel) -- node[left, xshift=-10pt] {View Projection} (ui);
+\end{tikzpicture}
+\end{center}
+
+\section{5. Tooling Evolution}
+
+\subsection{5.1 The Time Travel Debugger}
+The current debugger is a ``VCR-style'' replay of a JS array. In the new architecture, it evolves into a **Slice Navigator**:
+\begin{itemize}
+    \item **Direct Jumps:** Instead of replaying from zero, it uses the \texttt{jitos-graph} \texttt{restore()} method to jump instantly to a cached BLAKE3 hash in the CAS.
+    \item **Branch Visualizer:** It can render the ``Causal Braid'' (ARCH-0009), showing the divergence between the active worldline and counterfactual branches.
+\end{itemize}
+
+\subsection{5.2 Echo RMG Viewer and Networking}
+The standalone native Rust viewer is deprecated. The **JITOS Shell** (web-based) is now the universal portal. Networking is unified under the **JS-ABI**, where remote nodes communicate by exchanging signed SLAP buffers over WebSockets, treated as just another I/O port by \texttt{jitos-resilience}.
+
+\section{6. Conclusion}
+JITOS is transitioning from a successful research project into a production-grade Operating System. By consolidating our fragmented logic into a Rust Monorepo, we ensure that the system remains honest, deterministic, and scalable. The ``Moment of Reckoning'' has passed; the strategy is now Convergence.
