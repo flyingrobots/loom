@@ -28,11 +28,16 @@ BLAKE3 hashing over non-canonical serialization causes hash divergence. If two r
 ### Functional Requirements
 
 1. **Choose Encoding Format:** Canonical CBOR (RFC 8949) for all ledger/events/archives
-2. **Strict Ordering:** Map keys sorted lexicographically
-3. **Definite Lengths:** No streaming/indefinite-length encoding
-4. **Float Canonicalization:** NaN → specific bit pattern, ±0 normalized
-5. **No Duplicates:** Reject duplicate map keys
-6. **Test Vectors:** 100+ edge cases covering all data types
+2. **Non-Optional Rule:** All ledger events, receipts, snapshots, deltas, and archives **MUST** use canonical encoding. Non-canonical encoders (including `serde_json`) are **FORBIDDEN** in `jitos-provenance`. No "debug mode" bypass. No "temporary JSON". If something isn't canonical, it doesn't get a hash.
+3. **Strict Ordering:** Map entries sorted by the lexicographic ordering of the canonical CBOR encoding of their keys, per RFC 8949. This ensures correct ordering for non-string keys (byte strings, integers).
+4. **Definite Lengths:** No streaming/indefinite-length encoding
+5. **Float Canonicalization:**
+   - NaN → IEEE-754 quiet NaN with payload=0
+   - Bit pattern: `0x7FF8_0000_0000_0000`
+   - ±0 normalized to +0
+   - ±∞ preserved as-is
+6. **No Duplicates:** Reject duplicate map keys
+7. **Test Vectors:** 100+ edge cases covering all data types
 
 ### Non-Functional Requirements
 
@@ -117,9 +122,19 @@ fn test_nan_canonicalization() {
         assert_eq!(bytes1, bytes2, "Same float should encode identically");
     }
 
-    // NaN should always encode to the same bit pattern
+    // NaN MUST encode to IEEE-754 quiet NaN: 0x7FF8_0000_0000_0000
     let nan_bytes = canonical::encode(&f64::NAN).unwrap();
-    assert_eq!(nan_bytes.len(), 9); // CBOR float64 tag + 8 bytes
+    assert_eq!(nan_bytes.len(), 9); // CBOR float64 tag (0xFB) + 8 bytes
+
+    // Extract the float64 payload (skip CBOR tag byte)
+    let float_bytes = &nan_bytes[1..9];
+    let expected_nan: [u8; 8] = 0x7FF8_0000_0000_0000u64.to_be_bytes();
+    assert_eq!(float_bytes, expected_nan, "NaN must use canonical bit pattern");
+
+    // ±0 must normalize to +0
+    let pos_zero_bytes = canonical::encode(&0.0f64).unwrap();
+    let neg_zero_bytes = canonical::encode(&(-0.0f64)).unwrap();
+    assert_eq!(pos_zero_bytes, neg_zero_bytes, "±0 must normalize to +0");
 }
 ```
 
@@ -173,6 +188,12 @@ fn test_cross_platform_vectors() {
 - [ ] Generate 100+ test vectors covering edge cases
 - [ ] Save vectors to `jitos-core/tests/vectors/canonical.json`
 - [ ] Implement cross-platform consistency tests
+
+### Task 5: Safety Helper (15 min)
+- [ ] Add `hash_canonical<T: Serialize>(value: &T) -> Result<Hash>` helper
+- [ ] Implementation: `blake3::hash(&canonical::encode(value)?)`
+- [ ] Document: "Use this instead of manual hashing to prevent accidental non-canonical hashing"
+- [ ] Add to exports in `jitos-core/src/lib.rs`
 
 ---
 
