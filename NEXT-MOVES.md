@@ -19,7 +19,7 @@ We are consolidating **three fragmented implementations** (echo Rust kernel, fly
 **Why:** Stakeholders need a clear view of the project without wading through legacy drafts.
 
 **Tasks:**
-- [x] Generate `JITOS-CLEAN-UP-LIST.md` with justifications for each removal
+- [ ] Generate `JITOS-CLEAN-UP-LIST.md` with justifications for each removal
 - [ ] Archive or delete files identified in cleanup list
 - [ ] Consolidate redundant ADRs into canonical ARCH documents
 - [ ] Move UNORGANIZED/ content to proper homes or archive
@@ -420,10 +420,27 @@ We are consolidating **three fragmented implementations** (echo Rust kernel, fly
 
 ## Open Questions for Resolution
 
-1. **Camera Policy:** Deterministic (Policy A) or Presentation-only (Policy B)? Recommend Policy B unless visual replay is critical.
-2. **Floating-Point Policy:** Document supported platforms or use fixed-point? Recommend documenting platform policy (x86-64, ARM64 only).
-3. **Snapshot Frequency:** Every 60 ticks? Every 600? Tunable? Recommend tunable with default 100.
-4. **BTR Format:** JSON, CBOR, or custom binary? Recommend CBOR for efficiency.
+These decisions require stakeholder input as they affect scope, performance, and user experience:
+
+1. **Camera Policy:** Deterministic (Policy A) or Presentation-only (Policy B)?
+   - **Impact:** Policy A enables "visual replay" but increases ledger size ~30%. Policy B is simpler and faster.
+   - **Recommendation:** Policy B unless visual replay is a core product promise.
+
+2. **Floating-Point Policy:** Document supported platforms or use fixed-point?
+   - **Impact:** Platform restriction (x86-64, ARM64 only) simplifies determinism guarantees but limits exotic hardware support.
+   - **Recommendation:** Document platform policy to avoid cross-platform floating-point divergence.
+
+3. **Snapshot Frequency:** Every 60 ticks? Every 600? Tunable?
+   - **Impact:** More frequent snapshots = faster time travel but larger storage footprint.
+   - **Recommendation:** Tunable with sensible default (100 ticks), exposing as advanced setting.
+
+4. **BTR Format:** JSON (human-readable), CBOR (efficient), or custom binary?
+   - **Impact:** JSON aids debugging but bloats archives. CBOR balances readability and size.
+   - **Recommendation:** CBOR with optional JSON export tool for auditing.
+
+5. **Total Engineering Effort:** Estimated ~500 hours over 12 weeks (1 FTE). Acceptable?
+   - **Impact:** This assumes focused execution without major scope creep or blocking dependencies.
+   - **Recommendation:** Frontload Phase 0-1 to validate architecture before committing to full schedule.
 
 ---
 
