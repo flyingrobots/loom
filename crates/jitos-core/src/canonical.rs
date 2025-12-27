@@ -129,23 +129,27 @@ fn enc_value(v: &Value, out: &mut Vec<u8>) -> Result<()> {
             }
         }
         Value::Map(entries) => {
-            let mut buf: Vec<(Value, Value, Vec<u8>)> = Vec::with_capacity(entries.len());
+            // Encode keys and pair with values (avoid cloning keys, only clone values)
+            let mut buf: Vec<(Vec<u8>, Value)> = Vec::with_capacity(entries.len());
             for (k, v) in entries {
                 let mut kb = Vec::new();
                 enc_value(k, &mut kb)?;
-                buf.push((k.clone(), v.clone(), kb));
+                buf.push((kb, v.clone()));
             }
 
-            buf.sort_by(|a, b| a.2.cmp(&b.2));
+            // Sort by encoded key bytes
+            buf.sort_by(|a, b| a.0.cmp(&b.0));
 
+            // Check for duplicate keys
             for win in buf.windows(2) {
-                if win[0].2 == win[1].2 {
+                if win[0].0 == win[1].0 {
                     return Err(CanonicalError::DuplicateKey);
                 }
             }
 
+            // Write map with sorted entries
             enc_len(5, buf.len() as u64, out);
-            for (_k, v, kb) in buf {
+            for (kb, v) in buf {
                 out.extend_from_slice(&kb);
                 enc_value(&v, out)?;
             }
@@ -182,10 +186,12 @@ fn canonicalize_f64(val: f64) -> f64 {
         // Per SPEC-0001: 0x7FF8_0000_0000_0000
         f64::from_bits(0x7FF8_0000_0000_0000)
     } else if val.is_subnormal() {
-        // Flush subnormals to zero
+        // Flush subnormals to +0 (includes sign normalization)
+        // Note: Negative subnormals (e.g., -5e-324) become +0.0 here,
+        // so they don't reach the ±0 normalization check below
         0.0
     } else if val == 0.0 {
-        // Normalize ±0 to +0
+        // Normalize ±0 to +0 (handles regular zeros, subnormals handled above)
         0.0
     } else {
         val
