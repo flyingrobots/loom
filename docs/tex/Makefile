@@ -36,7 +36,7 @@ COLOR_PURPLE = \033[35m
 # Main Targets
 # =============================================================================
 
-.PHONY: all dark print template clean init help
+.PHONY: all dark print template clean init help sotu-2025 sotu-2025-dark
 
 help:
 	@echo "$(COLOR_BOLD)JITOS Documentation Build System$(COLOR_RESET)"
@@ -56,6 +56,10 @@ help:
 	@echo ""
 	@echo "$(COLOR_PURPLE)Utility:$(COLOR_RESET)"
 	@echo "  make template - Build docs/tex/template.tex to build/template.pdf"
+	@echo ""
+	@echo "$(COLOR_PURPLE)Reports:$(COLOR_RESET)"
+	@echo "  make sotu-2025       - Build SOTU-2025.pdf"
+	@echo "  make sotu-2025-dark  - Build SOTU-2025-DARK.pdf"
 
 all: dark print
 
@@ -189,11 +193,29 @@ master: arch computer adrs rfcs whitepaper aion-holography
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ JITOS_COMPLETE.pdf created$(COLOR_RESET)"
 
 # =============================================================================
+# Reports
+# =============================================================================
+
+sotu-2025: init
+	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Building SOTU-2025...$(COLOR_RESET)"
+	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded.tex
+	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded.tex > /dev/null
+	@cp $(BUILD_DIR)/SOTU-2025-expanded.pdf ../../SOTU-2025.pdf
+	@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ SOTU-2025.pdf created$(COLOR_RESET)"
+
+sotu-2025-dark: init
+	@echo "$(COLOR_BOLD)$(COLOR_PURPLE)Building SOTU-2025 (Dark Mode)...$(COLOR_RESET)"
+	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded-dark.tex
+	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded-dark.tex > /dev/null
+	@cp $(BUILD_DIR)/SOTU-2025-expanded-dark.pdf ../../SOTU-2025-DARK.pdf
+	@echo "$(COLOR_BOLD)$(COLOR_PURPLE)✓ SOTU-2025-DARK.pdf created$(COLOR_RESET)"
+
+# =============================================================================
 # Cleanup
 # =============================================================================
 
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f ../../*-DARK.pdf
-	rm -f ../../ARCHITECTURE.pdf ../../COMPUTER.pdf ../../ADRs.pdf ../../RFC.pdf ../../WHITEPAPER.pdf ../../AION-HOLOGRAPHY.pdf ../../JITOS_COMPLETE.pdf
+	rm -f ../../ARCHITECTURE.pdf ../../COMPUTER.pdf ../../ADRs.pdf ../../RFC.pdf ../../WHITEPAPER.pdf ../../AION-HOLOGRAPHY.pdf ../../JITOS_COMPLETE.pdf ../../SOTU-2025.pdf
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ All build artifacts removed$(COLOR_RESET)"

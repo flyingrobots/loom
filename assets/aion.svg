@@ -1,0 +1,34 @@
+<svg width="754.5" height="231.9" viewBox="0 0 754.5 231.9" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="aion-gradient" gradientUnits="userSpaceOnUse" cx="377.25" cy="115.95" r="260">
+      <animateTransform
+        attributeName="gradientTransform"
+        type="rotate"
+        from="0 377.25 115.95"
+        to="360 377.25 115.95"
+        dur="18s"
+        repeatCount="indefinite"
+      />
+      <stop offset="0%" stop-color="#8399A2">
+        <animate attributeName="stop-color" dur="60s" repeatCount="indefinite" values="#8399A2;#EEF2F3;#8399A2"/>
+      </stop>
+      <stop offset="100%" stop-color="#EEF2F3">
+        <animate attributeName="stop-color" dur="60s" repeatCount="indefinite" values="#EEF2F3;#8399A2;#EEF2F3"/>
+      </stop>
+    </radialGradient>
+    <style>
+      #svgGroup {
+        stroke: #000000;
+        stroke-width: 0;
+        fill-rule: evenodd;
+        fill: url(#aion-gradient);
+      }
+    </style>
+  </defs>
+  <g id="svgGroup" stroke-linecap="round" font-size="9pt">
+    <path d="M 258.3 231 L 145.5 0 L 75.6 0 L 94.5 37.8 L 0 231 L 258.3 231 Z M 251.1 226.5 L 72.3 226.5 L 94.8 178.5 L 168.9 178.5 L 82.8 4.5 L 142.8 4.5 L 251.1 226.5 Z" id="0"/>
+    <path d="M 264.3 231 L 322.2 231 L 322.2 0 L 264.3 0 L 264.3 231 Z M 268.8 226.5 L 268.8 4.5 L 317.7 4.5 L 317.7 226.5 L 268.8 226.5 Z" id="1"/>
+    <path d="M 340.2 231 L 445.2 231 L 445.2 160.2 C 426.3 154.5 415.2 138.9 415.2 120.6 C 415.2 99.9 431.4 83.7 451.8 83.7 C 472.2 83.7 488.7 100.2 488.7 120.6 C 488.7 137.7 477.9 154.2 460.2 160.2 L 460.2 231 L 562.2 231 L 562.2 172.5 L 541.5 172.5 C 556.5 156 563.7 133.5 563.7 114.6 C 563.7 52.8 513.6 9 451.8 9 C 390 9 340.2 52.8 340.2 114.6 C 340.2 133.5 347.1 155.7 362.4 172.5 L 340.2 172.5 L 340.2 231 Z M 344.7 226.5 L 344.7 177 L 440.7 177 L 440.7 226.5 L 344.7 226.5 Z M 464.7 226.5 L 464.7 177 L 557.7 177 L 557.7 226.5 L 464.7 226.5 Z" id="2"/>
+    <path d="M 754.5 231.9 L 754.5 0 L 695.7 0 L 695.7 101.7 L 581.7 0.3 L 581.7 231 L 639.6 231 L 639.6 135 L 754.5 231.9 Z M 750 222 L 586.2 81.6 L 586.2 10.2 L 700.2 111.6 L 700.2 4.5 L 750 4.5 L 750 222 Z" id="3"/>
+  </g>
+</svg>

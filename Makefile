@@ -4,7 +4,7 @@
 
 TEX_DIR = docs/tex
 
-.PHONY: all clean arch computer adrs rfcs whitepaper master help
+.PHONY: all clean arch computer adrs rfcs whitepaper master sotu-2025 sotu-2025-dark help
 
 # Default target - show help
 help:
@@ -19,6 +19,8 @@ help:
 	@echo "  make rfcs        - Build RFC.pdf"
 	@echo "  make whitepaper  - Build WHITEPAPER.pdf"
 	@echo "  make master      - Build JITOS_COMPLETE.pdf (all books combined)"
+	@echo "  make sotu-2025    - Build SOTU-2025.pdf"
+	@echo "  make sotu-2025-dark - Build SOTU-2025-DARK.pdf"
 	@echo "  make clean       - Remove all build artifacts and PDFs"
 	@echo ""
 	@echo "PDFs will be created in the root directory."
@@ -44,6 +46,12 @@ whitepaper:
 
 master:
 	@$(MAKE) -C $(TEX_DIR) master
+
+sotu-2025:
+	@$(MAKE) -C $(TEX_DIR) sotu-2025
+
+sotu-2025-dark:
+	@$(MAKE) -C $(TEX_DIR) sotu-2025-dark
 
 clean:
 	@$(MAKE) -C $(TEX_DIR) clean

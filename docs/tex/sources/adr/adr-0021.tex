@@ -1,0 +1,171 @@
+\section{\texorpdfstring{\textbf{ADR-0021 --- Global Provenance Causal Graph (GPCG)}}{ADR-0021 --- Global Provenance Causal Graph (GPCG)}}\label{adr-0021-gpcg}
+
+\textbf{Status:} Accepted \textbf{Date:} 2025-12-08 \textbf{Owner:} Architecture Review Board \textbf{Tags:} Core, Provenance, Determinism, Graph Theory
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{partintro}
+\textit{This ADR specifies the Global Provenance Causal Graph (GPCG), the authoritative ledger for state evolution within the C$\Omega$MPUTER runtime. It defines deterministic canonicalization, event hashing, lineage tracking, and merge criteria so concurrent branches can converge without sacrificing causal integrity.}
+\end{partintro}
+
+% Use \providecommand to avoid redefinition errors across multiple ADRs
+\providecommand{\hash}[1]{\mathcal{H}(#1)}
+\providecommand{\canonical}[1]{\mathcal{C}(#1)}
+\providecommand{\writeset}[1]{\mathbb{W}(#1)}
+\providecommand{\state}{\Sigma}
+\providecommand{\canstate}{\Sigma_{\text{can}}}
+\providecommand{\id}{\mathtt{id}}
+
+\subsection{1. Context and Problem Statement}
+
+The C$\Omega$MPUTER system requires a verification model that guarantees \textbf{Bit-Perfect Determinism} across distributed executions. Conventional linear logs with timestamps are insufficient for graph-based rewrite rules where concurrency is inherent.
+
+The architecture must solve three critical problems:
+\begin{enumerate}
+    \item \textbf{Causal Ambiguity:} Distinguish events that happened strictly \textit{after} one another from events that happened \textit{concurrently}.
+    \item \textbf{Nondeterminism Leaks:} Prevent runtime artifacts (pointers, memory addresses, timestamps) from contaminating the provenance record.
+    \item \textbf{Merge Consistency:} Define commutativity so concurrent operations on disjoint state subsets can merge without conflicts.
+\end{enumerate}
+
+\subsection{2. Decision}
+
+Implement the state history as a \textbf{Global Provenance Causal Graph (GPCG)}: a cryptographically linked DAG where nodes are atomic state transitions (Events) and edges are causal dependencies.
+
+\subsection{3. Formal Model}
+
+\subsubsection{3.1 State Space and Canonicalization}
+
+We distinguish between the runtime state space $\Sigma_{\text{run}}$ (optimized for execution) and the canonical state space $\canstate$ (optimized for verification).
+
+\textbf{Definition 1 (Canonicalization Function).} Let $\Phi: \Sigma_{\text{run}} \to \canstate$ be a surjective mapping such that for any two runtime states $S_1, S_2 \in \Sigma_{\text{run}}$:
+\[
+    S_1 \equiv_{\text{semantic}} S_2 \iff \text{Serialize}(\Phi(S_1)) = \text{Serialize}(\Phi(S_2))
+\]
+where $\equiv_{\text{semantic}}$ denotes structural equivalence.
+
+The canonicalization process $\Phi$ strictly enforces:
+\begin{itemize}
+    \item \textbf{Lexicographical Sorting:} All associative arrays (maps/dictionaries) are sorted by key.
+    \item \textbf{Metadata Stripping:} Ephemeral data (memory pointers, timestamps, cached computations) are discarded.
+    \item \textbf{Type Normalization:} Numeric types normalize to a fixed-width, endian-neutral format.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.5cm, auto]
+    % Nodes
+    \node[draw, rectangle, fill=red!5, align=center, minimum width=3.5cm] (Runtime) {\textbf{Runtime State} ($S_{\text{run}}$) \\ \{ ptr: 0xF4, map: unsorted \}};
+    \node[draw, rectangle, rounded corners, fill=cyan!10, below=1cm of Runtime, minimum width=3cm] (Phi) {$\Phi(\cdot)$ Process};
+    \node[draw, rectangle, fill=green!10, align=center, below=1cm of Phi, minimum width=3.5cm] (Canon) {\textbf{Canonical State} ($\canstate$) \\ \{ map: sorted, clean \}};
+
+    % Arrows
+    \draw[-{Latex[length=3mm]}, thick] (Runtime) -- (Phi);
+    \draw[-{Latex[length=3mm]}, thick] (Phi) -- (Canon);
+
+    % Annotation
+    \node[right=0.5cm of Phi, align=left, text width=5cm, font=\small] {\textbf{Invariants:} \\\ $\cdot$ Deterministic Serialization \\\ $\cdot$ Pointer Erasure \\\ $\cdot$ Sort Order};
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{3.2 Event Topology}
+
+An Event $E$ is an atomic transition defined as the tuple:
+\[
+    E = \langle \id, P, R, \Delta\sigma \rangle
+\]
+where:
+\begin{itemize}
+    \item $P = [id_1, id_2, \dots]$ is the ordered list of parent identifiers (causal ancestry).
+    \item $R$ is the unique identifier of the rewrite rule applied.
+    \item $\Delta\sigma$ is the \textbf{Canonical State Delta}, defined as $\Delta\sigma = \Phi(S_{\text{after}}) - \Phi(S_{\text{before}})$.
+\end{itemize}
+
+\paragraph{3.2.1 Cryptographic Integrity}
+The Event identifier serves as the content-addressable key:
+\[
+    \id(E) = \hash\left( \text{Serialize}(P) \parallel \text{Serialize}(R) \parallel \text{Serialize}(\Delta\sigma) \right)
+\]
+
+\textbf{Critical Invariant:} The hash input explicitly \textbf{excludes}:
+\begin{enumerate}
+    \item The full $S_{\text{before}}$ state (redundancy avoidance).
+    \item Runtime timestamps (non-deterministic).
+    \item Node-specific metadata (e.g., IP addresses).
+\end{enumerate}
+
+\subsection{4. Timeline Semantics}
+
+\subsubsection{4.1 Causal Edges}
+A directed edge exists from $E_A$ to $E_B$ iff $\id(E_A) \in E_B.P$. The graph is strictly acyclic.
+
+\subsubsection{4.2 Variable-Scoped Timelines (VST)}
+For variable $v$ in $\canstate$, the VST for $v$, denoted $\tau(v)$, is the subsequence of events that modified $v$:
+\[
+    \tau(v) = \{ E \in GPCG \mid v \in \text{keys}(\Delta\sigma_E) \}
+\]
+
+\subsection{5. Concurrency and Merging}
+
+The GPCG supports fork-join parallelism. A Merge Event reconciles two divergent paths.
+
+\subsubsection{5.1 Commutativity Criterion}
+Let $E_A$ and $E_B$ be terminal events of two diverging paths from ancestor $E_{anc}$. A merge is valid \textbf{iff} their write sets are disjoint:
+\[
+    \text{MergeValid}(E_A, E_B) \iff \writeset{E_A} \cap \writeset{E_B} = \emptyset
+\]
+
+\subsubsection{5.2 Merged State Construction}
+If the validity condition holds, the resulting state is:
+\[
+    \Phi(S_{\text{merge}}) = \Phi(S_{anc}) \oplus \Delta\sigma_A \oplus \Delta\sigma_B
+\]
+Since the write sets are disjoint, the application order of $\Delta\sigma_A$ and $\Delta\sigma_B$ is commutative:
+\[
+    (S_{anc} + \Delta_A) + \Delta_B \equiv (S_{anc} + \Delta_B) + \Delta_A
+\]
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[
+        node distance=1.5cm,
+        event/.style={circle, draw=black, thick, minimum size=8mm, fill=white},
+        merge/.style={circle, draw=purple, very thick, minimum size=8mm, fill=purple!10},
+        label/.style={font=\footnotesize\sffamily}
+    ]
+        % Nodes
+        \node[event] (Anc) {$E_0$};
+        \node[event, above right=1cm and 2cm of Anc] (A1) {$A_1$};
+        \node[event, right=1.5cm of A1] (A2) {$A_2$};
+        \node[event, below right=1cm and 2cm of Anc] (B1) {$B_1$};
+        \node[event, right=1.5cm of B1] (B2) {$B_2$};
+        \node[merge, right=3cm of Anc] (Merge) {$M$};
+
+        % Edges
+        \draw[-{Latex}, thick] (Anc) -- (A1);
+        \draw[-{Latex}, thick] (A1) -- (A2);
+        \draw[-{Latex}, thick] (Anc) -- (B1);
+        \draw[-{Latex}, thick] (B1) -- (B2);
+        \draw[-{Latex}, purple, thick] (A2) -- (Merge);
+        \draw[-{Latex}, purple, thick] (B2) -- (Merge);
+
+        % Annotations
+        \node[above=0.2cm of A1, color=gray] {Path A (modifies $x$)};
+        \node[below=0.2cm of B1, color=gray] {Path B (modifies $y$)};
+        \node[right=0.5cm of Merge, text width=4cm, font=\small] {\textbf{Valid Merge} \\ Condition: $x \neq y$};
+    \end{tikzpicture}
+    \caption{GPCG Merge topology demonstrating commutative convergence.}
+\end{figure}
+
+\subsection{6. Consequences}
+
+\subsubsection{6.1 Positive}
+\begin{itemize}
+    \item \textbf{Verifiability:} Any actor can independently verify current state by replaying the hash chain of events.
+    \item \textbf{Auditability:} Excluding runtime metadata keeps the graph purely semantic; logs are identical regardless of the machine that produced them.
+    \item \textbf{Parallelism:} The disjoint write-set rule lets the runtime schedule non-conflicting rules in parallel.
+\end{itemize}
+
+\subsubsection{6.2 Negative}
+\begin{itemize}
+    \item \textbf{Performance Overhead:} Canonicalization ($\Phi$) requires sorting and copying, adding CPU cost on every commit.
+    \item \textbf{Strictness:} The system cannot rely on "Last Write Wins"; conflicts must be resolved by upstream logic or manual intervention.
+\end{itemize}
