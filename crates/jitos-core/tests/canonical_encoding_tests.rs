@@ -94,6 +94,10 @@ fn test_nan_canonicalization() {
         "NaN must use canonical bit pattern"
     );
 
+    // Verify decoder recognizes canonical NaN
+    let decoded_nan: f64 = canonical::decode(&nan_bytes).unwrap();
+    assert!(decoded_nan.is_nan(), "Decoded value should be NaN");
+
     // ±0 must normalize to +0
     let pos_zero_bytes = canonical::encode(&0.0f64).unwrap();
     let neg_zero_bytes = canonical::encode(&(-0.0f64)).unwrap();
@@ -245,9 +249,11 @@ fn test_byte_strings() {
 }
 
 #[test]
-fn test_encoding_stability_across_platforms() {
-    // This test validates that encoding is deterministic
-    // by encoding the same value multiple times
+fn test_encoding_determinism() {
+    // This test validates that encoding is deterministic within the current runtime
+    // by encoding the same value multiple times.
+    // Note: Cross-platform verification requires CI matrix jobs across different
+    // architectures and Rust versions
     #[derive(serde::Serialize, serde::Deserialize)]
     struct TestStruct {
         field1: String,

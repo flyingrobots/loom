@@ -213,12 +213,11 @@ fn enc_float(f: f64, out: &mut Vec<u8>) {
     let canonical_f = canonicalize_f64(f);
 
     // If integral and fits i128, encode as integer per SPEC-0001
-    if canonical_f.fract() == 0.0 && canonical_f.is_finite() {
+    // Use float_should_be_int for consistent logic with decoder
+    if float_should_be_int(canonical_f) {
         let i = canonical_f as i128;
-        if i as f64 == canonical_f {
-            enc_int(i, out);
-            return;
-        }
+        enc_int(i, out);
+        return;
     }
 
     // Non-integral: encode as float64 for structural determinism
@@ -438,11 +437,26 @@ fn float_should_be_int(f: f64) -> bool {
     f.is_finite() && f.fract() == 0.0 && fits_i128(f)
 }
 
-/// Check if a float value fits in an i128.
+/// Check if a float value can be exactly represented as an i128.
+///
+/// Uses round-trip check rather than range check to avoid issues with
+/// f64 precision loss when converting i128::MAX/MIN to f64.
 fn fits_i128(f: f64) -> bool {
-    const MAX: f64 = i128::MAX as f64;
-    const MIN: f64 = i128::MIN as f64;
-    (MIN..=MAX).contains(&f)
+    // Reject non-finite values (NaN, ±∞)
+    if !f.is_finite() {
+        return false;
+    }
+
+    // Reject values >= 2^127 or <= -2^127 (i128 range is -2^127..2^127-1)
+    // Note: i128::MAX as f64 rounds up to 2^127, so we check against 2^127 directly
+    const LIMIT: f64 = 170141183460469231731687303715884105728.0; // 2^127
+    if f.abs() >= LIMIT {
+        return false;
+    }
+
+    // Check round-trip: only accept if value converts exactly to i128 and back
+    let i = f as i128;
+    i as f64 == f
 }
 
 fn int_to_value(n: u128, negative: bool) -> Value {
@@ -609,5 +623,25 @@ mod tests {
             "Expected Incomplete, got: {:?}",
             res
         );
+    }
+
+    #[test]
+    fn ec06_i128_max_boundary() {
+        // i128::MAX as f64 rounds up to 2^127, which exceeds i128 range
+        // Should encode as float64, not integer
+        let i128_max_as_f64 = i128::MAX as f64;
+        let bytes = encode_value(&Value::Float(i128_max_as_f64)).unwrap();
+
+        // Should be float64 encoded (0xfb), not integer
+        assert_eq!(bytes[0], 0xfb, "i128::MAX as f64 should encode as float64, not integer");
+        assert_eq!(bytes.len(), 9, "float64 encoding is 1 byte tag + 8 bytes data");
+
+        // Should not panic during encoding or decoding
+        let decoded = decode_value(&bytes).unwrap();
+        if let Value::Float(f) = decoded {
+            assert_eq!(f, i128_max_as_f64, "round-trip should preserve value");
+        } else {
+            panic!("Expected Float, got {:?}", decoded);
+        }
     }
 }
