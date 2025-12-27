@@ -8,16 +8,17 @@
 \textit{This ADR specifies the Global Provenance Causal Graph (GPCG), the authoritative ledger for state evolution within the C$\Omega$MPUTER runtime. It defines deterministic canonicalization, event hashing, lineage tracking, and merge criteria so concurrent branches can converge without sacrificing causal integrity.}
 \end{partintro}
 
-\newcommand{\hash}[1]{\mathcal{H}(#1)}
-\newcommand{\canonical}[1]{\mathcal{C}(#1)}
-\newcommand{\writeset}[1]{\mathbb{W}(#1)}
-\newcommand{\state}{\Sigma}
-\newcommand{\canstate}{\Sigma_{\text{can}}}
+% Use \providecommand to avoid redefinition errors across multiple ADRs
+\providecommand{\hash}[1]{\mathcal{H}(#1)}
+\providecommand{\canonical}[1]{\mathcal{C}(#1)}
+\providecommand{\writeset}[1]{\mathbb{W}(#1)}
+\providecommand{\state}{\Sigma}
+\providecommand{\canstate}{\Sigma_{\text{can}}}
 \providecommand{\id}{\mathtt{id}}
 
 \subsection{1. Context and Problem Statement}
 
-The C$\Omega$MPUTER system requires a verification model that guarantees **Bit-Perfect Determinism** across distributed executions. Conventional linear logs with timestamps are insufficient for graph-based rewrite rules where concurrency is inherent.
+The C$\Omega$MPUTER system requires a verification model that guarantees \textbf{Bit-Perfect Determinism} across distributed executions. Conventional linear logs with timestamps are insufficient for graph-based rewrite rules where concurrency is inherent.
 
 The architecture must solve three critical problems:
 \begin{enumerate}
@@ -28,7 +29,7 @@ The architecture must solve three critical problems:
 
 \subsection{2. Decision}
 
-Implement the state history as a **Global Provenance Causal Graph (GPCG)**: a cryptographically linked DAG where nodes are atomic state transitions (Events) and edges are causal dependencies.
+Implement the state history as a \textbf{Global Provenance Causal Graph (GPCG)}: a cryptographically linked DAG where nodes are atomic state transitions (Events) and edges are causal dependencies.
 
 \subsection{3. Formal Model}
 
@@ -75,7 +76,7 @@ where:
 \begin{itemize}
     \item $P = [id_1, id_2, \dots]$ is the ordered list of parent identifiers (causal ancestry).
     \item $R$ is the unique identifier of the rewrite rule applied.
-    \item $\Delta\sigma$ is the **Canonical State Delta**, defined as $\Delta\sigma = \Phi(S_{\text{after}}) - \Phi(S_{\text{before}})$.
+    \item $\Delta\sigma$ is the \textbf{Canonical State Delta}, defined as $\Delta\sigma = \Phi(S_{\text{after}}) - \Phi(S_{\text{before}})$.
 \end{itemize}
 
 \paragraph{3.2.1 Cryptographic Integrity}

@@ -4,6 +4,15 @@
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
+% Provide macro definitions from ADR-0021 to allow standalone compilation
+% Note: These match ADR-0021's definitions. If ADR-0021 is included first, these are no-ops.
+\providecommand{\hash}[1]{\mathcal{H}(#1)}
+\providecommand{\canonical}[1]{\mathcal{C}(#1)}
+\providecommand{\writeset}[1]{\mathbb{W}(#1)}
+\providecommand{\state}{\Sigma}
+\providecommand{\canstate}{\Sigma_{\text{can}}}
+\providecommand{\id}{\mathtt{id}}
+
 \begin{partintro}
 \textit{This ADR specifies the physical storage layer for the Global Provenance Causal Graph (GPCG). It maps logical events to Git-native objects, defines Canonical CBOR layouts, outlines Variable-Scoped Timeline (VST) indexing, and sets optimistic concurrency protocols for safe distributed appends.}
 \end{partintro}
@@ -23,13 +32,13 @@ The storage layer must address:
 \subsection{2. Physical Object Mapping}
 
 \subsubsection{2.1 Event as a Git Blob}
-To separate the \textit{causal computation history} from the \textit{source control history}, GPCG Events are stored as **Git blobs**, not Git commits.
+To separate the \textit{causal computation history} from the \textit{source control history}, GPCG Events are stored as \textbf{Git blobs}, not Git commits.
 
 The Event ID is the Git object ID of the blob content:
 \[ \text{Event.id} \equiv \text{GitObjectID}(\text{EventBlob}) \]
 
 \subsubsection{2.2 Serialization Layout (CBOR)}
-Event blobs use **Canonical CBOR** for deterministic serialization.
+Event blobs use \textbf{Canonical CBOR} for deterministic serialization.
 
 \begin{itemize}
     \item \textbf{Payload:}

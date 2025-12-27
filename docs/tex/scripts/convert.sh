@@ -5,6 +5,9 @@
 
 set -euo pipefail
 
+# Resolve script directory for reliable relative paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 SRC_DIR="${1:-}"
 OUT_DIR="${2:-}"
 PYTHON="${3:-python3}"
@@ -32,10 +35,12 @@ for md in "$SRC_DIR"/*.md; do
     safe_name=$(echo "$base_name" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
     out="$OUT_DIR/$safe_name.tex"
     echo "  $base_name -> $out"
-    pandoc --from=markdown --to=latex --syntax-highlighting=idiomatic "$md" -o "$out"
+    # Use pygments highlight style (valid pandoc option, similar to idiomatic intent)
+    pandoc --from=markdown --to=latex --highlight-style=pygments "$md" -o "$out"
 done
 
-if [ -f "scripts/clean-unicode.py" ]; then
+# Use resolved script directory for clean-unicode.py
+if [ -f "$SCRIPT_DIR/clean-unicode.py" ]; then
     echo "Cleaning unicode in $OUT_DIR with $PYTHON..."
-    "$PYTHON" scripts/clean-unicode.py "$OUT_DIR" || echo "[warn] clean-unicode failed; continuing"
+    "$PYTHON" "$SCRIPT_DIR/clean-unicode.py" "$OUT_DIR" || echo "[warn] clean-unicode failed; continuing"
 fi

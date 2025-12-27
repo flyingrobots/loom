@@ -19,7 +19,28 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 CONFIG_NAME = ".md2tex.settings.json"
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# Discover PROJECT_ROOT by searching upward for .git directory
+# Assumes: This script is within a git repository
+# Fallback: If no .git found, use parents[2] (docs/tex/scripts -> docs/tex -> docs -> root)
+def _find_project_root() -> Path:
+    """Search upward for .git, pyproject.toml, or setup.cfg to find project root."""
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        # Check for common project markers
+        if (parent / ".git").exists():
+            return parent
+        if (parent / "pyproject.toml").exists():
+            return parent
+        if (parent / "setup.cfg").exists():
+            return parent
+        # Stop at filesystem root
+        if parent == parent.parent:
+            break
+    # Fallback: assume script is at docs/tex/scripts/
+    return Path(__file__).resolve().parents[2]
+
+PROJECT_ROOT = _find_project_root()
 SOURCES_GUARD = PROJECT_ROOT / "docs" / "tex" / "sources"
 
 
@@ -57,7 +78,7 @@ class Config:
     files: Dict[str, FileEntry]
 
     @classmethod
-    def load(cls, path: Path, markdown_dir: Path) -> "Config":
+    def load(cls, path: Path, markdown_dir: Path) -> Config:
         if path.exists():
             data = json.loads(path.read_text())
             files = {
@@ -97,27 +118,32 @@ def is_excluded(path: Path, patterns: List[str]) -> bool:
 
 def run_pandoc(md: Path, tex: Path, pandoc_cmd: str) -> None:
     tex.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [pandoc_cmd, "--from=markdown", "--to=latex", "--syntax-highlighting=idiomatic", str(md), "-o", str(tex)]
+    # Use pygments highlight style (valid pandoc option)
+    cmd = [pandoc_cmd, "--from=markdown", "--to=latex", "--highlight-style=pygments", str(md), "-o", str(tex)]
     subprocess.run(cmd, check=True)
 
 
 def run_clean_unicode(tex: Path, python_cmd: str) -> None:
     cleaner = Path(__file__).parent / "clean-unicode.py"
     if not cleaner.exists():
+        # Cleaner is optional; skip if not present
         return
     try:
         subprocess.run([python_cmd, str(cleaner), str(tex.parent)], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-        # Best-effort; surface message but keep going
-        sys.stderr.write(f"[warn] clean-unicode failed for {tex}: {e}\n")
+        # Cleaner exists but failed—this is an error condition
+        sys.stderr.write(f"[error] clean-unicode.py failed for {tex}: {e.output.decode() if e.output else str(e)}\n")
+        raise
 
 
 def within_sources_guard(path: Path) -> bool:
+    """Check if path is within SOURCES_GUARD directory (hand-edited area)."""
     try:
         path.relative_to(SOURCES_GUARD)
-        return True
     except ValueError:
         return False
+    else:
+        return True
 
 
 def main(argv: Optional[List[str]] = None) -> int:
