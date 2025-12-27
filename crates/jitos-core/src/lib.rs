@@ -1,4 +1,3 @@
-// @ts-check
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
