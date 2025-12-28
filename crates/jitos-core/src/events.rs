@@ -19,10 +19,10 @@ pub type EventId = Hash;
 pub struct AgentId(String);
 
 impl AgentId {
-    pub fn new(id: impl Into<String>) -> Result<Self, &'static str> {
+    pub fn new(id: impl Into<String>) -> Result<Self, EventError> {
         let id = id.into();
         if id.is_empty() {
-            return Err("AgentId cannot be empty");
+            return Err(EventError::InvalidStructure("AgentId cannot be empty".to_string()));
         }
         Ok(AgentId(id))
     }
@@ -37,9 +37,9 @@ impl AgentId {
 pub struct Signature(Vec<u8>);
 
 impl Signature {
-    pub fn new(bytes: Vec<u8>) -> Result<Self, &'static str> {
+    pub fn new(bytes: Vec<u8>) -> Result<Self, EventError> {
         if bytes.is_empty() {
-            return Err("Signature cannot be empty");
+            return Err(EventError::InvalidStructure("Signature cannot be empty".to_string()));
         }
         Ok(Signature(bytes))
     }
