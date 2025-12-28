@@ -11,12 +11,14 @@ GitHub's review system carries forward comments from earlier commits, making it 
 ## Procedure
 
 ### Step 1: Identify Latest Review
+
 ```bash
 # Get the latest review ID and commit
 gh pr view <PR_NUMBER> --json reviews --jq '.reviews | sort_by(.submittedAt) | last | {id, commit: .commit.oid[0:7], submittedAt}'
 ```
 
 ### Step 2: Fetch All Top-Level Comments
+
 ```bash
 # Save all comments to temp file for analysis
 TMPFILE="/tmp/pr-comments-$(date +%s).json"
@@ -24,6 +26,7 @@ gh api repos/<OWNER>/<REPO>/pulls/<PR_NUMBER>/comments > "$TMPFILE"
 ```
 
 ### Step 3: Extract Comments from Latest Commit
+
 ```bash
 # Get comments associated with latest commit (showing on the current diff)
 LATEST_COMMIT="<commit_sha>"
@@ -44,6 +47,7 @@ cat "$TMPFILE" | jq --arg commit "$LATEST_COMMIT" '
 ```
 
 ### Step 4: Identify Stale vs Fresh Comments
+
 ```bash
 # Group by staleness
 cat /tmp/comments-latest.json | jq 'group_by(.is_stale) |
@@ -57,6 +61,7 @@ cat /tmp/comments-latest.json | jq 'group_by(.is_stale) |
 **KEY INSIGHT:** If `is_stale == true`, the comment was created on an earlier commit and **may already be fixed**.
 
 ### Step 5: Check for "Already Addressed" Markers
+
 ```bash
 # Check if comments contain "✅ Addressed in commit" markers
 cat "$TMPFILE" | jq '.[] |
@@ -72,6 +77,7 @@ cat "$TMPFILE" | jq '.[] |
 **KEY INSIGHT:** CodeRabbitAI sometimes adds "✅ Addressed" markers to its own comments. These are definitely stale.
 
 ### Step 6: Categorize by Priority
+
 ```bash
 # Extract and prioritize actionable comments
 cat "$TMPFILE" | jq --arg commit "$LATEST_COMMIT" '
@@ -265,7 +271,7 @@ echo "✅ Extraction complete. Check /tmp/actionable-full.txt for details."
 
 ## Quick Reference Card
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │ CodeRabbitAI Comment Extraction - Quick Reference              │
 ├─────────────────────────────────────────────────────────────────┤
