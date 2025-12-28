@@ -277,6 +277,13 @@ impl EventEnvelope {
             ));
         }
 
+        // Enforce: policy_parent must not be in evidence_parents (semantic clarity)
+        if evidence_parents.contains(&policy_parent) {
+            return Err(EventError::InvalidStructure(
+                "policy_parent must not be included in evidence_parents".to_string(),
+            ));
+        }
+
         // Combine evidence + policy into parents list
         let mut all_parents = evidence_parents;
         all_parents.push(policy_parent);
@@ -408,8 +415,9 @@ pub fn validate_event<S: EventStore>(
 
     // Rule 2: Parents must be canonical (sorted, unique)
     // Zero-allocation check: strict inequality ensures both sorted AND unique
+    // Note: windows(2) is empty when len <= 1, so all() returns true (correct behavior)
     let is_canonical = event.parents.windows(2).all(|w| w[0] < w[1]);
-    if !is_canonical && event.parents.len() > 1 {
+    if !is_canonical {
         return Err(EventError::ValidationError(
             "Parents are not canonically sorted/deduplicated".to_string(),
         ));
