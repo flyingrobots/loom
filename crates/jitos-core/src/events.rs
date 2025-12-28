@@ -15,7 +15,7 @@ use std::collections::BTreeSet;
 pub type EventId = Hash;
 
 /// Agent identifier (human, AI, or system)
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct AgentId(String);
 
 impl AgentId {
@@ -32,8 +32,22 @@ impl AgentId {
     }
 }
 
+// SECURITY: Custom Deserialize validates non-empty on deserialization
+impl<'de> Deserialize<'de> for AgentId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let id = String::deserialize(deserializer)?;
+        if id.is_empty() {
+            return Err(serde::de::Error::custom("AgentId cannot be empty"));
+        }
+        Ok(AgentId(id))
+    }
+}
+
 /// Cryptographic signature over event data
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Signature(Vec<u8>);
 
 impl Signature {
@@ -46,6 +60,20 @@ impl Signature {
 
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
+    }
+}
+
+// SECURITY: Custom Deserialize validates non-empty on deserialization
+impl<'de> Deserialize<'de> for Signature {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let bytes = Vec::<u8>::deserialize(deserializer)?;
+        if bytes.is_empty() {
+            return Err(serde::de::Error::custom("Signature cannot be empty"));
+        }
+        Ok(Signature(bytes))
     }
 }
 
@@ -1282,5 +1310,63 @@ mod tests {
 
         // The deserialized bytes should match canonical
         assert_eq!(deserialized.as_bytes(), &canonical_bytes);
+    }
+
+    #[test]
+    fn test_signature_deserialize_rejects_empty() {
+        // Attempt to deserialize an empty Signature
+        // This should fail because Signature::new() rejects empty bytes
+        let empty_sig = Signature(vec![]);
+
+        // Serialize it
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&empty_sig, &mut buf).unwrap();
+
+        // Deserialize should reject empty signature
+        let result: Result<Signature, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(result.is_err(), "Empty Signature should be rejected during deserialization");
+    }
+
+    #[test]
+    fn test_signature_deserialize_accepts_non_empty() {
+        // Valid signature with non-empty bytes
+        let valid_sig = Signature::new(vec![1, 2, 3, 4]).unwrap();
+
+        // Serialize it
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&valid_sig, &mut buf).unwrap();
+
+        // Deserialize should accept it
+        let deserialized: Signature = ciborium::de::from_reader(&buf[..]).unwrap();
+        assert_eq!(deserialized.as_bytes(), &[1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_agent_id_deserialize_rejects_empty() {
+        // Attempt to deserialize an empty AgentId
+        // This should fail because AgentId::new() rejects empty strings
+        let empty_id = AgentId(String::new());
+
+        // Serialize it
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&empty_id, &mut buf).unwrap();
+
+        // Deserialize should reject empty AgentId
+        let result: Result<AgentId, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(result.is_err(), "Empty AgentId should be rejected during deserialization");
+    }
+
+    #[test]
+    fn test_agent_id_deserialize_accepts_non_empty() {
+        // Valid AgentId with non-empty string
+        let valid_id = AgentId::new("agent-123").unwrap();
+
+        // Serialize it
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&valid_id, &mut buf).unwrap();
+
+        // Deserialize should accept it
+        let deserialized: AgentId = ciborium::de::from_reader(&buf[..]).unwrap();
+        assert_eq!(deserialized.as_str(), "agent-123");
     }
 }
