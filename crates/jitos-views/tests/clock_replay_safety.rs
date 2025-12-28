@@ -128,19 +128,9 @@ fn test_malformed_observation_handling() {
     // When: apply_event() called on malformed observation
     let result = view.apply_event(&malformed_event);
 
-    // Then: Returns Ok(()) - ignored (decode attempt fails but doesn't error)
-    // OR returns Err(DecodingError) depending on implementation choice
-    // For Phase 0.5.4, we'll accept either - just verify it doesn't panic
-    match result {
-        Ok(()) => {
-            // Silently ignored - acceptable
-            assert_eq!(view.now().domain, jitos_views::TimeDomain::Unknown);
-        }
-        Err(ClockError::DecodingError) => {
-            // Explicit error - also acceptable
-        }
-        Err(e) => {
-            panic!("unexpected error: {:?}", e);
-        }
-    }
+    // Then: Returns Ok(()) - silently ignored (lenient decoding for Phase 0.5.4)
+    assert!(result.is_ok(), "malformed observations should be silently ignored");
+
+    // Verify time is still unknown (no samples applied)
+    assert_eq!(view.now().domain, jitos_views::TimeDomain::Unknown);
 }

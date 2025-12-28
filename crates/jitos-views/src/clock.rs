@@ -201,9 +201,6 @@ pub enum ClockPolicyId {
 /// Clock view errors
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum ClockError {
-    #[error("canonical decoding failed for tagged clock sample")]
-    DecodingError,
-
     #[error("cut {cut} exceeds event sequence length {len}")]
     CutOutOfBounds { cut: usize, len: usize },
 }
