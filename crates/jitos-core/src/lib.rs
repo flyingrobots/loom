@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub mod canonical;
+pub mod delta;
 pub mod events;
 
 /// A 256-bit BLAKE3 hash.

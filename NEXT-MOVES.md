@@ -107,7 +107,7 @@ pub enum EventKind {
 - [x] Different policy → different event_id (no hash collision) - explicit test
 - [x] CanonicalBytes prevents non-canonical data - private field enforced
 - [x] Validation catches invalid structures - 8 negative tests
-- [x] All tests passing (61 total: 49 events + 12 canonical encoding)
+- [x] All tests passing (69 total: 57 unit + 12 integration)
 
 ---
 
@@ -116,7 +116,7 @@ pub enum EventKind {
 **The Problem:** "What if the packet arrived 10ms later?" needs formal expression.
 
 **The Fix:**
-- [ ] Create `jitos-core/src/delta.rs`:
+- [x] Create `jitos-core/src/delta.rs`:
 
 ```rust
 /// Describes a controlled violation of history
@@ -135,17 +135,17 @@ pub struct DeltaSpec {
 #[derive(Serialize, Deserialize, Clone)]
 pub enum DeltaKind {
     /// Change scheduler policy (e.g., FIFO → LIFO)
-    SchedulerPolicy { new_policy: SchedulerPolicyHash },
+    SchedulerPolicy { new_policy: PolicyHash },
 
     /// Inject/modify/delete input event
     InputMutation {
         insert: Vec<InputEvent>,
-        delete: Vec<Hash>,
-        modify: Vec<(Hash, InputEvent)>,
+        delete: Vec<EventId>,
+        modify: Vec<(EventId, InputEvent)>,
     },
 
     /// Change clock interpretation policy
-    ClockPolicy { new_policy: ClockPolicyHash },
+    ClockPolicy { new_policy: PolicyHash },
 
     /// Change trust assumptions
     TrustPolicy { new_trust_roots: Vec<AgentId> },
@@ -153,10 +153,10 @@ pub enum DeltaKind {
 ```
 
 **Acceptance Criteria:**
-- Can express "same inputs, different schedule"
-- Can express "same schedule, different inputs"
-- Can express "same inputs, different clock policy"
-- DeltaSpec is canonical-encodable and content-addressable
+- [x] Can express "same inputs, different schedule"
+- [x] Can express "same schedule, different inputs"
+- [x] Can express "same inputs, different clock policy"
+- [x] DeltaSpec is canonical-encodable and content-addressable
 
 ---
 
@@ -326,12 +326,12 @@ impl DeterministicIdAllocator {
 
 1. **[DONE]** Canonical Encoding Standard (`jitos-core/src/canonical.rs` + 28 test vectors) ✅
 2. **[DONE]** Event Envelope v2 (`jitos-core/src/events.rs` - 4 types, policy as parent, 61 tests) ✅
-3. **[TODO]** DeltaSpec (`jitos-core/src/delta.rs` for counterfactuals)
+3. **[DONE]** DeltaSpec (`jitos-core/src/delta.rs` - counterfactual specification, 8 tests) ✅
 4. **[TODO]** Clock View (`jitos-views/src/clock.rs` with Time as fold)
 5. **[TODO]** Timer Semantics (`jitos-views/src/timers.rs` with request/fire events)
 6. **[TODO]** Deterministic IDs (`jitos-graph/src/ids.rs` tied to normalized schedule)
 
-**Progress: 2/6 foundational commits complete (33.3%)**
+### Progress: 3/6 foundational commits complete (50.0%)
 
 **Golden Test:**
 ```rust
