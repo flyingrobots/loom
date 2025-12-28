@@ -5,6 +5,7 @@ members = [
     "crates/jitos-core",
     "crates/jitos-graph",
     "crates/jitos-scheduler",
+    "crates/jitos-views",       # Phase 0.5.4
     # TODO: Add remaining crates as they are created per NEXT-MOVES.md:
     # "crates/jitos-inversion",   # Phase 1.3
     # "crates/jitos-policy",      # Phase 2.1
