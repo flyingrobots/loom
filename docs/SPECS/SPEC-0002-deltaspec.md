@@ -14,11 +14,13 @@ DeltaSpec provides a formal, content-addressed way to express controlled violati
 ### 2.1 The Problem
 
 Debugging non-deterministic systems requires answering counterfactual questions:
+
 - "What if the packet arrived 10ms later?"
 - "What if the scheduler used LIFO instead of FIFO?"
 - "What if we trusted NTP less?"
 
 Without formal specification, these questions are:
+
 - **Vague**: "Later" by whose clock? Which packet?
 - **Unreproducible**: Can't replay the exact scenario
 - **Uncomparable**: Can't diff two counterfactuals precisely
@@ -26,6 +28,7 @@ Without formal specification, these questions are:
 ### 2.2 The Solution
 
 DeltaSpec is a **content-addressed, canonical-encodable** struct that:
+
 1. Precisely describes a controlled violation of history
 2. Can be hashed and referenced in event DAG (for fork points)
 3. Enables deterministic replay of counterfactual branches
@@ -79,11 +82,13 @@ pub enum DeltaKind {
 ### 3.2 Content-Addressing
 
 DeltaSpec MUST be canonical-encodable (per SPEC-0001):
+
 ```rust
 delta_hash = BLAKE3(canonical_cbor(DeltaSpec))
 ```
 
 **Invariants:**
+
 1. Same logical delta → identical hash (cross-platform, cross-runtime)
 2. Different deltas → different hashes (collision resistance)
 3. Hash is computed deterministically from fields
@@ -92,13 +97,14 @@ delta_hash = BLAKE3(canonical_cbor(DeltaSpec))
 
 DeltaSpec creates fork points in the event DAG:
 
-```
+```text
 E1 ──► E2 ──► E3 ──► E4 (baseline worldline)
           ╲
            ╲──► E3′ ──► E4′ (counterfactual with delta_hash)
 ```
 
 Fork event structure:
+
 ```rust
 Fork {
     base_cut: EventId,      // Where to diverge (E2)
@@ -111,10 +117,12 @@ Fork {
 
 ### 4.1 Functional Requirements
 
-**FR-1: Scheduler Policy Changes**
+### FR-1: Scheduler Policy Changes
+
 MUST be able to express: "same inputs, different schedule"
 
 Example:
+
 ```rust
 DeltaSpec {
     kind: SchedulerPolicy {
@@ -125,10 +133,12 @@ DeltaSpec {
 }
 ```
 
-**FR-2: Input Mutations**
+### FR-2: Input Mutations
+
 MUST be able to express: "same schedule, different inputs"
 
 Example:
+
 ```rust
 DeltaSpec {
     kind: InputMutation {
@@ -146,10 +156,12 @@ DeltaSpec {
 }
 ```
 
-**FR-3: Clock Policy Changes**
+### FR-3: Clock Policy Changes
+
 MUST be able to express: "same inputs, different clock interpretation"
 
 Example:
+
 ```rust
 DeltaSpec {
     kind: ClockPolicy {
@@ -160,10 +172,12 @@ DeltaSpec {
 }
 ```
 
-**FR-4: Trust Policy Changes**
+### FR-4: Trust Policy Changes
+
 MUST be able to express: "same inputs, different trust assumptions"
 
 Example:
+
 ```rust
 DeltaSpec {
     kind: TrustPolicy {
@@ -179,33 +193,40 @@ DeltaSpec {
 
 ### 4.2 Non-Functional Requirements
 
-**NFR-1: Determinism**
+### NFR-1: Determinism
+
 Given the same DeltaSpec, replaying from the same base_cut MUST produce identical results.
 
-**NFR-2: Content-Addressing**
+### NFR-2: Content-Addressing
+
 DeltaSpec hash MUST be deterministic across platforms (x86-64, ARM64, WASM).
 
-**NFR-3: Canonical Encoding**
+### NFR-3: Canonical Encoding
+
 DeltaSpec MUST serialize to canonical CBOR (per SPEC-0001).
 
-**NFR-4: No Side Effects**
+### NFR-4: No Side Effects
+
 Constructing a DeltaSpec MUST NOT execute the delta. Execution happens only when explicitly applied during replay.
 
 ## 5. Acceptance Criteria
 
-**AC-1: Expressiveness**
+### AC-1: Expressiveness
+
 - [ ] Can express "same inputs, different schedule"
 - [ ] Can express "same schedule, different inputs"
 - [ ] Can express "same inputs, different clock policy"
 - [ ] Can express "same inputs, different trust policy"
 
-**AC-2: Content-Addressing**
+### AC-2: Content-Addressing
+
 - [ ] DeltaSpec is canonical-encodable
 - [ ] Same delta → identical hash
 - [ ] Different deltas → different hashes
 - [ ] Hash is stable across platforms
 
-**AC-3: Type Safety**
+### AC-3: Type Safety
+
 - [ ] Cannot construct invalid DeltaSpec (enforced by types)
 - [ ] PolicyHash references existing policies
 - [ ] EventId references existing events
@@ -215,7 +236,8 @@ Constructing a DeltaSpec MUST NOT execute the delta. Execution happens only when
 
 ### 6.1 Unit Tests
 
-**Test 1: Canonical Encoding**
+#### Test 1: Canonical Encoding
+
 ```rust
 #[test]
 fn test_deltaspec_canonical_encoding() {
@@ -226,7 +248,8 @@ fn test_deltaspec_canonical_encoding() {
 }
 ```
 
-**Test 2: Round-Trip**
+#### Test 2: Round-Trip
+
 ```rust
 #[test]
 fn test_deltaspec_roundtrip() {
@@ -237,7 +260,8 @@ fn test_deltaspec_roundtrip() {
 }
 ```
 
-**Test 3: Hash Stability**
+#### Test 3: Hash Stability
+
 ```rust
 #[test]
 fn test_deltaspec_hash_stability() {
@@ -248,7 +272,8 @@ fn test_deltaspec_hash_stability() {
 }
 ```
 
-**Test 4: Collision Resistance**
+#### Test 4: Collision Resistance
+
 ```rust
 #[test]
 fn test_different_deltas_different_hashes() {
@@ -260,7 +285,8 @@ fn test_different_deltas_different_hashes() {
 
 ### 6.2 Integration Tests
 
-**Test 5: Scheduler Policy Fork**
+#### Test 5: Scheduler Policy Fork
+
 ```rust
 #[test]
 fn test_scheduler_policy_fork() {
@@ -278,7 +304,8 @@ fn test_scheduler_policy_fork() {
 }
 ```
 
-**Test 6: Input Mutation Fork**
+#### Test 6: Input Mutation Fork
+
 ```rust
 #[test]
 fn test_input_mutation_fork() {
@@ -301,7 +328,8 @@ fn test_input_mutation_fork() {
 
 ### 6.3 Property Tests
 
-**Property 1: Replay Determinism**
+#### Property 1: Replay Determinism
+
 ```rust
 #[quickcheck]
 fn prop_replay_determinism(delta: DeltaSpec, cut: EventId) {
@@ -311,7 +339,8 @@ fn prop_replay_determinism(delta: DeltaSpec, cut: EventId) {
 }
 ```
 
-**Property 2: Content-Addressing Correctness**
+#### Property 2: Content-Addressing Correctness
+
 ```rust
 #[quickcheck]
 fn prop_content_addressing(delta: DeltaSpec) {
@@ -359,9 +388,14 @@ impl DeltaSpec {
 }
 ```
 
-### 7.3 Validation
+### 7.3 Validation (Future Work)
+
+**Note:** The validation function below is specified but NOT implemented in Phase 0.5.3.
+`DeltaError::InvalidEventRef` and `DeltaError::InvalidHash` are defined but not yet used.
+This will be implemented in a future phase when event store integration is added.
 
 ```rust
+// FUTURE: Not implemented in Phase 0.5.3
 pub fn validate_deltaspec(delta: &DeltaSpec, store: &EventStore) -> Result<(), DeltaError> {
     match &delta.kind {
         DeltaKind::InputMutation { delete, modify, ... } => {

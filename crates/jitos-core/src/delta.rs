@@ -22,6 +22,17 @@ pub struct InputEvent {
 }
 
 /// Describes a controlled violation of history
+///
+/// # Security Note
+///
+/// The `hash` field is NOT validated on deserialization in Phase 0.5.3.
+/// This means a malicious or corrupted DeltaSpec could have an arbitrary hash
+/// that doesn't match `compute_hash()`. Callers MUST use constructor methods
+/// (`new_scheduler_policy`, etc.) which guarantee correct hashes.
+///
+/// TODO(Phase 0.6): Add custom `Deserialize` impl that validates hash matches
+/// `compute_hash()` and rejects invalid specs. This requires integration with
+/// event store validation (see SPEC-0002 §7.3).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeltaSpec {
     /// What kind of counterfactual
@@ -32,6 +43,9 @@ pub struct DeltaSpec {
 
     /// Content-addressed hash of this spec
     /// Used to reference this delta in fork events
+    ///
+    /// IMPORTANT: This field is not validated during deserialization.
+    /// Always use constructor methods to ensure hash correctness.
     pub hash: Hash,
 }
 
@@ -147,7 +161,20 @@ pub enum DeltaKind {
 }
 
 /// Errors that can occur when working with DeltaSpec
+///
+/// # Note on Unused Variants
+///
+/// `InvalidEventRef` and `InvalidHash` are defined but not currently used in Phase 0.5.3.
+/// They are reserved for future validation logic (see SPEC-0002 §7.3):
+/// - `InvalidEventRef`: Will be used when validating InputMutation against EventStore
+/// - `InvalidHash`: Will be used when validating deserialized DeltaSpec hashes
+///
+/// These are intentionally included now to:
+/// 1. Document the error contract in the type system
+/// 2. Avoid breaking API changes when validation is added later
+/// 3. Make the SPEC-0002 examples compilable (they reference these variants)
 #[derive(Debug, thiserror::Error)]
+#[allow(dead_code)] // Some variants reserved for future validation logic
 pub enum DeltaError {
     #[error("Invalid event reference: {0:?}")]
     InvalidEventRef(EventId),

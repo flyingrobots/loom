@@ -331,7 +331,7 @@ impl DeterministicIdAllocator {
 5. **[TODO]** Timer Semantics (`jitos-views/src/timers.rs` with request/fire events)
 6. **[TODO]** Deterministic IDs (`jitos-graph/src/ids.rs` tied to normalized schedule)
 
-**Progress: 3/6 foundational commits complete (50.0%)**
+### Progress: 3/6 foundational commits complete (50.0%)
 
 **Golden Test:**
 ```rust
