@@ -21,7 +21,7 @@ impl fmt::Display for Hash {
 }
 
 /// System-Level Action Protocol (SLAP) v2.
-/// Defines the set of valid intentional mutations to the JITOS universe.
+/// Defines the set of valid intentional mutations to the Loom universe.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "op", content = "payload")]
 pub enum Slap {
@@ -49,7 +49,7 @@ pub struct Receipt {
     pub signature: Option<String>,
 }
 
-/// Standard Error types for the JITOS universe.
+/// Standard Error types for the Loom universe.
 #[derive(thiserror::Error, Debug, Serialize, Deserialize)]
 pub enum JitosError {
     #[error("Invariant violation: {0}")]
