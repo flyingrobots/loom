@@ -115,6 +115,7 @@ fn test_malformed_observation_handling() {
     let malformed_event = EventEnvelope::new_observation(
         CanonicalBytes::from_value(&vec![1, 2, 3, 4]).expect("encode bytes"),
         vec![],
+        None, // observation_type (untagged)
         None, // agent_id
         None, // signature
     )

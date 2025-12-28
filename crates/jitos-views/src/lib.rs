@@ -13,5 +13,5 @@ pub mod clock;
 
 pub use clock::{
     ClockError, ClockPolicyId, ClockSample, ClockSampleRecord, ClockSource, ClockView,
-    LatestSamples, Time, TimeDomain,
+    LatestSamples, Time, TimeDomain, OBS_CLOCK_SAMPLE_V0,
 };

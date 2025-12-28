@@ -10,6 +10,9 @@ use jitos_core::{events::EventEnvelope, Hash};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+/// Observation type tag for clock sample events (Phase 0.5.4)
+pub const OBS_CLOCK_SAMPLE_V0: &str = "OBS_CLOCK_SAMPLE_V0";
+
 /// Clock view - deterministic materialized view over clock observation events
 #[derive(Debug, Clone)]
 pub struct ClockView {
@@ -42,12 +45,17 @@ impl ClockView {
             return Ok(()); // Ignore non-observation events
         }
 
-        // Try to decode payload as ClockSample
+        // SPEC-0003 (lines 127-130): Only decode observations tagged OBS_CLOCK_SAMPLE_V0
+        // Strict enforcement: untagged or mismatched observations are ignored
+        if event.observation_type() != Some(OBS_CLOCK_SAMPLE_V0) {
+            return Ok(()); // Ignore observations without correct type tag
+        }
+
+        // Decode payload as ClockSample (type tag already verified)
         let sample: ClockSample = match event.payload().to_value() {
             Ok(s) => s,
             Err(_) => {
-                // Not a ClockSample - silently ignore for Phase 0.5.4
-                // (In future, observation type tags will make this efficient)
+                // Decoding failed even with correct tag - ignore silently
                 return Ok(());
             }
         };
