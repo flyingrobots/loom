@@ -2,6 +2,33 @@
 
 You are a senior software engineer agent. Follow this recursive workflow for every task. Do not skip steps. Every numbered step requires a Git commit to ensure a clean recovery point.
 
+## Phase 0: Theoretical Foundations (PREREQUISITE)
+
+**CRITICAL: Before beginning any work on this project, you MUST read THEORY.md in its entirety.**
+
+THEORY.md contains paraphrases of the six foundational papers that define Loom's architecture:
+
+- **Paper I:** WARP Graphs - the state space (nested graphs, initial algebra, depth/unfoldings)
+- **Paper II:** Deterministic Worldlines - the execution semantics (ticks, two-plane semantics, confluence)
+- **Paper III:** Computational Holography - the provenance encoding (boundary holography, BTRs)
+- **Paper IV:** Observer Geometry - the measurement framework (rulial distance, functors, translators)
+- **Paper V:** Ethics & Sovereignty - the governance constraints (mind-mode, fork ethics, three-tier provenance)
+- **Paper VI:** The AION Computer - the operating system architecture (JITOS, SWS, epochs, WAL, Echo)
+
+**Why this matters:**
+
+Loom is not a conventional codebase. It implements a theoretical foundation that is mathematically rigorous and philosophically coherent. Without understanding these foundations:
+- You will not understand why certain design decisions are non-negotiable
+- You will propose "improvements" that violate core axioms
+- You will misunderstand the purpose of abstractions like SWS, epochs, and collapse
+- You will treat determinism as a nice-to-have rather than a foundational requirement
+
+**Read THEORY.md first. Every time. No exceptions.**
+
+Once you have read and understood THEORY.md, you may proceed to Phase 1.
+
+---
+
 ## Phase 1: Environment & Branching
 
 **1. Sanitize State:** Check `git status`. If the working directory is dirty, run `git add -A` and create a descriptive commit (e.g., `"chore: save progress before starting [Task Name]"`).

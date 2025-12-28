@@ -1,12 +1,9 @@
-# Loom
+# Loom (formerly JITOS)
 
-> Minds aren't clocks. They're _looms_.
+> **Status:** Early Stage - Foundational Phase
+> **Current Progress:** 3/6 core foundations complete
 
-**Loom** is a history-native, deterministic computational system in which execution is woven into an immutable fabric.
-
-Classical computing exposes only the final execution trace. The constraints, ordering decisions, and near-misses that shaped that result are discarded or overwritten. Loom makes that hidden structure explicit.
-
-It treats computation as **the construction of history under constraint**, not just as the transformation of values.
+**Loom** is a history-native, deterministic computational system where execution is woven into an immutable fabric. This is the foundation layer for a new kind of computing where history is structural, not incidental.
 
 ```
 THE REVΩLUTION WILL BE DETERMINISTIC
@@ -14,73 +11,113 @@ THE REVΩLUTION WILL BE DETERMINISTIC
 
 ---
 
-## Why Loom?
+## Project Status
 
-| Classical Systems | Loom |
-|-------------------|------|
-| `Input + Code → State Change` | `Possibilities + Constraints → Selection → History` |
-| History is implicit, overwritten | History is structural, append-only |
-| Debugging = printf/logs | Debugging = query the Umbra |
-| Race conditions are bugs | Race conditions are structurally eliminated |
-| State is primary, history derived | History is primary, state derived |
+We're building the **axles** before the **wheels**. The current focus is foundational semantics that make determinism possible.
 
-In Loom, history is not an incidental artifact of execution. **History is the product.**
+### Phase 0.5: Foundational Semantics (In Progress)
 
----
+| Component | Status | Details |
+|-----------|--------|---------|
+| **Canonical Encoding** | ✅ Shipped | CBOR-based deterministic serialization (PR #7) |
+| **Event Envelope DAG** | ✅ Shipped | Content-addressed event graph with 4 event types (PR #8) |
+| **DeltaSpec** | ✅ Shipped | Counterfactual specification with hash validation (PR #9) |
+| **Clock View** | 🔨 Next | Time as materialized view over events |
+| **Timer Semantics** | 🔜 Planned | Deterministic timers (depends on Clock View) |
+| **Deterministic IDs** | 🔜 Planned | Content-addressed node allocation |
 
-## Core Concepts
-
-### The Loom (Fabric)
-The realized, immutable history of execution. If an event is in the Loom, it happened. Append-only.
-
-### The Stylus (Commit)
-The mechanism that performs the irreversible write. The Stylus does not calculate; it finalizes.
-
-### The Scheduler (Constraint)  
-The logic that governs when the Stylus may act. Schedulers determine which candidate trajectories are admissible. They do not write history—they constrain it.
-
-### The Umbra (Shadow Index)
-A structured archive of unrealized possibilities. When the Stylus commits to one path, valid alternatives are indexed—queryable and comparable without collapsing them into reality.
+**Progress:** 3/6 foundational commits complete (50%)
 
 ---
 
-## Architecture
+## What Works Right Now
 
-Loom is built on **WARP Graphs (Worldline Algebra for Recursive Porvenance)** with **Double-Pushout (DPO)** rewriting semantics.
+### 1. Canonical Encoding (SPEC-0001)
 
-```mermaid
-flowchart TB
-    subgraph Input[" "]
-        Bundle["Bundle<br/><i>(Possible Rewrites)</i>"]
-    end
-    
-    subgraph Process[" "]
-        Scheduler["Scheduler<br/><i>(Constraint Resolver)</i>"]
-        Stylus["Stylus<br/><i>(Commit)</i>"]
-    end
-    
-    subgraph Output["Queryable Counterfactuals"]
-        Fabric["Fabric<br/><i>(History)</i>"]
-        Umbra["Umbra<br/><i>(Shadow)</i>"]
-    end
-    
-    Bundle --> Scheduler --> Stylus
-    Stylus -->|"committed"| Fabric
-    Fabric -.->|"rejected"| Umbra
-    
-    style Bundle fill:#3498db,color:#fff
-    style Scheduler fill:#9b59b6,color:#fff
-    style Stylus fill:#e74c3c,color:#fff
-    style Fabric fill:#2ecc71,color:#fff
-    style Umbra fill:#34495e,color:#fff
+Deterministic, cross-platform serialization:
+
+```rust
+use jitos_core::canonical;
+
+let data = vec![1, 2, 3];
+let bytes = canonical::encode(&data)?;
+// Same logical structure → identical bytes (always)
 ```
 
-### Key Properties
+- **28 test vectors** covering edge cases
+- **CBOR-based** with strict ordering guarantees
+- **Cross-platform determinism** (x86-64, ARM64, WASM)
 
-- **Deterministic**: Same graph + same rules = same output. Always.
-- **Confluent**: Independent rewrites converge to canonical form.
-- **Reversible**: Transformations preserve enough structure to reconstruct prior states.
-- **Introspectable**: The Umbra makes "what could have happened" a first-class query.
+### 2. Event Envelope DAG (SPEC-0001-events)
+
+Content-addressed event graph with structural invariants:
+
+```rust
+use jitos_core::events::*;
+
+// Create policy context (immutable rulebook)
+let policy = EventEnvelope::new_policy_context(
+    b"clock_policy=trust_ntp".to_vec(),
+    vec![], // no parents (genesis)
+    None,
+)?;
+
+// Create decision referencing that policy
+let decision = EventEnvelope::new_decision(
+    b"fire_timer_123".to_vec(),
+    vec![policy.event_id()], // policy as parent
+    None,
+)?;
+```
+
+**Features:**
+- 4 event types: Observation, PolicyContext, Decision, Commit
+- Parent canonicalization (sorted, deduplicated)
+- Custom Deserialize validation
+- 60 unit tests + 12 integration tests
+
+### 3. DeltaSpec (SPEC-0002)
+
+Formal counterfactual specification:
+
+```rust
+use jitos_core::delta::*;
+
+// "What if we used LIFO instead of FIFO?"
+let delta = DeltaSpec::new_scheduler_policy(
+    policy_hash,
+    "Test race bug with reversed task order".to_string(),
+)?;
+
+// Hash is content-addressed and validated on deserialize
+assert_eq!(delta.hash(), delta.compute_hash()?);
+```
+
+**Features:**
+- 4 delta kinds: SchedulerPolicy, InputMutation, ClockPolicy, TrustPolicy
+- Custom Deserialize with hash integrity validation
+- Prevents spoofed delta references
+- 11 tests including tampered hash rejection
+
+---
+
+## Architecture Vision
+
+Loom is being built on **WARP Graphs (Worldline Algebra for Recursive Provenance)** with **Double-Pushout (DPO)** rewriting semantics.
+
+### Core Concepts (Planned)
+
+**The Loom (Fabric)**
+The realized, immutable history of execution. Append-only event DAG.
+
+**The Stylus (Commit)**
+The mechanism that performs irreversible writes. Does not calculate; finalizes.
+
+**The Scheduler (Constraint)**
+Governs when the Stylus may act. Determines admissible trajectories.
+
+**The Umbra (Shadow Index)**
+Structured archive of unrealized possibilities. Valid alternatives are queryable.
 
 ---
 
@@ -92,60 +129,54 @@ git clone https://github.com/flyingrobots/loom.git
 cd loom
 
 # Build (requires Rust 1.75+)
-cargo build --release
-
-# Run the REPL
-cargo run --bin loom-repl
+cargo build
 
 # Run tests
 cargo test
-```
 
-### Example: Hello, Loom
-
-```rust
-use loom::{Fabric, Scheduler, Stylus};
-
-fn main() {
-    // Initialize empty fabric
-    let mut fabric = Fabric::new();
-    
-    // Define a simple rewrite rule
-    let rule = rule! {
-        // Left-hand side (pattern to match)
-        L: (node A) -> (node B),
-        // Right-hand side (replacement)
-        R: (node A) -> (node C) -> (node B),
-    };
-    
-    // Create scheduler with the rule
-    let scheduler = Scheduler::new(vec![rule]);
-    
-    // Create stylus bound to fabric
-    let mut stylus = Stylus::new(&mut fabric);
-    
-    // Tick: enumerate possibilities, select, commit
-    let tick_result = scheduler.tick(&mut stylus);
-    
-    // Query what happened
-    println!("Committed: {:?}", tick_result.committed);
-    
-    // Query what could have happened
-    println!("Umbra: {:?}", fabric.umbra().query_all());
-}
+# Current test results:
+# - 72 passing tests (60 unit + 12 integration)
+# - 0 warnings
 ```
 
 ---
 
-## Project Status
+## Current Codebase Structure
 
-| Component | Status |
-|-----------|--------|
-| Core rewriting engine | ✅ Stable |
-| Scheduler | ✅ Stable |
-| Umbra index | 🔨 In progress |
-| WASM bindings | 🔨 In progress |
-| Documentation | 📝 Drafting |
+```
+crates/
+├── jitos-core/          ✅ Foundations (shipped)
+│   ├── canonical.rs     ✅ Deterministic CBOR encoding
+│   ├── events.rs        ✅ Event DAG with 4 event types
+│   └── delta.rs         ✅ Counterfactual specifications
+├── jitos-graph/         🔨 Placeholder (basic structure only)
+└── jitos-scheduler/     🔨 Placeholder (basic structure only)
+```
+
+---
+
+## What's Coming Next
+
+**Immediate Next Steps (Phase 0.5.4-0.5.6):**
+
+1. **Clock View** - Time as pure function over events (no syscalls)
+2. **Timer Semantics** - Deterministic timer request/fire mechanism
+3. **Deterministic IDs** - Content-addressed node allocation tied to schedule
+
+See [NEXT-MOVES.md](./NEXT-MOVES.md) for detailed roadmap.
+
+---
+
+## Design Principles
+
+**Why these foundations matter:**
+
+1. **Determinism requires canonical encoding** - Same structure must produce identical bytes across all platforms/runtimes
+2. **Branching requires event DAG** - Linear hash chains can't express counterfactual divergence
+3. **Replay requires time-as-view** - Can't use syscalls; time must be materialized from events
+4. **Content-addressing requires hash validation** - Must prevent spoofed references
+
+These aren't features. **These are the axles that everything else rotates on.**
 
 ---
 
@@ -161,13 +192,21 @@ JITOS served its purpose. **Loom** is the name that fits.
 
 Loom is the execution model for [AIΩN](https://github.com/flyingrobots/aion)—a unified, deterministic computational framework where history is the primary artifact and state is merely a derived view.
 
-The mathematical foundations are detailed in the **AIΩN Foundations Series**:
-
 ---
 
 ## License
 
 [Apache 2.0](./LICENSE) — Use it, fork it, ship it.
+
+---
+
+## Contributing
+
+We're in foundational phase. The best way to contribute right now is to:
+
+1. Review the specs in `docs/SPECS/`
+2. Run the tests and report issues
+3. Wait for Phase 1 (core infrastructure) before major feature work
 
 ---
 

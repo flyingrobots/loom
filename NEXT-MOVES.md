@@ -1,9 +1,9 @@
 # JITOS Next Moves: Execution Plan (CORRECTED)
 
 **Author:** Claude (Sonnet 4.5)
-**Date:** 2025-12-26 (REVISED)
+**Date:** 2025-12-28 (UPDATED)
 **Status:** Execution Roadmap - Foundation-First Edition
-**Context:** Post-stakeholder feedback - fixing the three foundational holes
+**Context:** Phase 0.5.3 (DeltaSpec) complete - 3/6 foundational commits shipped
 
 ---
 
@@ -325,11 +325,29 @@ impl DeterministicIdAllocator {
 **Before touching Phase 1, ship these:**
 
 1. **[DONE]** Canonical Encoding Standard (`jitos-core/src/canonical.rs` + 28 test vectors) ✅
-2. **[DONE]** Event Envelope v2 (`jitos-core/src/events.rs` - 4 types, policy as parent, 61 tests) ✅
-3. **[DONE]** DeltaSpec (`jitos-core/src/delta.rs` - counterfactual specification, 8 tests) ✅
+   - PR #7: Merged 2025-12-27
+   - Status: ✅ Shipped with comprehensive test coverage
+
+2. **[DONE]** Event Envelope v2 (`jitos-core/src/events.rs` - 4 types, policy as parent, 69 tests) ✅
+   - PR #8: Merged 2025-12-28
+   - Status: ✅ Shipped with validation and parent canonicalization
+
+3. **[DONE]** DeltaSpec (`jitos-core/src/delta.rs` - counterfactual specification, 11 tests) ✅
+   - PR #9: Merged 2025-12-28
+   - Features: 4 constructors, custom Deserialize with hash validation, finalize() helper
+   - Status: ✅ Shipped with full hash integrity enforcement
+
 4. **[TODO]** Clock View (`jitos-views/src/clock.rs` with Time as fold)
+   - Status: Not started
+   - Blockers: None - ready to begin
+
 5. **[TODO]** Timer Semantics (`jitos-views/src/timers.rs` with request/fire events)
+   - Status: Not started
+   - Depends on: Clock View (0.5.4)
+
 6. **[TODO]** Deterministic IDs (`jitos-graph/src/ids.rs` tied to normalized schedule)
+   - Status: Not started
+   - Blockers: None - ready to begin
 
 ### Progress: 3/6 foundational commits complete (50.0%)
 
