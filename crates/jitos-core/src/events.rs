@@ -189,7 +189,9 @@ pub enum EventKind {
 ///
 /// Fields are private to prevent post-construction mutation that would
 /// invalidate the content-addressed event_id.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+///
+/// SECURITY: Custom Deserialize validates invariants on deserialization.
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EventEnvelope {
     /// Content-addressed ID: H(kind || payload || sorted_parents)
     event_id: EventId,
@@ -404,6 +406,69 @@ impl EventEnvelope {
     /// Check if this event is a merge (multiple parents).
     pub fn is_merge(&self) -> bool {
         self.parents.len() > 1
+    }
+}
+
+// SECURITY: Custom Deserialize validates invariants that can be checked without EventStore.
+// This prevents deserialized EventEnvelope from violating structural invariants.
+// Full validation (parent existence, type-specific constraints) still requires validate_event().
+impl<'de> Deserialize<'de> for EventEnvelope {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        // Helper struct for raw deserialization
+        #[derive(Deserialize)]
+        struct RawEventEnvelope {
+            event_id: EventId,
+            kind: EventKind,
+            payload: CanonicalBytes,
+            parents: Vec<EventId>,
+            agent_id: Option<AgentId>,
+            signature: Option<Signature>,
+        }
+
+        let raw = RawEventEnvelope::deserialize(deserializer)?;
+
+        // Validation 1: Verify event_id matches computed ID
+        let computed_id = EventEnvelope::compute_event_id(&raw.kind, &raw.payload, &raw.parents)
+            .map_err(serde::de::Error::custom)?;
+
+        if raw.event_id != computed_id {
+            return Err(serde::de::Error::custom(format!(
+                "Tampered event_id: expected {:?}, got {:?}",
+                computed_id, raw.event_id
+            )));
+        }
+
+        // Validation 2: Verify parents are sorted (canonical order)
+        let is_canonical = raw.parents.len() <= 1
+            || raw
+                .parents
+                .windows(2)
+                .all(|pair| pair[0] <= pair[1]);
+
+        if !is_canonical {
+            return Err(serde::de::Error::custom(
+                "Parents must be in sorted order (canonical)"
+            ));
+        }
+
+        // Validation 3: Commit events MUST have signature
+        if raw.kind == EventKind::Commit && raw.signature.is_none() {
+            return Err(serde::de::Error::custom(
+                "Commit event must have a signature"
+            ));
+        }
+
+        Ok(EventEnvelope {
+            event_id: raw.event_id,
+            kind: raw.kind,
+            payload: raw.payload,
+            parents: raw.parents,
+            agent_id: raw.agent_id,
+            signature: raw.signature,
+        })
     }
 }
 
@@ -1368,5 +1433,98 @@ mod tests {
         // Deserialize should accept it
         let deserialized: AgentId = ciborium::de::from_reader(&buf[..]).unwrap();
         assert_eq!(deserialized.as_str(), "agent-123");
+    }
+
+    #[test]
+    fn test_event_envelope_deserialize_rejects_tampered_id() {
+        // Create a valid observation
+        let payload = CanonicalBytes::from_value(&serde_json::json!({"data": "test"})).unwrap();
+        let agent_id = AgentId::new("agent-1").unwrap();
+        let event = EventEnvelope::new_observation(
+            payload.clone(),
+            vec![],
+            Some(agent_id.clone()),
+            None,
+        )
+        .unwrap();
+
+        // Manually tamper with the event_id
+        let tampered = EventEnvelope {
+            event_id: Hash([0xFF; 32]),  // Tampered hash
+            kind: event.kind.clone(),
+            payload: payload.clone(),
+            parents: event.parents.clone(),
+            agent_id: Some(agent_id),
+            signature: None,
+        };
+
+        // Serialize the tampered event
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&tampered, &mut buf).unwrap();
+
+        // Deserialize should reject tampered event_id
+        let result: Result<EventEnvelope, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(
+            result.is_err(),
+            "Deserialization should reject tampered event_id"
+        );
+    }
+
+    #[test]
+    fn test_event_envelope_deserialize_rejects_unsorted_parents() {
+        // Create event with manually unsorted parents (bypassing constructor)
+        let payload = CanonicalBytes::from_value(&serde_json::json!({"data": "test"})).unwrap();
+        let parent1 = Hash([1u8; 32]);
+        let parent2 = Hash([2u8; 32]);
+
+        // Deliberately unsorted (parent2 before parent1)
+        let unsorted_parents = vec![parent2, parent1];
+
+        let tampered = EventEnvelope {
+            event_id: Hash([0xAA; 32]),  // Doesn't matter, will fail parent check first
+            kind: EventKind::Observation,
+            payload,
+            parents: unsorted_parents,
+            agent_id: Some(AgentId::new("agent-1").unwrap()),
+            signature: None,
+        };
+
+        // Serialize
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&tampered, &mut buf).unwrap();
+
+        // Deserialize should reject unsorted parents
+        let result: Result<EventEnvelope, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(
+            result.is_err(),
+            "Deserialization should reject unsorted parents"
+        );
+    }
+
+    #[test]
+    fn test_event_envelope_deserialize_rejects_commit_without_signature() {
+        // Create a Commit event without signature (invalid)
+        let payload = CanonicalBytes::from_value(&serde_json::json!({"data": "test"})).unwrap();
+        let decision_id = Hash([3u8; 32]);
+
+        let tampered = EventEnvelope {
+            event_id: Hash([0xBB; 32]),
+            kind: EventKind::Commit,
+            payload,
+            parents: vec![decision_id],
+            agent_id: Some(AgentId::new("agent-1").unwrap()),
+            signature: None,  // Missing signature on Commit!
+        };
+
+        // Serialize
+        let mut buf = Vec::new();
+        ciborium::ser::into_writer(&tampered, &mut buf).unwrap();
+
+        // Deserialize should reject Commit without signature
+        let result: Result<EventEnvelope, _> = ciborium::de::from_reader(&buf[..]);
+        assert!(
+            result.is_err(),
+            "Deserialization should reject Commit without signature"
+        );
     }
 }
