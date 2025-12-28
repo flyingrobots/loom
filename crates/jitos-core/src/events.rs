@@ -407,8 +407,9 @@ pub fn validate_event<S: EventStore>(
     }
 
     // Rule 2: Parents must be canonical (sorted, unique)
-    let canonical_parents = EventEnvelope::canonicalize_parents(event.parents.clone());
-    if event.parents != canonical_parents {
+    // Zero-allocation check: strict inequality ensures both sorted AND unique
+    let is_canonical = event.parents.windows(2).all(|w| w[0] < w[1]);
+    if !is_canonical && event.parents.len() > 1 {
         return Err(EventError::ValidationError(
             "Parents are not canonically sorted/deduplicated".to_string(),
         ));
