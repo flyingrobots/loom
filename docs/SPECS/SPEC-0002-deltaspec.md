@@ -113,6 +113,38 @@ Fork {
 }
 ```
 
+### 3.4 Serialization Format (Normative)
+
+**CRITICAL:** The serde tagging strategy for `DeltaKind` is part of the canonical encoding contract and MUST NOT be changed.
+
+`DeltaKind` uses **adjacent tagging** via:
+
+```rust
+#[serde(tag = "type", content = "data")]
+pub enum DeltaKind { ... }
+```
+
+This produces CBOR structures like:
+
+```cbor
+{
+  "type": "SchedulerPolicy",
+  "data": { "new_policy": <hash bytes> }
+}
+```
+
+**Breaking Change Warning:**
+
+Changing the serde representation (e.g., to `#[serde(untagged)]` or internally-tagged) will **invalidate all existing DeltaSpec hashes**. The tagging strategy directly affects canonical encoding, which is hashed to produce `delta_hash`.
+
+Any modification to enum serialization format requires:
+
+1. Migration of all persisted DeltaSpec references
+2. Recomputation of all fork event hashes
+3. Version bump with explicit breaking-change notice
+
+**Conformance:** Implementations MUST preserve adjacent tagging with `tag = "type"` and `content = "data"` to maintain hash compatibility.
+
 ## 4. Requirements
 
 ### 4.1 Functional Requirements

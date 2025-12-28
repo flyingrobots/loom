@@ -44,12 +44,20 @@ pub struct DeltaSpec {
     /// Content-addressed hash of this spec
     /// Used to reference this delta in fork events
     ///
+    /// INVARIANT: This field is NOT included in the hash computation.
+    /// Hash is computed over (kind, description) only. See `compute_hash()`.
+    ///
     /// IMPORTANT: This field is not validated during deserialization.
     /// Always use constructor methods to ensure hash correctness.
-    pub hash: Hash,
+    hash: Hash,
 }
 
 impl DeltaSpec {
+    /// Returns the content-addressed hash of this DeltaSpec.
+    pub fn hash(&self) -> Hash {
+        self.hash
+    }
+
     /// Compute the canonical hash of this DeltaSpec.
     ///
     /// INVARIANT: Same logical delta → identical hash (cross-platform, cross-runtime)
@@ -65,19 +73,23 @@ impl DeltaSpec {
         Ok(Hash(*hash_bytes.as_bytes()))
     }
 
+    /// Internal: compute hash and finalize construction
+    fn finalize(mut self) -> Result<Self, CanonicalError> {
+        self.hash = self.compute_hash()?;
+        Ok(self)
+    }
+
     /// Create a new DeltaSpec with scheduler policy change
     pub fn new_scheduler_policy(
         new_policy: PolicyHash,
         description: String,
     ) -> Result<Self, CanonicalError> {
-        let spec = Self {
+        Self {
             kind: DeltaKind::SchedulerPolicy { new_policy },
             description,
             hash: Hash([0u8; 32]), // temp
-        };
-
-        let hash = spec.compute_hash()?;
-        Ok(Self { hash, ..spec })
+        }
+        .finalize()
     }
 
     /// Create a new DeltaSpec with clock policy change
@@ -85,14 +97,12 @@ impl DeltaSpec {
         new_policy: PolicyHash,
         description: String,
     ) -> Result<Self, CanonicalError> {
-        let spec = Self {
+        Self {
             kind: DeltaKind::ClockPolicy { new_policy },
             description,
             hash: Hash([0u8; 32]), // temp
-        };
-
-        let hash = spec.compute_hash()?;
-        Ok(Self { hash, ..spec })
+        }
+        .finalize()
     }
 
     /// Create a new DeltaSpec with trust policy change
@@ -112,14 +122,13 @@ impl DeltaSpec {
             ));
         }
 
-        let spec = Self {
+        Self {
             kind: DeltaKind::TrustPolicy { new_trust_roots },
             description,
             hash: Hash([0u8; 32]), // temp
-        };
-
-        let hash = spec.compute_hash()?;
-        Ok(Self { hash, ..spec })
+        }
+        .finalize()
+        .map_err(DeltaError::from)
     }
 
     /// Create a new DeltaSpec with input mutation
@@ -129,14 +138,12 @@ impl DeltaSpec {
         modify: Vec<(EventId, InputEvent)>,
         description: String,
     ) -> Result<Self, CanonicalError> {
-        let spec = Self {
+        Self {
             kind: DeltaKind::InputMutation { insert, delete, modify },
             description,
             hash: Hash([0u8; 32]), // temp
-        };
-
-        let hash = spec.compute_hash()?;
-        Ok(Self { hash, ..spec })
+        }
+        .finalize()
     }
 }
 
@@ -174,11 +181,16 @@ pub enum DeltaKind {
 /// 2. Avoid breaking API changes when validation is added later
 /// 3. Make the SPEC-0002 examples compilable (they reference these variants)
 #[derive(Debug, thiserror::Error)]
-#[allow(dead_code)] // Some variants reserved for future validation logic
 pub enum DeltaError {
+    /// Reserved for Phase 0.6 validation - will be used when validating
+    /// InputMutation delete/modify operations against EventStore
+    #[allow(dead_code)]
     #[error("Invalid event reference: {0:?}")]
     InvalidEventRef(EventId),
 
+    /// Reserved for Phase 0.6 validation - will be used when validating
+    /// deserialized DeltaSpec hashes match compute_hash()
+    #[allow(dead_code)]
     #[error("Invalid hash: computed hash does not match stored hash")]
     InvalidHash,
 
@@ -352,7 +364,7 @@ mod tests {
         }
 
         // Hash should be computed
-        assert_ne!(delta.hash, Hash([0u8; 32]), "Hash should be computed");
+        assert_ne!(delta.hash(), Hash([0u8; 32]), "Hash should be computed");
     }
 
     /// Test 7: InputMutation with delete operation
