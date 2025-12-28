@@ -337,9 +337,9 @@ impl DeterministicIdAllocator {
    - Features: 4 constructors, custom Deserialize with hash validation, finalize() helper
    - Status: ✅ Shipped with full hash integrity enforcement
 
-4. **[TODO]** Clock View (`jitos-views/src/clock.rs` with Time as fold)
-   - Status: Not started
-   - Blockers: None - ready to begin
+4. **[DONE]** Clock View (`jitos-views/src/clock.rs` with Time as fold) ✅
+   - PR: feat/clock-view
+   - Status: ✅ Complete - all tests passing (10/10)
 
 5. **[TODO]** Timer Semantics (`jitos-views/src/timers.rs` with request/fire events)
    - Status: Not started
@@ -349,7 +349,7 @@ impl DeterministicIdAllocator {
    - Status: Not started
    - Blockers: None - ready to begin
 
-### Progress: 3/6 foundational commits complete (50.0%)
+### Progress: 4/6 foundational commits complete (66.7%)
 
 **Golden Test:**
 ```rust
