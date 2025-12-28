@@ -39,8 +39,7 @@ impl WarpGraph {
 
     /// Computes the BLAKE3 root hash of the graph state.
     pub fn compute_hash(&self) -> Hash {
-        let mut hasher = blake3::Hasher::new();
-        // Deterministic sorting/hashing logic would go here
+        // TODO: Implement deterministic sorting/hashing logic
         // For now, a placeholder
         Hash([0u8; 32])
     }
