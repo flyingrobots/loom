@@ -42,23 +42,23 @@ impl TimerView {
     /// are silently ignored.
     pub fn apply_event(&mut self, event: &EventEnvelope) -> Result<(), TimerError> {
         // Process timer request observations
-        if matches!(event.kind(), jitos_core::events::EventKind::Observation) {
-            if event.observation_type() == Some(OBS_TIMER_REQUEST_V0) {
-                // Decode timer request payload
-                let request: TimerRequest = match event.payload().to_value() {
-                    Ok(r) => r,
-                    Err(_) => return Ok(()), // Ignore malformed requests
-                };
+        if matches!(event.kind(), jitos_core::events::EventKind::Observation)
+            && event.observation_type() == Some(OBS_TIMER_REQUEST_V0)
+        {
+            // Decode timer request payload
+            let request: TimerRequest = match event.payload().to_value() {
+                Ok(r) => r,
+                Err(_) => return Ok(()), // Ignore malformed requests
+            };
 
-                // Create request record with provenance
-                let record = TimerRequestRecord {
-                    event_id: event.event_id(),
-                    request,
-                };
+            // Create request record with provenance
+            let record = TimerRequestRecord {
+                event_id: event.event_id(),
+                request,
+            };
 
-                // Track the request
-                self.requests.push(record);
-            }
+            // Track the request
+            self.requests.push(record);
         }
 
         // Process timer fire decisions

@@ -10,10 +10,16 @@ mod common;
 
 use common::make_clock_event;
 use jitos_core::events::{CanonicalBytes, EventEnvelope};
-use jitos_views::{ClockSource, ClockView, ClockPolicyId, TimerFire, TimerRequest, TimerView, OBS_TIMER_REQUEST_V0};
+use jitos_views::{
+    ClockPolicyId, ClockSource, ClockView, TimerFire, TimerRequest, TimerView, OBS_TIMER_REQUEST_V0,
+};
 
 /// Helper: Create a timer request observation event
-fn make_timer_request(request_id: [u8; 32], duration_ns: u64, requested_at_ns: u64) -> EventEnvelope {
+fn make_timer_request(
+    request_id: [u8; 32],
+    duration_ns: u64,
+    requested_at_ns: u64,
+) -> EventEnvelope {
     let request = TimerRequest {
         request_id: jitos_core::Hash(request_id),
         duration_ns,
@@ -31,7 +37,11 @@ fn make_timer_request(request_id: [u8; 32], duration_ns: u64, requested_at_ns: u
 }
 
 /// Helper: Create a timer fire decision event
-fn make_timer_fire(request_id: [u8; 32], fired_at_ns: u64, request_event_id: jitos_core::Hash) -> EventEnvelope {
+fn make_timer_fire(
+    request_id: [u8; 32],
+    fired_at_ns: u64,
+    request_event_id: jitos_core::Hash,
+) -> EventEnvelope {
     let fire = TimerFire {
         request_id: jitos_core::Hash(request_id),
         fired_at_ns,
@@ -70,7 +80,9 @@ fn t1_fired_timers_excluded_from_pending() {
     // Request timer
     let request_event = make_timer_request([1u8; 32], 5_000_000_000, 0);
     let request_id = request_event.event_id();
-    timer_view.apply_event(&request_event).expect("apply request");
+    timer_view
+        .apply_event(&request_event)
+        .expect("apply request");
 
     // Fire the timer
     let fire_event = make_timer_fire([1u8; 32], 5_000_000_000, request_id);
@@ -78,7 +90,9 @@ fn t1_fired_timers_excluded_from_pending() {
 
     // Set clock to after fire time
     let clock_event = make_clock_event(ClockSource::Monotonic, 10_000_000_000, 100_000);
-    clock_view.apply_event(&clock_event).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event)
+        .expect("apply clock event");
 
     // When: Querying pending timers
     let pending = timer_view.pending_timers(clock_view.now());
@@ -153,7 +167,9 @@ fn t3_no_host_clock_dependency() {
         .expect("apply request");
 
     let clock_event = make_clock_event(ClockSource::Monotonic, 2_000_000_000, 100_000);
-    clock_view.apply_event(&clock_event).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event)
+        .expect("apply clock event");
 
     // When: Calling pending_timers() multiple times with no new events
     let pending1 = timer_view.pending_timers(clock_view.now());
@@ -213,7 +229,11 @@ fn t4_event_order_independence() {
     let pending2 = view2.pending_timers(clock2.now());
 
     // Then: Results should contain same timers (order may differ)
-    assert_eq!(pending1.len(), pending2.len(), "same number of pending timers");
+    assert_eq!(
+        pending1.len(),
+        pending2.len(),
+        "same number of pending timers"
+    );
 
     // Verify both have timers 1 and 2
     assert_eq!(pending1.len(), 2, "should have 2 pending timers");

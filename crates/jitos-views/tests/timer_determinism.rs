@@ -11,12 +11,16 @@ mod common;
 use common::make_clock_event;
 use jitos_core::events::{CanonicalBytes, EventEnvelope};
 use jitos_views::{
-    ClockSource, ClockView, ClockPolicyId, TimerRequest, TimerView, Time,
-    OBS_TIMER_REQUEST_V0, DEC_TIMER_FIRE_V0,
+    ClockPolicyId, ClockSource, ClockView, Time, TimerRequest, TimerView, DEC_TIMER_FIRE_V0,
+    OBS_TIMER_REQUEST_V0,
 };
 
 /// Helper: Create a timer request observation event
-fn make_timer_request(request_id: [u8; 32], duration_ns: u64, requested_at_ns: u64) -> EventEnvelope {
+fn make_timer_request(
+    request_id: [u8; 32],
+    duration_ns: u64,
+    requested_at_ns: u64,
+) -> EventEnvelope {
     let request = TimerRequest {
         request_id: jitos_core::Hash(request_id),
         duration_ns,
@@ -68,7 +72,9 @@ fn t2_timer_fires_at_correct_time() {
 
     // Set initial time to 1 second
     let clock_event = make_clock_event(ClockSource::Monotonic, 1_000_000_000, 100_000);
-    clock_view.apply_event(&clock_event).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event)
+        .expect("apply clock event");
 
     // Request timer for 5 seconds from now
     let request_event = make_timer_request(
@@ -76,11 +82,15 @@ fn t2_timer_fires_at_correct_time() {
         5_000_000_000, // 5 seconds
         1_000_000_000, // requested at 1s
     );
-    timer_view.apply_event(&request_event).expect("apply timer request");
+    timer_view
+        .apply_event(&request_event)
+        .expect("apply timer request");
 
     // When: Time is before fire time (at 5s, need to reach 6s)
     let clock_event2 = make_clock_event(ClockSource::Monotonic, 5_000_000_000, 100_000);
-    clock_view.apply_event(&clock_event2).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event2)
+        .expect("apply clock event");
 
     // Then: Timer is not ready
     let pending = timer_view.pending_timers(clock_view.now());
@@ -88,7 +98,9 @@ fn t2_timer_fires_at_correct_time() {
 
     // When: Time reaches fire time (6s = 1s + 5s)
     let clock_event3 = make_clock_event(ClockSource::Monotonic, 6_000_000_000, 100_000);
-    clock_view.apply_event(&clock_event3).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event3)
+        .expect("apply clock event");
 
     // Then: Timer is ready
     let pending = timer_view.pending_timers(clock_view.now());
@@ -109,7 +121,9 @@ fn t3_multiple_timers() {
 
     // Set initial time to 0
     let clock_event = make_clock_event(ClockSource::Monotonic, 0, 100_000);
-    clock_view.apply_event(&clock_event).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event)
+        .expect("apply clock event");
 
     // Request 3 timers at different durations
     timer_view
@@ -124,7 +138,9 @@ fn t3_multiple_timers() {
 
     // When: Time is at 1.5s
     let clock_event2 = make_clock_event(ClockSource::Monotonic, 1_500_000_000, 100_000);
-    clock_view.apply_event(&clock_event2).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event2)
+        .expect("apply clock event");
 
     // Then: Only first timer is ready
     let pending = timer_view.pending_timers(clock_view.now());
@@ -133,7 +149,9 @@ fn t3_multiple_timers() {
 
     // When: Time is at 2.5s
     let clock_event3 = make_clock_event(ClockSource::Monotonic, 2_500_000_000, 100_000);
-    clock_view.apply_event(&clock_event3).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event3)
+        .expect("apply clock event");
 
     // Then: First two timers are ready
     let pending = timer_view.pending_timers(clock_view.now());
@@ -141,7 +159,9 @@ fn t3_multiple_timers() {
 
     // When: Time is at 3.5s
     let clock_event4 = make_clock_event(ClockSource::Monotonic, 3_500_000_000, 100_000);
-    clock_view.apply_event(&clock_event4).expect("apply clock event");
+    clock_view
+        .apply_event(&clock_event4)
+        .expect("apply clock event");
 
     // Then: All three timers are ready
     let pending = timer_view.pending_timers(clock_view.now());
