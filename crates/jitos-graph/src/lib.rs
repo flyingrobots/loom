@@ -3,6 +3,10 @@ use jitos_core::Hash;
 use serde::{Deserialize, Serialize};
 use slotmap::{new_key_type, SlotMap};
 
+pub mod ids;
+
+pub use ids::{DeterministicIdAllocator, NodeId};
+
 new_key_type! { pub struct NodeKey; }
 new_key_type! { pub struct EdgeKey; }
 

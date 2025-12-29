@@ -342,15 +342,16 @@ impl DeterministicIdAllocator {
    - Status: ✅ Complete - all tests passing (10/10)
 
 5. **[DONE]** Timer Semantics (`jitos-views/src/timer.rs` with request/fire events) ✅
-   - PR: feat/timer-semantics
+   - PR #11: feat/timer-semantics (in review)
    - Status: ✅ Complete - all tests passing (7/7)
    - Features: TimerView tracks requests and fires, pending_timers() query, deterministic replay
 
-6. **[TODO]** Deterministic IDs (`jitos-graph/src/ids.rs` tied to normalized schedule)
-   - Status: Not started
-   - Blockers: None - ready to begin
+6. **[DONE]** Deterministic IDs (`jitos-graph/src/ids.rs` tied to normalized schedule) ✅
+   - PR: feat/deterministic-ids (stacked on timer-semantics)
+   - Status: ✅ Complete - all tests passing (6/6)
+   - Features: DeterministicIdAllocator, NodeId type, antichain swap property proven with 1000 permutations
 
-### Progress: 5/6 foundational commits complete (83.3%)
+### Progress: 6/6 foundational commits complete (100%) 🎉
 
 **Golden Test:**
 ```rust
