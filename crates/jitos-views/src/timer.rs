@@ -8,6 +8,7 @@
 
 use jitos_core::{events::EventEnvelope, Hash};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use thiserror::Error;
 
 use crate::Time;
@@ -15,14 +16,13 @@ use crate::Time;
 /// Observation type tag for timer request events
 pub const OBS_TIMER_REQUEST_V0: &str = "OBS_TIMER_REQUEST_V0";
 
-/// Decision type tag for timer fire events
-pub const DEC_TIMER_FIRE_V0: &str = "DEC_TIMER_FIRE_V0";
-
 /// Timer view - deterministic materialized view over timer events
 #[derive(Debug, Clone)]
 pub struct TimerView {
     requests: Vec<TimerRequestRecord>,
     fired: Vec<TimerFireRecord>,
+    /// HashSet of fired request IDs for O(1) lookup in pending_timers
+    fired_ids: HashSet<Hash>,
 }
 
 impl TimerView {
@@ -31,6 +31,7 @@ impl TimerView {
         Self {
             requests: Vec::new(),
             fired: Vec::new(),
+            fired_ids: HashSet::new(),
         }
     }
 
@@ -38,8 +39,8 @@ impl TimerView {
     ///
     /// # Errors
     ///
-    /// Currently never returns an error. Events that are not timer-related
-    /// are silently ignored.
+    /// Returns `TimerError::MalformedRequest` if a timer request observation
+    /// has invalid payload. Events that are not timer-related are silently ignored.
     pub fn apply_event(&mut self, event: &EventEnvelope) -> Result<(), TimerError> {
         // Process timer request observations
         if matches!(event.kind(), jitos_core::events::EventKind::Observation)
@@ -48,7 +49,7 @@ impl TimerView {
             // Decode timer request payload
             let request: TimerRequest = match event.payload().to_value() {
                 Ok(r) => r,
-                Err(_) => return Ok(()), // Ignore malformed requests
+                Err(_) => return Err(TimerError::MalformedRequest(event.event_id())),
             };
 
             // Create request record with provenance
@@ -70,11 +71,14 @@ impl TimerView {
                 // Create fire record with provenance
                 let record = TimerFireRecord {
                     event_id: event.event_id(),
-                    fire,
+                    fire: fire.clone(),
                 };
 
                 // Track the fire event
                 self.fired.push(record);
+
+                // Maintain fired_ids index for O(1) lookup
+                self.fired_ids.insert(fire.request_id);
             }
             // Silently ignore decisions that aren't timer fires
         }
@@ -86,22 +90,24 @@ impl TimerView {
     ///
     /// Returns the full TimerRequestRecord (including event_id) so that
     /// callers can construct valid Decision events with proper evidence parents.
+    ///
+    /// Complexity: O(M) where M is the number of requests.
+    /// Uses O(1) HashSet lookup instead of O(F) scan over fired events.
     pub fn pending_timers(&self, current_time: &Time) -> Vec<TimerRequestRecord> {
         let mut pending = Vec::new();
 
         for record in &self.requests {
-            // Check if already fired
-            let already_fired = self
-                .fired
-                .iter()
-                .any(|f| f.fire.request_id == record.request.request_id);
-
-            if already_fired {
+            // O(1) check if already fired using HashSet index
+            if self.fired_ids.contains(&record.request.request_id) {
                 continue;
             }
 
             // Calculate fire time: requested_at + duration
-            let fire_time_ns = record.request.requested_at_ns + record.request.duration_ns;
+            // Use saturating_add to prevent overflow (clamps to u64::MAX)
+            let fire_time_ns = record
+                .request
+                .requested_at_ns
+                .saturating_add(record.request.duration_ns);
 
             // Check if current time >= fire time
             if current_time.ns() >= fire_time_ns {
@@ -151,6 +157,8 @@ pub struct TimerFire {
 /// Timer view errors
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum TimerError {
-    #[error("placeholder error")]
-    Placeholder,
+    #[error("malformed timer request payload in event {0}")]
+    MalformedRequest(Hash),
+    #[error("malformed timer fire payload in event {0}")]
+    MalformedFire(Hash),
 }

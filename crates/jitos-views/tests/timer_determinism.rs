@@ -8,33 +8,8 @@
 
 mod common;
 
-use common::make_clock_event;
-use jitos_core::events::{CanonicalBytes, EventEnvelope};
-use jitos_views::{
-    ClockPolicyId, ClockSource, ClockView, Time, TimerRequest, TimerView, OBS_TIMER_REQUEST_V0,
-};
-
-/// Helper: Create a timer request observation event
-fn make_timer_request(
-    request_id: [u8; 32],
-    duration_ns: u64,
-    requested_at_ns: u64,
-) -> EventEnvelope {
-    let request = TimerRequest {
-        request_id: jitos_core::Hash(request_id),
-        duration_ns,
-        requested_at_ns,
-    };
-
-    EventEnvelope::new_observation(
-        CanonicalBytes::from_value(&request).expect("encode request"),
-        vec![],
-        Some(OBS_TIMER_REQUEST_V0.to_string()),
-        None,
-        None,
-    )
-    .expect("create timer request event")
-}
+use common::{make_clock_event, make_timer_request};
+use jitos_views::{ClockPolicyId, ClockSource, ClockView, Time, TimerView};
 
 // ============================================================================
 // T1: Basic Timer Request Processing
@@ -44,18 +19,29 @@ fn make_timer_request(
 fn t1_timer_request_is_tracked() {
     // Scenario: Timer request event is applied to TimerView
     // Given: Empty TimerView
-    let mut view = TimerView::new();
+    let mut timer_view = TimerView::new();
+    let mut clock_view = ClockView::new(ClockPolicyId::TrustMonotonicLatest);
 
     // When: Timer request observation event is applied
     let request_event = make_timer_request([1u8; 32], 5_000_000_000, 1_000_000_000);
-    view.apply_event(&request_event).expect("apply event");
+    timer_view.apply_event(&request_event).expect("apply event");
 
-    // Then: Timer appears in pending timers when time >= requested_at + duration
-    let current_time = Time::unknown(); // TODO: Replace with actual Time constructor
-    let pending = view.pending_timers(&current_time);
+    // Set time to after fire time (1s + 5s = 6s)
+    let clock_event = make_clock_event(ClockSource::Monotonic, 6_000_000_000, 100_000);
+    clock_view
+        .apply_event(&clock_event)
+        .expect("apply clock event");
 
-    // At unknown time, no timers should be ready
-    assert_eq!(pending.len(), 0, "no timers ready at unknown time");
+    // Then: Timer appears in pending timers
+    let pending = timer_view.pending_timers(clock_view.now());
+
+    // Timer should be tracked and pending
+    assert_eq!(pending.len(), 1, "timer should be tracked and pending");
+    assert_eq!(
+        pending[0].request.request_id,
+        jitos_core::Hash([1u8; 32]),
+        "correct timer request_id"
+    );
 }
 
 // ============================================================================
@@ -155,6 +141,9 @@ fn t3_multiple_timers() {
     // Then: First two timers are ready
     let pending = timer_view.pending_timers(clock_view.now());
     assert_eq!(pending.len(), 2, "two timers ready at 2.5s");
+    let ids: Vec<_> = pending.iter().map(|r| r.request.request_id).collect();
+    assert!(ids.contains(&jitos_core::Hash([1u8; 32])), "timer 1 ready");
+    assert!(ids.contains(&jitos_core::Hash([2u8; 32])), "timer 2 ready");
 
     // When: Time is at 3.5s
     let clock_event4 = make_clock_event(ClockSource::Monotonic, 3_500_000_000, 100_000);
@@ -165,4 +154,8 @@ fn t3_multiple_timers() {
     // Then: All three timers are ready
     let pending = timer_view.pending_timers(clock_view.now());
     assert_eq!(pending.len(), 3, "all timers ready at 3.5s");
+    let ids: Vec<_> = pending.iter().map(|r| r.request.request_id).collect();
+    assert!(ids.contains(&jitos_core::Hash([1u8; 32])), "timer 1 ready");
+    assert!(ids.contains(&jitos_core::Hash([2u8; 32])), "timer 2 ready");
+    assert!(ids.contains(&jitos_core::Hash([3u8; 32])), "timer 3 ready");
 }

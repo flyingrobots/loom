@@ -18,5 +18,5 @@ pub use clock::{
 };
 pub use timer::{
     TimerError, TimerFire, TimerFireRecord, TimerRequest, TimerRequestRecord, TimerView,
-    DEC_TIMER_FIRE_V0, OBS_TIMER_REQUEST_V0,
+    OBS_TIMER_REQUEST_V0,
 };
