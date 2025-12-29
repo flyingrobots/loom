@@ -136,7 +136,8 @@ impl TimerView {
     pub fn apply_event(&mut self, event: &EventEnvelope) -> Result<(), TimerError>;
 
     /// Get timers that should fire at current_time but haven't yet
-    pub fn pending_timers(&self, current_time: &Time) -> Vec<TimerRequest>;
+    /// Returns full TimerRequestRecord including event_id for Decision evidence
+    pub fn pending_timers(&self, current_time: &Time) -> Vec<TimerRequestRecord>;
 }
 ```
 
@@ -158,9 +159,17 @@ for event in events {
 // Check which timers should fire at current logical time
 let pending = timer_view.pending_timers(clock_view.now());
 
-for timer in pending {
-    println!("Timer {} ready to fire", timer.request_id);
-    // Scheduler would emit a Decision event here
+for record in pending {
+    println!("Timer {} ready to fire", record.request.request_id);
+
+    // Create timer fire decision with request event as evidence
+    let fire = TimerFire {
+        request_id: record.request.request_id,
+        fired_at_ns: clock_view.now().ns(),
+    };
+
+    // Emit Decision event with request event_id as evidence parent
+    emit_decision(fire, vec![record.event_id], policy_parent);
 }
 ```
 

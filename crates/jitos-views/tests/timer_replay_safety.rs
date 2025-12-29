@@ -237,8 +237,8 @@ fn t4_event_order_independence() {
 
     // Verify both have timers 1 and 2
     assert_eq!(pending1.len(), 2, "should have 2 pending timers");
-    let ids1: Vec<_> = pending1.iter().map(|r| r.request_id).collect();
-    let ids2: Vec<_> = pending2.iter().map(|r| r.request_id).collect();
+    let ids1: Vec<_> = pending1.iter().map(|r| r.request.request_id).collect();
+    let ids2: Vec<_> = pending2.iter().map(|r| r.request.request_id).collect();
 
     assert!(ids1.contains(&jitos_core::Hash([1u8; 32])));
     assert!(ids1.contains(&jitos_core::Hash([2u8; 32])));

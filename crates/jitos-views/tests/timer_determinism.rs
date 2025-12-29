@@ -105,7 +105,7 @@ fn t2_timer_fires_at_correct_time() {
     // Then: Timer is ready
     let pending = timer_view.pending_timers(clock_view.now());
     assert_eq!(pending.len(), 1, "timer ready at fire time");
-    assert_eq!(pending[0].request_id, jitos_core::Hash([1u8; 32]));
+    assert_eq!(pending[0].request.request_id, jitos_core::Hash([1u8; 32]));
 }
 
 // ============================================================================
@@ -145,7 +145,7 @@ fn t3_multiple_timers() {
     // Then: Only first timer is ready
     let pending = timer_view.pending_timers(clock_view.now());
     assert_eq!(pending.len(), 1, "only first timer ready at 1.5s");
-    assert_eq!(pending[0].request_id, jitos_core::Hash([1u8; 32]));
+    assert_eq!(pending[0].request.request_id, jitos_core::Hash([1u8; 32]));
 
     // When: Time is at 2.5s
     let clock_event3 = make_clock_event(ClockSource::Monotonic, 2_500_000_000, 100_000);

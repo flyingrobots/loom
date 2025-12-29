@@ -83,7 +83,10 @@ impl TimerView {
     }
 
     /// Get timers that should fire at current_time but haven't yet
-    pub fn pending_timers(&self, current_time: &Time) -> Vec<TimerRequest> {
+    ///
+    /// Returns the full TimerRequestRecord (including event_id) so that
+    /// callers can construct valid Decision events with proper evidence parents.
+    pub fn pending_timers(&self, current_time: &Time) -> Vec<TimerRequestRecord> {
         let mut pending = Vec::new();
 
         for record in &self.requests {
@@ -102,7 +105,7 @@ impl TimerView {
 
             // Check if current time >= fire time
             if current_time.ns() >= fire_time_ns {
-                pending.push(record.request.clone());
+                pending.push(record.clone());
             }
         }
 
