@@ -8,6 +8,7 @@
 
 use jitos_core::{canonical, Hash};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Deterministic node ID (content-addressed, not insertion-order-dependent)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -30,16 +31,17 @@ impl NodeId {
 /// IDs are computed from:
 /// - tick_hash: H(normalized operation set) - same for any ordering
 /// - operation_hash: H(specific operation content)
-/// - counter: sequence number within this allocator
+/// - counter: per-operation sequence number
 ///
 /// This ensures:
 /// - Same operations → same tick_hash
 /// - Different orderings → same IDs (antichain swap safety)
 /// - Reproducible on replay
+/// - Allocation order independence (counter is per-operation, not global)
 #[derive(Debug, Clone)]
 pub struct DeterministicIdAllocator {
     tick_hash: Hash,
-    counter: u64,
+    counters: HashMap<Hash, u64>,
 }
 
 impl DeterministicIdAllocator {
@@ -59,7 +61,7 @@ impl DeterministicIdAllocator {
 
         Self {
             tick_hash,
-            counter: 0,
+            counters: HashMap::new(),
         }
     }
 
@@ -69,22 +71,25 @@ impl DeterministicIdAllocator {
     ///
     /// - tick_hash: ensures operations in same tick share prefix
     /// - operation_hash: distinguishes different operations
-    /// - counter: handles multiple nodes from same operation
+    /// - counter: per-operation counter (allocation order independent)
     pub fn alloc_node_id(&mut self, operation_hash: Hash) -> NodeId {
-        let id_input = (&self.tick_hash, &operation_hash, self.counter);
+        // Get or initialize counter for this specific operation
+        let counter = self.counters.entry(operation_hash).or_insert(0);
+
+        let id_input = (&self.tick_hash, &operation_hash, *counter);
 
         let id_hash = canonical::encode(&id_input)
             .map(|bytes| Hash(*blake3::hash(&bytes).as_bytes()))
             .unwrap_or(Hash([0u8; 32]));
 
-        self.counter += 1;
+        *counter += 1;
 
         NodeId(id_hash)
     }
 
-    /// Reset counter (typically at start of new tick)
+    /// Reset all counters (typically at start of new tick)
     pub fn reset_counter(&mut self) {
-        self.counter = 0;
+        self.counters.clear();
     }
 }
 
@@ -144,6 +149,34 @@ mod tests {
         assert_eq!(
             id3_orig, id3_swap,
             "op3 must get same ID regardless of tick ordering"
+        );
+    }
+
+    #[test]
+    fn test_allocation_order_independence() {
+        // CRITICAL: Allocation call order must not affect IDs
+        // This test would FAIL with global counter (Codex P1 bug)
+        let op1 = Hash([1u8; 32]);
+        let op2 = Hash([2u8; 32]);
+
+        // Same tick, allocation order A then B
+        let mut alloc1 = DeterministicIdAllocator::new_for_tick(&[op1, op2]);
+        let id1_first = alloc1.alloc_node_id(op1); // op1 with counter=0
+        let id2_first = alloc1.alloc_node_id(op2); // op2 with counter=0
+
+        // Same tick, allocation order B then A
+        let mut alloc2 = DeterministicIdAllocator::new_for_tick(&[op1, op2]);
+        let id2_second = alloc2.alloc_node_id(op2); // op2 with counter=0
+        let id1_second = alloc2.alloc_node_id(op1); // op1 with counter=0
+
+        // IDs MUST be identical regardless of allocation call order
+        assert_eq!(
+            id1_first, id1_second,
+            "op1 must get same ID regardless of allocation call order"
+        );
+        assert_eq!(
+            id2_first, id2_second,
+            "op2 must get same ID regardless of allocation call order"
         );
     }
 
