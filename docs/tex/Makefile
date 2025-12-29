@@ -196,6 +196,13 @@ master: arch computer adrs rfcs whitepaper aion-holography
 # Reports
 # =============================================================================
 
+milestone-1: init
+	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Building Milestone 1 Report...$(COLOR_RESET)"
+	@$(LATEX) $(LATEX_FLAGS) $(SOURCES_DIR)/milestones/m1-kernel-genesis.tex
+	@$(LATEX) $(LATEX_FLAGS) $(SOURCES_DIR)/milestones/m1-kernel-genesis.tex > /dev/null
+	@cp $(BUILD_DIR)/m1-kernel-genesis.pdf ../../MILESTONE-1.pdf
+	@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ MILESTONE-1.pdf created$(COLOR_RESET)"
+
 sotu-2025: init
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Building SOTU-2025...$(COLOR_RESET)"
 	@$(LATEX) $(LATEX_FLAGS) ../REPORTS/SOTU-2025-expanded.tex
