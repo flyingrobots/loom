@@ -10,8 +10,13 @@
 //! of their input events.
 
 pub mod clock;
+pub mod timer;
 
 pub use clock::{
     ClockError, ClockPolicyId, ClockSample, ClockSampleRecord, ClockSource, ClockView,
     LatestSamples, Time, TimeDomain, OBS_CLOCK_SAMPLE_V0,
+};
+pub use timer::{
+    TimerError, TimerFire, TimerFireRecord, TimerRequest, TimerRequestRecord, TimerView,
+    OBS_TIMER_REQUEST_V0,
 };
