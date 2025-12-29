@@ -9,7 +9,7 @@
 mod common;
 
 use common::{make_clock_event, make_timer_request};
-use jitos_views::{ClockPolicyId, ClockSource, ClockView, Time, TimerView};
+use jitos_views::{ClockPolicyId, ClockSource, ClockView, TimerView};
 
 // ============================================================================
 // T1: Basic Timer Request Processing

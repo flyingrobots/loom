@@ -30,6 +30,7 @@ pub fn make_clock_event(source: ClockSource, value_ns: u64, uncertainty_ns: u64)
 }
 
 /// Helper: Create a timer request observation event
+#[allow(dead_code)]
 pub fn make_timer_request(
     request_id: [u8; 32],
     duration_ns: u64,
