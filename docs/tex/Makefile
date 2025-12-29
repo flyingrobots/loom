@@ -22,6 +22,7 @@ SRC_MD_WHITEPAPER = ../../docs/WHITEPAPER.md
 # Tools
 CONVERT_MD_TO_TEX = $(SCRIPTS_DIR)/convert.sh
 CLEAN_UNICODE = $(PYTHON) $(SCRIPTS_DIR)/clean-unicode.py
+MD2TEX = $(SCRIPTS_DIR)/md2tex.py
 LATEX = xelatex
 LATEX_FLAGS = -interaction=nonstopmode -halt-on-error -shell-escape -output-directory=$(BUILD_DIR)
 
@@ -197,11 +198,39 @@ master: arch computer adrs rfcs whitepaper aion-holography
 # =============================================================================
 
 milestone-1: init
-	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Building Milestone 1 Report...$(COLOR_RESET)"
-	@$(LATEX) $(LATEX_FLAGS) $(SOURCES_DIR)/milestones/m1-kernel-genesis.tex
-	@$(LATEX) $(LATEX_FLAGS) $(SOURCES_DIR)/milestones/m1-kernel-genesis.tex > /dev/null
-	@cp $(BUILD_DIR)/m1-kernel-genesis.pdf ../../MILESTONE-1.pdf
-	@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ MILESTONE-1.pdf created$(COLOR_RESET)"
+		@echo "$(COLOR_BOLD)$(COLOR_GREEN)Building Milestone 1 Report...$(COLOR_RESET)"
+		@mkdir -p $(BUILD_DIR)/md2tex
+		@printf '%s\n' '{' \
+			'  "defaults": {' \
+			'    "exclude": ["draft-*"],' \
+			'    "out_dir": "$(CHAPTERS_DIR)/m1-kernel-alpha",' \
+			'    "python": "python3"' \
+			'  },' \
+			'  "files": {}' \
+			'}' > $(BUILD_DIR)/md2tex/m1-kernel-alpha.json
+		@$(MD2TEX) ../../docs/ROADMAP/M1-Kernel-Alpha --config $(BUILD_DIR)/md2tex/m1-kernel-alpha.json --out-dir $(CHAPTERS_DIR)/m1-kernel-alpha
+		@printf '%s\n' '{' \
+			'  "defaults": {' \
+			'    "exclude": ["README.md", "draft-*"],' \
+			'    "out_dir": "$(CHAPTERS_DIR)/arch",' \
+			'    "python": "python3"' \
+			'  },' \
+			'  "files": {}' \
+			'}' > $(BUILD_DIR)/md2tex/arch.json
+		@$(MD2TEX) ../../docs/ARCH --config $(BUILD_DIR)/md2tex/arch.json --out-dir $(CHAPTERS_DIR)/arch
+		@printf '%s\n' '{' \
+			'  "defaults": {' \
+			'    "exclude": ["README.md", "draft-*"],' \
+			'    "out_dir": "$(CHAPTERS_DIR)/specs",' \
+			'    "python": "python3"' \
+			'  },' \
+			'  "files": {}' \
+			'}' > $(BUILD_DIR)/md2tex/specs.json
+		@$(MD2TEX) ../../docs/SPECS --config $(BUILD_DIR)/md2tex/specs.json --out-dir $(CHAPTERS_DIR)/specs
+		@$(LATEX) $(LATEX_FLAGS) $(SOURCES_DIR)/milestones/m1-kernel-genesis.tex
+		@$(LATEX) $(LATEX_FLAGS) $(SOURCES_DIR)/milestones/m1-kernel-genesis.tex > /dev/null
+		@cp $(BUILD_DIR)/m1-kernel-genesis.pdf ../../MILESTONE-1.pdf
+		@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ MILESTONE-1.pdf created$(COLOR_RESET)"
 
 sotu-2025: init
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Building SOTU-2025...$(COLOR_RESET)"

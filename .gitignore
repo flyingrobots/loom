@@ -43,6 +43,9 @@ xcuserdata/
 *.fdb_latexmk
 *.synctex.gz
 
+# Generated PDFs (built by docs/tex Makefile targets)
+*.pdf
+
 # Rust build artifacts
 target/
 **/*.rs.bk
