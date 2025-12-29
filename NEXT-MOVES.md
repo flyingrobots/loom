@@ -338,18 +338,19 @@ impl DeterministicIdAllocator {
    - Status: ✅ Shipped with full hash integrity enforcement
 
 4. **[DONE]** Clock View (`jitos-views/src/clock.rs` with Time as fold) ✅
-   - PR: feat/clock-view
+   - PR #10: Merged 2025-12-28
    - Status: ✅ Complete - all tests passing (10/10)
 
-5. **[TODO]** Timer Semantics (`jitos-views/src/timers.rs` with request/fire events)
-   - Status: Not started
-   - Depends on: Clock View (0.5.4)
+5. **[DONE]** Timer Semantics (`jitos-views/src/timer.rs` with request/fire events) ✅
+   - PR: feat/timer-semantics
+   - Status: ✅ Complete - all tests passing (7/7)
+   - Features: TimerView tracks requests and fires, pending_timers() query, deterministic replay
 
 6. **[TODO]** Deterministic IDs (`jitos-graph/src/ids.rs` tied to normalized schedule)
    - Status: Not started
    - Blockers: None - ready to begin
 
-### Progress: 4/6 foundational commits complete (66.7%)
+### Progress: 5/6 foundational commits complete (83.3%)
 
 **Golden Test:**
 ```rust
