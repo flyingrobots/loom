@@ -17,7 +17,7 @@ Milestone 1 delivers a bootable kernel daemon (`jitosd`) that hosts an in-memory
 - querying graph state and deterministic digests, and
 - performing deterministic mutations through a single-writer kernel loop.
 
-It introduces **SWS (Shadow Working Set / Schrödinger Workspace)** as isolated overlays with **read-through semantics** (overlay reads first, then system) and **overlay-only writes** (for Alpha).
+It introduces **SWS (Shadow Working Set; a.k.a. “Schrödinger Workspace”)** as isolated overlays with **read-through semantics** (overlay reads first, then system) and **overlay-only writes** (for Alpha).
 
 **Goal:** Run `jitosd`, create SWS overlays via GraphQL, apply deterministic rewrites, query graph hashes, and inspect an append-only rewrite log.
 
@@ -113,8 +113,10 @@ type NodeId = Hash; // blake3(canonical(kind, payload))
 ```
 
 Notes:
-- “Canonical bytes” means the kernel treats the payload as an opaque byte vector that is already canonical (or is canonicalized before hashing via a single explicit, stable function).
+- “Canonical bytes” means the kernel treats the payload as an opaque byte vector that is already canonical.
+- **Milestone 1 payload rule:** the payload is provided to the kernel as bytes (API: base64). The kernel hashes the bytes **as-is** (no decoding, normalization, or “helpful” interpretation).
 - Avoid “helpful” decoding/normalization inside the kernel for v0; that is a determinism trap.
+- If we later introduce structured encodings (e.g., canonical CBOR), that must be explicitly specified via [SPEC-0001](../../SPECS/SPEC-0001-canonical-encoding.md) and validated by tests (future milestone).
 
 #### Edge (content-addressed)
 
@@ -164,6 +166,8 @@ Read path:
 Write path (Milestone 1):
 - writes only to overlay
 
+**Alpha semantic note (Milestone 1):** the System graph is immutable (no System writes). Therefore an SWS base behaves as “System at creation time.” `base_digest` is captured for audit and future collapse semantics, and reads are defined as overlay-first, then System-as-of-creation.
+
 ### 5.4. Kernel Mutation Model (Single Writer)
 
 Kernel runs as a task that owns mutable state and processes commands sequentially:
@@ -180,9 +184,10 @@ This guarantees stable ordering, stable SWS IDs, and stable rewrite indices.
 ```rust
 struct RewriteEvent {
     idx: u64,            // deterministic sequence number
-    target: Target,      // System | Sws(SwsId)
-    op: RewriteOp,       // AddNode (minimum); Connect optional
-    receipt: Receipt,    // minimal, deterministic
+    view: ViewRef,       // System | Sws(SwsId)
+    ops: Vec<JSON>,      // validated inbound ops (audit truth in M1)
+    meta: JSON,          // optional metadata (deterministic)
+    receipt: Receipt,    // optional, deterministic
 }
 ```
 
@@ -199,15 +204,17 @@ This is intended to be compatible with [SPEC-NET-0001](../../SPECS/SPEC-NET-0001
 Milestone-1 constraint: avoid ambiguous routing inputs. There must be a single source of truth for which view a mutation targets (prefer `ViewRefInput` in `applyRewrite(view, rewrite)`).
 
 ### Queries
-One of the following “digest surfaces” must exist so determinism can be validated externally:
+Milestone 1 adopts a single canonical digest surface for external determinism validation:
 
-- `systemHash: Hash` and `swsHash(id: ID!): Hash`, **or**
-- `graph(view: ViewRefInput!): GraphSnapshot!` where `GraphSnapshot` includes `digest: Hash` (recommended), **or**
-- `graphHash(view: ViewRefInput!): Hash!`.
+- `graph(view: ViewRefInput!): GraphSnapshot!` where `GraphSnapshot` includes `digest: Hash`.
 
-Additionally:
+Additional required queries:
 - `listSws(...)` (or equivalent) to enumerate SWS contexts.
-- `rewrites(view, page)` or `rewrites(limit, after)` to retrieve an append-only rewrite log since boot.
+- `rewrites(...)` to retrieve an append-only rewrite log since boot, ordered deterministically by `idx` ascending.
+
+Deferred/optional (not required for Milestone 1):
+- dedicated `systemHash` / `swsHash(id)` fields (can be derived from `graph(view).digest` later)
+- `graphHash(view)` convenience field
 
 ### Mutations
 - `createSws(...)`
@@ -256,7 +263,7 @@ Milestone 1 is **DONE** when all are true:
 - GraphQL supports:
   - SWS lifecycle: `createSws`, `listSws`, `discardSws`
   - rewriting: `applyRewrite` (AddNode minimum)
-  - digest surface: system digest + SWS digest (via `systemHash`/`swsHash` or snapshot digest)
+  - digest surface: system digest + SWS digest via `graph(view).digest`
   - rewrite log query: `rewrites(...)`
 - Determinism proofs exist and pass:
   - `GraphDigest` is stable under insertion order changes (unit test).
@@ -283,7 +290,8 @@ Goal: decide and document determinism-critical choices *before* implementing net
 
 - [ ] Confirm canonical-bytes rule for payloads (30–60m)
   - [ ] Kernel treats node/edge payload as opaque canonical bytes (no helpful decoding).
-  - [ ] If using a structured encoding (e.g., CBOR), define *exact* canonicalization (spec + tests).
+  - [ ] Milestone 1 payload rule: node payload is provided as base64 bytes and is hashed as-is.
+  - [ ] If using a structured encoding (e.g., canonical CBOR), define *exact* canonicalization (spec + tests) (future milestone).
 - [ ] Finalize deterministic identity derivations (30–60m)
   - [ ] `NodeId = blake3(canonical(kind, payload))` (no self-inclusion).
   - [ ] `EdgeId = blake3(canonical(from, to, kind))`.
@@ -329,7 +337,7 @@ Goal: kernel owns semantics; ordering and logging are deterministic by construct
   - [ ] writes go to overlay only (Alpha).
 - [ ] Rewrite application + append-only rewrite log (120–180m)
   - [ ] implement `AddNode` into SWS overlay (minimum).
-  - [ ] append `RewriteEvent { idx, view/target, op, receipt/meta }` deterministically.
+  - [ ] append `RewriteEvent { idx, view, ops, meta, receipt }` deterministically.
   - [ ] expose a query to retrieve rewrites by `(view, after, limit)` or equivalent cursor.
 - [ ] Kernel unit tests (behavioral) (60–120m)
   - [ ] deterministic `SwsId` allocation.
@@ -347,11 +355,12 @@ Goal: GraphQL is a control plane; kernel is the semantics engine.
   - [ ] SWS lifecycle queries/mutations (`createSws`, `listSws`, `discardSws`).
   - [ ] `applyRewrite` targeting a view (SWS minimum).
   - [ ] rewrite log query (`rewrites(...)`) for operator-grade audit since boot.
-  - [ ] digest surface exists (either `systemHash/swsHash` or snapshot digest field).
+  - [ ] `graph(view)` returns `GraphSnapshot.digest` (canonical digest surface for M1).
 - [ ] Determinism hygiene in API output (60–120m)
   - [ ] graph snapshots return nodes/edges in deterministic ordering (sorted by ID bytes).
   - [ ] timestamps are `null` for Milestone 1 (avoid wall-clock nondeterminism).
   - [ ] avoid “two sources of truth” routing (prefer `ViewRefInput` as the only routing input).
+  - [ ] M1 pagination: implement `first` only; `after` may return `NOT_IMPLEMENTED`/`INVALID_INPUT`. Ordering is always deterministic (sorted by ID/idx).
 
 ### Phase 4 — `jitosd` + integration tests + milestone report
 
