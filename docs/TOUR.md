@@ -60,6 +60,10 @@ Executable contracts: canonical encodings, deterministic IDs, network/API schema
 
 When a milestone says “must not contradict,” it’s usually pointing at something in `docs/SPECS/`.
 
+Graph hashing specs:
+- Canonical commitment: `docs/SPECS/SPEC-WARP-0001-graph-commit-digest.md`
+- Incremental acceleration structure: `docs/SPECS/SPEC-WARP-0002-incremental-graph-hash.md`
+
 ---
 
 ## 4) Code map (“here’s the code for X”)

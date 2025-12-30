@@ -317,6 +317,7 @@ Primary docs (must not contradict):
 - [SPEC-0001](../../SPECS/SPEC-0001-canonical-encoding.md)
 - [SPEC-0005](../../SPECS/SPEC-0005-deterministic-ids.md)
 - [SPEC-NET-0001](../../SPECS/SPEC-NET-0001-graphql-sdl-v0.md)
+- [SPEC-WARP-0001](../../SPECS/SPEC-WARP-0001-graph-commit-digest.md)
 
 ### Phase 0 — Lock the Laws (mandatory, fast)
 
@@ -348,7 +349,8 @@ Goal: decide and document determinism-critical choices *before* implementing net
   - [ ] `SwsId: u64` allocated deterministically (`0, 1, 2, ...`).
   - [ ] `RewriteEvent.idx: u64` increments once per applied mutation.
 - [ ] Spec alignment note / addendum (30–60m)
-  - [ ] Either add a short “graph digests” addendum to existing specs, or introduce a new spec doc and link it here.
+  - [ ] Implement SPEC-WARP-0001 (GraphCommitDigest) and link it here (canonical, auditable digest).
+  - [ ] (Optional) Draft SPEC-WARP-0002 (Incremental/Merkle graph hash) as an optimization spec (not required for M1 gate).
 
 ### Phase 1 — Warp Core (`jitos-warp-core`): make hashes real first
 
