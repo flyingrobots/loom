@@ -202,7 +202,7 @@ milestone-1: init
 		@mkdir -p $(BUILD_DIR)/md2tex
 		@printf '%s\n' '{' \
 			'  "defaults": {' \
-			'    "exclude": ["draft-*"],' \
+			'    "exclude": ["draft-*", "TASKS.md"],' \
 			'    "out_dir": "$(CHAPTERS_DIR)/m1-kernel-alpha",' \
 			'    "python": "python3"' \
 			'  },' \
