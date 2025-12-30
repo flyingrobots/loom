@@ -13,7 +13,7 @@ new_key_type! { pub struct EdgeKey; }
 /// A node in the WARP graph.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WarpNode {
-    pub id: String,
+    pub id: NodeId,
     pub node_type: String,
     pub data: serde_json::Value,
     pub attachment: Option<Hash>, // Reference to another WARP graph
