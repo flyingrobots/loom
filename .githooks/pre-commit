@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+# Only run the roadmap DAG updater when a ROADMAP README is staged.
+#
+# Rationale:
+# - Updating Mermaid styling is derived output; avoid paying the cost on commits
+#   that don't touch roadmap docs.
+# - When roadmap docs *do* change, we want DAG styling to match checkbox reality.
+
+staged_files="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+echo "$staged_files" | grep -E -q '^(docs/ROADMAP/README\.md|docs/ROADMAP/M[0-9]+-[^/]+/README\.md)$' || exit 0
+
+echo "pre-commit: updating ROADMAP DAG statuses from checkboxes..."
+
+python3 scripts/update_roadmap_dags.py
+
+# Stage any updates produced by the script.
+git add -u docs/ROADMAP
+
+# Sanity check: ensure the updater is now clean.
+python3 scripts/update_roadmap_dags.py --check >/dev/null
+
