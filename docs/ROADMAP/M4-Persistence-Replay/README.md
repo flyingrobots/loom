@@ -142,6 +142,31 @@ Milestone 4 is **DONE** when:
 
 ---
 
-## 11. Explicit Non-Goals
+## 11. Sequenced Task DAG (Dependencies)
+
+This DAG is the execution ordering for Milestone 4. It is phase-based so status can be derived from checkboxes.
+
+```mermaid
+flowchart TD
+  %% Status is auto-updated by scripts/update_roadmap_dags.py
+  P0[Phase 0: Freeze WAL format<br/>framing + encoding + versioning] --> P1[Phase 1: WAL implementation<br/>append + read + verify]
+  P1 --> P2[Phase 2: Daemon wiring<br/>--data-dir + boot replay]
+  P2 --> P3[Phase 3: Tests<br/>restart + replay proof]
+  P3 --> Gate[Milestone Gate (DoD)]
+
+  classDef done fill:#dcfce7,stroke:#166534,color:#052e16,stroke-width:2px;
+  classDef inprogress fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px;
+  classDef blocked fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px;
+
+  class P0 blocked;
+  class P1 blocked;
+  class P2 blocked;
+  class P3 blocked;
+  class Gate blocked;
+```
+
+---
+
+## 12. Explicit Non-Goals
 - replication/federation
 - advanced compaction/GC (beyond minimal checkpointing if needed)
