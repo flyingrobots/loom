@@ -56,6 +56,115 @@ Legend:
 | M6 Tasks / Slaps / Workers | Task lifecycle becomes history | Deterministic task state transitions + receipts | `submitIntent` allocates/uses SWS contexts | Work proposes; kernel collapses (policy-driven) | `taskEvents` + worker invocation/result events |
 | M7 Typed API + Wesley | Domain objects become first-class schema | Validator/codegen reduces drift | Typed SWS/process/task objects | Typed commit/collapse surfaces | Typed schema introspection + deprecation path for JSON ops |
 
+### Proof hooks (how we know each pillar feature is real)
+
+The table above explains “what becomes true.” This section explains **how to verify it**, in a way that can be turned into tests.
+
+Rule of thumb:
+- If it can be proven automatically, it should become a test.
+- If it can’t be proven automatically yet, we still record a repeatable manual probe (GraphQL query/mutation sequence).
+
+#### M1 — Kernel Genesis (Alpha): verification hooks
+
+Primary gate: `docs/ROADMAP/M1-Kernel-Alpha/README.md` (Definition of Done).
+
+- **P1 (History):** `rewrites(...)` returns an append-only, monotone `idx` sequence since boot.
+  - Manual probe: apply a rewrite, then query `rewrites` twice and assert the prefix is stable and indices are ascending.
+- **P2 (Determinism):** re-running the same ordered mutation script in a fresh process yields identical outputs.
+  - Automated proof (required): an end-to-end test that runs the same GraphQL script twice (fresh daemon each run) and asserts identical digests + rewrite log outputs.
+- **P3 (SWS):** SWS overlay isolation.
+  - Manual probe: create SWS 0, apply `AddNode` to SWS 0, assert System digest unchanged and SWS digest changed.
+- **P4 (Collapse):** explicitly deferred in M1.
+  - Proof (required): the API surface either does not exist, or returns `NOT_IMPLEMENTED` deterministically.
+- **P5 (Observability):** minimal operator-grade query surfaces exist.
+  - Manual probe: `graph(view).digest`, `listSws`, `rewrites`.
+
+Minimal GraphQL smoke sequence (illustrative):
+
+```graphql
+# 1) System digest (H0)
+query { graph(view: { kind: SYSTEM }) { digest } }
+
+# 2) Create SWS (expects "0")
+mutation { createSws { sws { id } } }
+
+# 3) Apply AddNode into SWS 0
+mutation {
+  applyRewrite(
+    view: { kind: SWS, swsId: "0" }
+    rewrite: {
+      ops: [{ op: "AddNode", data: { kind: "demo", payload_b64: "aGVsbG8=" } }]
+    }
+  ) {
+    accepted
+    receipt { rewriteIdx viewDigest }
+  }
+}
+
+# 4) Assert: SWS digest != H0; System digest == H0
+query { graph(view: { kind: SWS, swsId: "0" }) { digest } }
+query { graph(view: { kind: SYSTEM }) { digest } }
+
+# 5) Rewrite log is ordered
+query { rewrites(view: { kind: SWS, swsId: "0" }, page: { first: 100 }) { idx } }
+```
+
+#### M2 — Kernel Reality Layer (Beta-0): verification hooks
+
+Primary gate: `docs/ROADMAP/M2-Kernel-Reality-Layer/README.md` (Definition of Done).
+
+- **P1 (History):** snapshots become stable identifiers (`snapshotId`).
+  - Automated proof: repeated `graph(view)` calls with no intervening mutations return same `snapshotId` and `digest`.
+- **P2 (Determinism):** `first+after` cursoring is deterministic.
+  - Automated proof: page `nodes(first=1)` then `after=<id>` and assert no duplication/missing items and stable order.
+- **P5 (Observability):** paging doesn’t lie.
+  - Automated proof: `rewrites(view, after)` yields stable continuation by `idx` (no gaps/duplicates).
+
+#### M3 — Collapse & Commit (Beta-1): verification hooks
+
+Primary gate: `docs/ROADMAP/M3-Collapse-Commit/README.md` (Definition of Done).
+
+- **P4 (Collapse):** `collapseSws` is the only path to System mutation.
+  - Automated proof: System digest changes only after successful collapse; direct System writes remain impossible.
+- **P2 (Determinism):** conflict policy is deterministic (fail-fast v1).
+  - Automated proof: construct a known conflicting overlay and assert `committed=false` with stable error/receipt.
+
+#### M4 — Persistence & Replay (Beta-2): verification hooks
+
+Primary gate: `docs/ROADMAP/M4-Persistence-Replay/README.md` (Definition of Done).
+
+- **P1 (History):** WAL is the authoritative Chronos order.
+  - Automated proof: run mutations, stop daemon, restart with same `--data-dir`, and assert digests equal the pre-restart values.
+- **P2 (Determinism):** replay is stable across restart.
+  - Automated proof: restart test is required (same WAL → same digests).
+
+#### M5 — Time & Scheduling (Beta-3): verification hooks
+
+Primary gate: `docs/ROADMAP/M5-Time-Scheduling/README.md` (Definition of Done).
+
+- **P1 (History):** `now()` is derived from history (not wall clock).
+  - Automated proof: `now()` is a pure function of the event stream/WAL.
+- **P2 (Determinism):** tick loop produces replay-stable `TICK` events.
+  - Automated proof: record/replay yields identical tick stream.
+
+#### M6 — Tasks / Slaps / Workers (Beta-4): verification hooks
+
+Primary gate: `docs/ROADMAP/M6-Tasks-Slaps-Workers/README.md` (Definition of Done).
+
+- **P1 (History):** task lifecycle is history, not “status fields as truth.”
+  - Automated proof: task state transitions are emitted as events and are replay-stable.
+- **P5 (Observability):** operator can answer “why did this run / why did it fail?”
+  - Automated proof: `taskEvents` includes state transitions + linkage to receipts/invocations.
+
+#### M7 — Typed API + Wesley (1.0 runway): verification hooks
+
+Primary gate: `docs/ROADMAP/M7-Typed-Domain-API-v1/README.md` (Definition of Done).
+
+- **P2 (Determinism):** typed validators reduce schema drift.
+  - Automated proof: codegen/validation pipeline is versioned and rejects unknown fields/kinds deterministically.
+- **P5 (Observability):** typed introspection makes operator tooling safer.
+  - Automated proof: GraphQL introspection shows stable domain types and deprecation path for JSON ops.
+
 ## Cross-milestone dependency DAG (high-level)
 
 This is a milestone-level dependency graph. It is intentionally “irreversibles-first”: we lock view identity and paging before collapse, collapse before durability, durability before time/scheduling, and scheduling before tasks/workers and typed APIs.
