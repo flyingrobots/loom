@@ -40,17 +40,21 @@ Normative source of truth for invariants: `docs/ARCH/ARCH-0002-architectural-inv
 
 ### Pillars × Milestones (traceability)
 
-This table is a sanity check: each milestone should make at least one pillar materially true in a new way.
+This matrix is a sanity check: each milestone should make at least one pillar materially true in a new way.
 
-| Milestone | P1 History | P2 Determinism | P3 SWS | P4 Collapse | P5 Observability |
+Legend:
+- Each cell describes the **new capability that becomes possible** (or the contract that becomes locked) for that pillar at that milestone.
+- Later milestones may deepen or extend earlier capabilities, but each milestone should add at least one new “irreversible” step.
+
+| Milestone | P1 History is the system | P2 Determinism is law | P3 SWS is default | P4 Collapse is transactional | P5 Observability is first-class |
 | --- | --- | --- | --- | --- | --- |
-| M1 Kernel Genesis | ✓ | ✓ | ✓ | (prep) | ✓ |
-| M2 Reality Layer | ✓ | ✓ | ✓ | (prep) | ✓ |
-| M3 Collapse & Commit | ✓ | ✓ | ✓ | ✓ | ✓ |
-| M4 Persistence & Replay | ✓ | ✓ | ✓ | ✓ | ✓ |
-| M5 Time & Scheduling | ✓ | ✓ | ✓ | ✓ | ✓ |
-| M6 Tasks / Slaps / Workers | ✓ | ✓ | ✓ | ✓ | ✓ |
-| M7 Typed API + Wesley | ✓ | ✓ | ✓ | ✓ | ✓ |
+| M1 Kernel Genesis | Append-only rewrite log (since boot) | Single-writer ordering + canonical digest surface | Create/list/discard overlays (overlay-only writes) | System immutable (collapse deferred) | `graph(view).digest` + `rewrites(...)` query |
+| M2 Reality Layer | Stable `snapshotId` for views | Deterministic `first+after` cursoring | Viewer-stable view refs (System/SWS + snapshot) | Snapshot identity locks “what commit means” | Paging that doesn’t lie (snapshots + rewrites) |
+| M3 Collapse & Commit | Commit boundary becomes an event | Deterministic conflict policy (fail-fast v1) | Promote overlay into truth | `collapseSws` makes System mutable (only via collapse) | Collapse receipts + conflict visibility |
+| M4 Persistence & Replay | WAL becomes Chronos (authoritative order) | Restart/replay yields identical digests | (Optional) retain SWS metadata across restart | Commit boundaries persisted in WAL | Replay verification is operator-grade |
+| M5 Time & Scheduling | Time derived from history (not wall clock) | Ticks are replay-stable | Time/timers operate within deterministic views | Scheduled commits/ticks become explicit | `ticks` + `now()` surfaces (subscriptions/queries) |
+| M6 Tasks / Slaps / Workers | Task lifecycle becomes history | Deterministic task state transitions + receipts | `submitIntent` allocates/uses SWS contexts | Work proposes; kernel collapses (policy-driven) | `taskEvents` + worker invocation/result events |
+| M7 Typed API + Wesley | Domain objects become first-class schema | Validator/codegen reduces drift | Typed SWS/process/task objects | Typed commit/collapse surfaces | Typed schema introspection + deprecation path for JSON ops |
 
 ## Cross-milestone dependency DAG (high-level)
 
