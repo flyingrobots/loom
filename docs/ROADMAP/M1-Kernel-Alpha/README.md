@@ -221,6 +221,39 @@ Deferred/optional (not required for Milestone 1):
 - `discardSws(...)`
 - `applyRewrite(...)` with at least `AddNode` supported (into an SWS overlay).
 
+### M1 Frozen API Contract (implementation must match)
+
+These choices are frozen for Milestone 1 to prevent “interpretation drift” between docs, clients, and kernel.
+
+- **Hash encoding:** `Hash` strings are lowercase hex, length 64, representing 32-byte BLAKE3 digests. No `0x` prefix.
+- **Rewrite ops:** `RewriteInput.ops: [JSON!]!` contains JSON objects. Milestone 1 supports exactly one op:
+
+  ```json
+  {
+    "op": "AddNode",
+    "data": {
+      "kind": "demo",
+      "payload_b64": "aGVsbG8="
+    }
+  }
+  ```
+
+  Notes:
+  - `payload_b64` decodes to bytes and is hashed as-is (no canonicalization step inside the kernel in M1).
+  - `kind` is case-sensitive.
+  - extra fields are rejected (see error policy).
+- **Receipt v0:** `applyRewrite` returns a deterministic receipt containing:
+  - `rewriteIdx: U64` (global monotone sequence since boot)
+  - `view: ViewRef`
+  - `viewDigest: Hash` (digest after applying the rewrite to that view)
+- **Pagination:** implement `first` only; `after` returns `NOT_IMPLEMENTED` in M1.
+- **Timestamps:** all `Timestamp` fields return `null` in M1.
+- **Errors:** GraphQL errors include `extensions.code` with one of:
+  - `INVALID_INPUT` (bad ID format, schema mismatch, bad base64, missing required fields)
+  - `NOT_FOUND` (SWS id doesn’t exist)
+  - `NOT_IMPLEMENTED` (unsupported op variant, `after` cursor, `collapseSws`, `submitIntent`, etc.)
+  - `INTERNAL` (kernel loop down, invariant violated, unexpected errors)
+
 ---
 
 ## 7. Testing Strategy
@@ -287,6 +320,16 @@ Primary docs (must not contradict):
 ### Phase 0 — Lock the Laws (mandatory, fast)
 
 Goal: decide and document determinism-critical choices *before* implementing networking.
+
+**M1 Frozen Contract Choices (Codex must implement exactly):**
+- Hash encoding: lowercase hex, 64 chars, 32 bytes. No prefix.
+- Rewrite ops: `RewriteInput.ops` contains JSON objects. M1 supports only:
+  - `{"op":"AddNode","data":{"kind":<string>,"payload_b64":<base64>}}`
+- Receipt v0: `applyRewrite` returns a deterministic receipt containing:
+  - `rewriteIdx: U64`, `view: ViewRef`, `viewDigest: Hash`
+- Pagination: `first` supported; `after` returns `NOT_IMPLEMENTED` in M1.
+- Timestamps: all `Timestamp` fields return `null` in M1.
+- Errors: `extensions.code` is one of `INVALID_INPUT`, `NOT_FOUND`, `NOT_IMPLEMENTED`, `INTERNAL`.
 
 - [ ] Confirm canonical-bytes rule for payloads (30–60m)
   - [ ] Kernel treats node/edge payload as opaque canonical bytes (no helpful decoding).
