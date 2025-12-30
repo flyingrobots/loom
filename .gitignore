@@ -3,6 +3,7 @@
 
 # macOS cruft
 .DS_Store
+__pycache__/
 .AppleDouble
 .LSOverride
 Icon\r
