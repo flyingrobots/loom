@@ -1,0 +1,12 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+
+# Make this crate a standalone workspace so it can run even if the main workspace
+# is temporarily incomplete (some crates may be stubbed during roadmap work).
+[workspace]
+members = []

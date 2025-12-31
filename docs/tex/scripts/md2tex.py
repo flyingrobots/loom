@@ -118,8 +118,18 @@ def is_excluded(path: Path, patterns: List[str]) -> bool:
 
 def run_pandoc(md: Path, tex: Path, pandoc_cmd: str) -> None:
     tex.parent.mkdir(parents=True, exist_ok=True)
-    # Use pygments highlight style (valid pandoc option)
-    cmd = [pandoc_cmd, "--from=markdown", "--to=latex", "--highlight-style=pygments", str(md), "-o", str(tex)]
+    # Prefer simple, self-contained LaTeX output:
+    # - Disable syntax highlighting (avoids requiring Pandoc's Highlighting/Token macros).
+    # - Use listings for code blocks since our house styles already include listings.
+    cmd = [
+        pandoc_cmd,
+        "--from=markdown",
+        "--to=latex",
+        "--syntax-highlighting=none",
+        str(md),
+        "-o",
+        str(tex),
+    ]
     subprocess.run(cmd, check=True)
 
 
@@ -131,9 +141,13 @@ def run_clean_unicode(tex: Path, python_cmd: str) -> None:
     try:
         subprocess.run([python_cmd, str(cleaner), str(tex.parent)], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-        # Cleaner exists but failed—this is an error condition
-        sys.stderr.write(f"[error] clean-unicode.py failed for {tex}: {e.output.decode() if e.output else str(e)}\n")
-        raise
+        # Cleaner exists but failed. Treat this as a warning so TeX builds remain usable
+        # even when optional python deps (e.g., pylatexenc) are not installed.
+        msg = e.output.decode() if e.output else str(e)
+        sys.stderr.write(f"[warn] clean-unicode.py failed for {tex}; continuing without unicode cleanup.\n")
+        if msg:
+            sys.stderr.write(msg + ("\n" if not msg.endswith("\n") else ""))
+        return
 
 
 def within_sources_guard(path: Path) -> bool:

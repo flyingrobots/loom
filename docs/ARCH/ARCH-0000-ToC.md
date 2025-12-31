@@ -7,6 +7,7 @@
 ## JITOS ARCHITECTURE DOCUMENT
 
 1. Preface
+2. Integrated overview (directional): `ARCH-0000-INTEGRATED-SPEC.md`
 2. What is JITOS? ([ADR-0001](../ADR/ADR-0001.md))
 3. The Process Model: Shadow Working Sets (ADR-0002)
 4. The Substrate Model: The Causal DAG (ADR-0003)

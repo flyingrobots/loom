@@ -245,7 +245,7 @@ test result: ok. 6 passed; 0 failed
 1. **WarpGraph Integration**
    - Replace SlotMap NodeKey with NodeId
    - Update WarpNode to use deterministic IDs
-   - Implement deterministic graph hashing
+   - Implement deterministic graph hashing (canonical commitment): see `SPEC-WARP-0001`
 
 2. **Scheduler Integration**
    - Create DeterministicIdAllocator at tick start
