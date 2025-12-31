@@ -67,7 +67,8 @@ impl WarpGraph {
 
     /// Computes the BLAKE3 root hash of the graph state.
     pub fn compute_hash(&self) -> Hash {
-        self.compute_hash_checked().expect("canonical graph hashing must succeed")
+        self.compute_hash_checked()
+            .expect("canonical graph hashing must succeed")
     }
 
     /// Computes the canonical graph commit digest (SPEC-WARP-0001).
@@ -94,33 +95,19 @@ impl WarpGraph {
         // then sort by that ID bytes ascending.
         let mut edges: Vec<EdgeCommitV0> = Vec::with_capacity(self.edges.len());
         for (_k, e) in self.edges.iter() {
-            let from = self
-                .nodes
-                .get(e.source)
-                .map(|n| n.id)
-                .ok_or_else(|| {
-                    jitos_core::canonical::CanonicalError::Decode(
-                        "edge source references missing node".into(),
-                    )
-                })?;
-            let to = self
-                .nodes
-                .get(e.target)
-                .map(|n| n.id)
-                .ok_or_else(|| {
-                    jitos_core::canonical::CanonicalError::Decode(
-                        "edge target references missing node".into(),
-                    )
-                })?;
+            let from = self.nodes.get(e.source).map(|n| n.id).ok_or_else(|| {
+                jitos_core::canonical::CanonicalError::Decode(
+                    "edge source references missing node".into(),
+                )
+            })?;
+            let to = self.nodes.get(e.target).map(|n| n.id).ok_or_else(|| {
+                jitos_core::canonical::CanonicalError::Decode(
+                    "edge target references missing node".into(),
+                )
+            })?;
 
             // Domain-separated edge id input to avoid accidental ambiguity if fields evolve.
-            let edge_id_input = (
-                "warp-edge-v0",
-                from,
-                to,
-                e.edge_type.as_str(),
-                e.attachment,
-            );
+            let edge_id_input = ("warp-edge-v0", from, to, e.edge_type.as_str(), e.attachment);
             let edge_id = jitos_core::canonical::hash_canonical(&edge_id_input)?;
 
             edges.push(EdgeCommitV0 {

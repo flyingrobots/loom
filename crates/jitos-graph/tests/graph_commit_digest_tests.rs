@@ -10,7 +10,12 @@ fn node_id(byte: u8) -> NodeId {
     NodeId::from_hash(h(byte))
 }
 
-fn insert_node(graph: &mut WarpGraph, id: NodeId, node_type: &str, data: serde_json::Value) -> NodeKey {
+fn insert_node(
+    graph: &mut WarpGraph,
+    id: NodeId,
+    node_type: &str,
+    data: serde_json::Value,
+) -> NodeKey {
     graph.nodes.insert(WarpNode {
         id,
         node_type: node_type.to_string(),
@@ -60,11 +65,15 @@ fn graph_hash_changes_when_node_payload_changes() {
     insert_node(&mut g1, node_id(1), "demo.A", serde_json::json!({"k": "A"}));
 
     let mut g2 = WarpGraph::new();
-    insert_node(&mut g2, node_id(1), "demo.A", serde_json::json!({"k": "A2"}));
+    insert_node(
+        &mut g2,
+        node_id(1),
+        "demo.A",
+        serde_json::json!({"k": "A2"}),
+    );
 
     let h1 = g1.compute_hash();
     let h2 = g2.compute_hash();
 
     assert_ne!(h1, h2, "payload changes must change the graph hash");
 }
-

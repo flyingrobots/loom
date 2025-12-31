@@ -6,4 +6,3 @@
 //! workspace remains buildable while milestones are executed.
 
 pub mod slaps;
-
