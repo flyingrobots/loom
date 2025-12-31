@@ -80,5 +80,6 @@ If you need a starting point, begin with:
 
 - reports: `docs/REPORTS/`
 - procedures: `docs/procedures/`
+- PR submission + review loop: `docs/procedures/PR-WORKFLOW.md`
+- CodeRabbitAI comment extraction: `docs/procedures/EXTRACT-PR-COMMENTS.md`
 - PDF build: `docs/tex/build-pdf.sh`
-

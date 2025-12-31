@@ -1,5 +1,42 @@
 # Procedure: Extract Actionable Comments from CodeRabbitAI PR Reviews
 
+## This Document’s Role in the Submission Workflow (Read This First)
+
+This procedure is **not optional**. It is part of the repo’s expected PR submission workflow.
+
+### Expected Submission Workflow (Branch + PR + Review Loop)
+
+When you finish work:
+
+1. **Do not commit directly to `main`.** Create a branch.
+2. **Push the branch** to `origin`.
+3. **Open a PR** targeting `main`.
+4. **Wait for automated review** (CodeRabbitAI) and CI checks to complete.
+5. **Extract actionable review comments** using this document.
+6. **Bucket and fix issues** (commit early/often; push updates).
+7. **Repeat** steps 4–6 until CodeRabbitAI (or a human reviewer) approves.
+8. **Only then merge** the PR (without admin bypass).
+
+### Critical Rules (Enforced by Policy, Even If You Have Admin)
+
+- **No direct-to-main workflow:** even if you *can* push/merge as admin, you should behave like a normal contributor.
+- **No admin bypass merges:** do not merge with `--admin` or other override mechanisms to skip required reviews.
+- **Don’t “merge because CI is green”:** CI green is necessary, not sufficient. Review approval is a separate gate.
+
+### What “Done” Looks Like for a PR
+
+A PR is mergeable when:
+
+- CI checks are green, **and**
+- CodeRabbitAI has either approved the PR or left no unresolved actionable feedback, **and/or**
+- a human reviewer has approved according to the repo’s review policy.
+
+If you cannot merge due to branch protection, enable auto-merge (if permitted) and wait:
+
+```bash
+gh pr merge <PR_NUMBER> --auto --merge
+```
+
 ## Purpose
 GitHub's review system carries forward comments from earlier commits, making it difficult to identify which issues are truly actionable vs already fixed. This procedure helps extract only the real, unfixed issues.
 
