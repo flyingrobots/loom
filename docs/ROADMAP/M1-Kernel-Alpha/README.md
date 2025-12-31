@@ -334,7 +334,7 @@ Goal: decide and document determinism-critical choices *before* implementing net
 - Errors: `extensions.code` is one of `INVALID_INPUT`, `NOT_FOUND`, `NOT_IMPLEMENTED`, `INTERNAL`.
 
 - [ ] Confirm canonical-bytes rule for payloads (30–60m)
-  - [ ] Kernel treats node/edge payload as opaque canonical bytes (no helpful decoding).
+  - [x] Graph commit digest treats node payload as opaque bytes (no JSON canonicalization).
   - [ ] Milestone 1 payload rule: node payload is provided as base64 bytes and is hashed as-is.
   - [ ] If using a structured encoding (e.g., canonical CBOR), define *exact* canonicalization (spec + tests) (future milestone).
 - [ ] Finalize deterministic identity derivations (30–60m)
@@ -349,8 +349,8 @@ Goal: decide and document determinism-critical choices *before* implementing net
   - [ ] `SwsId: u64` allocated deterministically (`0, 1, 2, ...`).
   - [ ] `RewriteEvent.idx: u64` increments once per applied mutation.
 - [ ] Spec alignment note / addendum (30–60m)
-  - [ ] Implement SPEC-WARP-0001 (GraphCommitDigest) and link it here (canonical, auditable digest).
-  - [ ] (Optional) Draft SPEC-WARP-0002 (Incremental/Merkle graph hash) as an optimization spec (not required for M1 gate).
+  - [x] Implement SPEC-WARP-0001 (GraphCommitDigest) and link it here (canonical, auditable digest).
+  - [x] (Optional) Draft SPEC-WARP-0002 (Incremental/Merkle graph hash) as an optimization spec (not required for M1 gate).
 
 ### Phase 1 — Warp Core (`jitos-warp-core`): make hashes real first
 
