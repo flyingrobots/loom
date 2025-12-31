@@ -80,20 +80,10 @@ fn graph_hash_depends_on_payload_bytes_not_json_semantics() {
     //
     // This test protects against accidental re-introduction of JSON canonicalization in hashing.
     let mut g1 = WarpGraph::new();
-    insert_node(
-        &mut g1,
-        node_id(1),
-        "demo.A",
-        br#"{"a":1,"b":2}"#.to_vec(),
-    );
+    insert_node(&mut g1, node_id(1), "demo.A", br#"{"a":1,"b":2}"#.to_vec());
 
     let mut g2 = WarpGraph::new();
-    insert_node(
-        &mut g2,
-        node_id(1),
-        "demo.A",
-        br#"{"b":2,"a":1}"#.to_vec(),
-    );
+    insert_node(&mut g2, node_id(1), "demo.A", br#"{"b":2,"a":1}"#.to_vec());
 
     let h1 = g1.compute_hash();
     let h2 = g2.compute_hash();
