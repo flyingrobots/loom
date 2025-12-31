@@ -40,7 +40,10 @@ struct EdgeCommitV0 {
 pub struct WarpNode {
     pub id: NodeId,
     pub node_type: String,
-    pub data: serde_json::Value,
+    /// Opaque payload bytes (SPEC-WARP-0001).
+    ///
+    /// The kernel MUST NOT interpret these bytes for hashing or identity.
+    pub payload_bytes: Vec<u8>,
     pub attachment: Option<Hash>, // Reference to another WARP graph
 }
 
@@ -81,11 +84,10 @@ impl WarpGraph {
         // Nodes: sort by NodeId bytes ascending.
         let mut nodes: Vec<NodeCommitV0> = Vec::with_capacity(self.nodes.len());
         for (_k, n) in self.nodes.iter() {
-            let payload_bytes = jitos_core::canonical::encode(&n.data)?;
             nodes.push(NodeCommitV0 {
                 node_id: n.id,
                 kind: n.node_type.clone(),
-                payload_bytes,
+                payload_bytes: n.payload_bytes.clone(),
                 attachment: n.attachment,
             });
         }
