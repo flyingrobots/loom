@@ -56,6 +56,10 @@ pub struct WarpEdge {
     pub edge_type: String,
     /// Optional opaque payload bytes for edge-level data (SPEC-WARP-0001).
     ///
+    /// Rationale: nodes always carry an atomic payload slot, but edges are primarily
+    /// structural relations and often carry no payload at all. Using `Option<Vec<u8>>`
+    /// represents absence explicitly without forcing empty allocations.
+    ///
     /// If present, these bytes are hashed as-is for the graph commit digest.
     ///
     /// **Identity impact:** these bytes are included in deterministic `edge_id` derivation.

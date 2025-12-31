@@ -95,3 +95,96 @@ fn graph_hash_depends_on_payload_bytes_not_json_semantics() {
         "hash must treat payload as bytes (not canonicalized JSON semantics)"
     );
 }
+
+#[test]
+fn edge_payload_affects_graph_hash() {
+    let mut g1 = WarpGraph::new();
+    let a1 = insert_node(&mut g1, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
+    let b1 = insert_node(&mut g1, node_id(2), "demo.B", br#"{"k":"B"}"#.to_vec());
+    g1.edges.insert(WarpEdge {
+        source: a1,
+        target: b1,
+        edge_type: "demo.edge".to_string(),
+        payload_bytes: Some(vec![1, 2, 3]),
+        attachment: None,
+    });
+
+    let mut g2 = WarpGraph::new();
+    let a2 = insert_node(&mut g2, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
+    let b2 = insert_node(&mut g2, node_id(2), "demo.B", br#"{"k":"B"}"#.to_vec());
+    g2.edges.insert(WarpEdge {
+        source: a2,
+        target: b2,
+        edge_type: "demo.edge".to_string(),
+        payload_bytes: None,
+        attachment: None,
+    });
+
+    assert_ne!(
+        g1.compute_hash(),
+        g2.compute_hash(),
+        "edge payload must affect graph commit digest"
+    );
+}
+
+#[test]
+fn edge_payload_none_vs_empty_are_distinct() {
+    let mut g1 = WarpGraph::new();
+    let a1 = insert_node(&mut g1, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
+    let b1 = insert_node(&mut g1, node_id(2), "demo.B", br#"{"k":"B"}"#.to_vec());
+    g1.edges.insert(WarpEdge {
+        source: a1,
+        target: b1,
+        edge_type: "demo.edge".to_string(),
+        payload_bytes: None,
+        attachment: None,
+    });
+
+    let mut g2 = WarpGraph::new();
+    let a2 = insert_node(&mut g2, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
+    let b2 = insert_node(&mut g2, node_id(2), "demo.B", br#"{"k":"B"}"#.to_vec());
+    g2.edges.insert(WarpEdge {
+        source: a2,
+        target: b2,
+        edge_type: "demo.edge".to_string(),
+        payload_bytes: Some(vec![]),
+        attachment: None,
+    });
+
+    assert_ne!(
+        g1.compute_hash(),
+        g2.compute_hash(),
+        "None vs Some(empty) edge payload must be identity-distinct"
+    );
+}
+
+#[test]
+fn edge_payload_byte_level_sensitivity() {
+    let mut g1 = WarpGraph::new();
+    let a1 = insert_node(&mut g1, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
+    let b1 = insert_node(&mut g1, node_id(2), "demo.B", br#"{"k":"B"}"#.to_vec());
+    g1.edges.insert(WarpEdge {
+        source: a1,
+        target: b1,
+        edge_type: "demo.edge".to_string(),
+        payload_bytes: Some(br#"{"a":1,"b":2}"#.to_vec()),
+        attachment: None,
+    });
+
+    let mut g2 = WarpGraph::new();
+    let a2 = insert_node(&mut g2, node_id(1), "demo.A", br#"{"k":"A"}"#.to_vec());
+    let b2 = insert_node(&mut g2, node_id(2), "demo.B", br#"{"k":"B"}"#.to_vec());
+    g2.edges.insert(WarpEdge {
+        source: a2,
+        target: b2,
+        edge_type: "demo.edge".to_string(),
+        payload_bytes: Some(br#"{"b":2,"a":1}"#.to_vec()),
+        attachment: None,
+    });
+
+    assert_ne!(
+        g1.compute_hash(),
+        g2.compute_hash(),
+        "edge payloads must be treated as opaque bytes"
+    );
+}
