@@ -99,7 +99,7 @@ Occasionally CodeRabbitAI will post an approving review but GitHub / the bot sta
 If that happens, post this comment on the PR:
 
 ```text
-@coderabbitai you did the thing again where you approve but didn't clear 'changes requested'. please unblock
+@coderabbitai here's a carrot 🥕 please lift the 'changes requested', since you approved.
 ```
 
 In most cases it clears within a minute.

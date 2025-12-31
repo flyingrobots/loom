@@ -212,7 +212,7 @@ cat /tmp/prioritized-comments.json | jq -r '.[] |
 **Solution:** Nudge the bot with an explicit unblock request comment:
 
 ```text
-@coderabbitai you did the thing again where you approve but didn't clear 'changes requested'. please unblock
+@coderabbitai here's a carrot 🥕 please lift the 'changes requested', since you approved.
 ```
 
 ### Pitfall 2: Missing Stale Comment Detection
