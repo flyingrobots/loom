@@ -92,6 +92,24 @@ When replying to review threads, prefer a deterministic “resolution marker”:
 
 This makes later rounds of comment extraction cheaper and reduces stale-comment confusion.
 
+#### If CodeRabbitAI “approved” but didn’t unblock the PR
+
+Occasionally CodeRabbitAI will post an approving review but GitHub / the bot status will remain stuck in a “changes requested” / blocked state.
+
+If that happens, post this comment on the PR:
+
+```text
+@coderabbitai Please review the latest commit and clear the "changes requested" status since you have already approved the changes.
+```
+
+Optional (lighter tone; avoid emoji if your tooling mangles Unicode):
+
+```text
+@coderabbitai here's a carrot 🥕 please lift the 'changes requested', since you approved.
+```
+
+In most cases it clears within a minute.
+
 ### Step 6 — Merge only when approved
 
 If branch protection requires it, enable auto-merge:
