@@ -80,6 +80,6 @@ If you need a starting point, begin with:
 
 - reports: `docs/REPORTS/`
 - procedures: `docs/procedures/`
-- PR submission + review loop: `docs/procedures/PR-WORKFLOW.md`
-- CodeRabbitAI comment extraction: `docs/procedures/EXTRACT-PR-COMMENTS.md`
+- **PR submission + review loop:** Codified submission workflow requiring branch → PR → CI → CodeRabbitAI review → approval → merge. See `docs/procedures/PR-WORKFLOW.md`.
+- **CodeRabbitAI comment extraction:** Procedure for identifying actionable (vs. stale/already-fixed) comments from CodeRabbitAI PR reviews. Includes bucketing by priority (P0–P3). See `docs/procedures/EXTRACT-PR-COMMENTS.md`.
 - PDF build: `docs/tex/build-pdf.sh`

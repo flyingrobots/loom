@@ -25,11 +25,11 @@ When you finish work:
 
 ### What “Done” Looks Like for a PR
 
-A PR is mergeable when:
+A PR is mergeable when **all** of the following are true:
 
-- CI checks are green, **and**
-- CodeRabbitAI has either approved the PR or left no unresolved actionable feedback, **and/or**
-- a human reviewer has approved according to the repo’s review policy.
+- CI checks are green, **AND**
+- CodeRabbitAI is satisfied — either approved the PR **OR** has left no unresolved actionable feedback, **AND**
+- a human reviewer has approved (if required by repo policy).
 
 If you cannot merge due to branch protection, enable auto-merge (if permitted) and wait:
 
@@ -135,7 +135,7 @@ cat "$TMPFILE" | jq --arg commit "$LATEST_COMMIT" '
       else "P3"
       end
     ),
-    title: (.body | split("\n")[2] | gsub("\\*\\*"; "")),
+    title: (.body | split("\n")[2:3][0] // "UNTITLED" | gsub("\\*\\*"; "")),
     is_stale: (.commit_id != .original_commit_id),
     body
   }
@@ -285,7 +285,7 @@ cat /tmp/latest-comments.json | jq '
       else "P3"
       end
     ),
-    title: (.body | split("\n")[2] | gsub("\\*\\*"; ""))
+    title: (.body | split("\n")[2:3][0] // "UNTITLED" | gsub("\\*\\*"; ""))
   })
 ' > /tmp/categorized.json
 

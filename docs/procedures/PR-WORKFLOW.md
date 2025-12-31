@@ -29,7 +29,7 @@ Create a branch with a clear prefix:
 
 - `docs/...` for docs-only changes
 - `feat/...` for features
-- `fix/...` for bugfixes
+- `fix/...` for bug fixes
 - `chore/...` for tooling/maintenance
 
 ```bash
