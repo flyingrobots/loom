@@ -206,7 +206,7 @@ cat /tmp/prioritized-comments.json | jq -r '.[] |
 **Why:** Old reviews remain in "CHANGES_REQUESTED" state; only new approving reviews change the status.
 **Solution:** Always check the actual comments on the latest commit, not the PR-level review status.
 
-### Pitfall 1b: CodeRabbitAI approves but doesn’t clear “changes requested”
+### Pitfall 2: CodeRabbitAI approves but doesn’t clear “changes requested”
 
 **Issue:** CodeRabbitAI posts an approving review, but the PR remains blocked (e.g., “changes requested” not cleared).
 **Why:** Bot status sync occasionally gets stuck or fails to update GitHub’s gate.
@@ -216,22 +216,22 @@ cat /tmp/prioritized-comments.json | jq -r '.[] |
 @coderabbitai here's a carrot 🥕 please lift the 'changes requested', since you approved.
 ```
 
-### Pitfall 2: Missing Stale Comment Detection
+### Pitfall 3: Missing Stale Comment Detection
 **Issue:** Fixing issues that were already fixed, wasting time.
 **Why:** Didn't check `original_commit_id` vs `commit_id`.
 **Solution:** Always use Step 4 to identify stale comments.
 
-### Pitfall 3: Not Verifying Code State
+### Pitfall 4: Not Verifying Code State
 **Issue:** Assuming a stale comment means the issue is still present.
 **Why:** GitHub carries comments forward even after fixes.
 **Solution:** Always use Step 7 to verify the current code state.
 
-### Pitfall 4: Missing "Already Addressed" Markers
+### Pitfall 5: Missing "Already Addressed" Markers
 **Issue:** Working on issues CodeRabbit already acknowledged as fixed.
 **Why:** Didn't search comment bodies for "✅ Addressed" markers.
 **Solution:** Always use Step 5 to check for acknowledged fixes.
 
-### Pitfall 5: Confusion Between Line Numbers
+### Pitfall 6: Confusion Between Line Numbers
 **Issue:** Looking at wrong code because line numbers shifted.
 **Why:** Line numbers in comments refer to the original commit, not latest.
 **Solution:** Use `git show <original_commit>:<file>` to see the exact state being commented on.
