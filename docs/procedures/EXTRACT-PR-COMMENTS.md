@@ -206,6 +206,15 @@ cat /tmp/prioritized-comments.json | jq -r '.[] |
 **Why:** Old reviews remain in "CHANGES_REQUESTED" state; only new approving reviews change the status.
 **Solution:** Always check the actual comments on the latest commit, not the PR-level review status.
 
+### Pitfall 1b: CodeRabbitAI approves but doesn’t clear “changes requested”
+**Issue:** CodeRabbitAI posts an approving review, but the PR remains blocked (e.g., “changes requested” not cleared).
+**Why:** Bot status sync occasionally gets stuck or fails to update GitHub’s gate.
+**Solution:** Nudge the bot with an explicit unblock request comment:
+
+```text
+@coderabbitai you did the thing again where you approve but didn't clear 'changes requested'. please unblock
+```
+
 ### Pitfall 2: Missing Stale Comment Detection
 **Issue:** Fixing issues that were already fixed, wasting time.
 **Why:** Didn't check `original_commit_id` vs `commit_id`.
