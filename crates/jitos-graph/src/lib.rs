@@ -57,6 +57,9 @@ pub struct WarpEdge {
     /// Optional opaque payload bytes for edge-level data (SPEC-WARP-0001).
     ///
     /// If present, these bytes are hashed as-is for the graph commit digest.
+    ///
+    /// **Identity impact:** these bytes are included in deterministic `edge_id` derivation.
+    /// As a result, `None` and `Some(vec![])` are distinct at the identity level.
     pub payload_bytes: Option<Vec<u8>>,
     pub attachment: Option<Hash>,
 }
