@@ -63,6 +63,12 @@ We are currently executing **Phase 0: Kernel Skeleton**.
 - [ ] **Phase 4: Execution** (End-to-End `submit_intent` → Worker)
 - [ ] **Phase 5: Realization** (Shell/LLM Integration)
 
+## License
+
+Continuum © 2026 by James Ross is a software project referenced by the papers, which is not part of this repository. This separate codebase is licensed under the [Apache License](./LICENSE.md), Version 2.0 OR [MIND-UCAL](https://github.com/universalcharter/mind-ucal).
+
+NOTE: In short: you may freely use the theory, papers, and documentation without adopting MIND-UCAL; MIND-UCAL applies only to derivative ethical commitments, not technical use.
+
 ---
 
 > *"Things are only impossible until they're not."*
