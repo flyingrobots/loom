@@ -1,69 +1,69 @@
-# JITOS (Loom)
+<div align="center">
+  <img alt="Continuum" src="https://github.com/user-attachments/assets/89d13603-2e42-4096-ba0c-b44d80add132" />
+  <h3><i>The Causal OS</i></h3>
+</div>
 
-> **The Universal Job Fabric**
->
-> A history-native, deterministic operating system where work is modeled as jobs over a causal graph.
+> [!WARNING]
+> **Status: Nascent / Experimental**
+> This project is currently in active R&D. Expect raw edges, rapid evolution, and breaking changes as we define the AIΩN specifications.
 
-![JITOS Architecture](docs/SVG/highlevel.svg)
+## The End of Computational Amnesia
 
----
+For seventy years, computing has followed a blueprint from 1945: a solitary desk worker shuffling papers. Files, folders, mutable RAM—all engineered before the internet, distributed systems, or AI existed.
 
-## 🏗️ The New Architecture (ARCH-0001)
+This paradigm relies on a fundamental flaw: **Destruction.** To write a new value to memory, the machine must destroy the old one. We built our digital world on a foundation of forgetting. This is the breeding ground for concurrency nightmares, race conditions, and "Heisenbugs"—where the state that caused a crash is obliterated the moment it happens.
 
-JITOS has pivoted from a collection of loose tools to a unified **"Monolith with Seams"** architecture. It integrates:
+**Continuum** is the inverse. It is a system based on **perfect memory**.
 
-*   **WARP Graphs:** The deterministic causal substrate (History as Truth).
-*   **Echo Engine:** The rewrite execution loop.
-*   **TASKS/SLAPS:** The intent planning layer.
-*   **SWS (Shadow Working Sets):** Speculative process isolation.
-*   **GraphQL:** The universal control plane.
+### The AIΩN Architecture
 
-### Core Invariants (ARCH-0002)
-1.  **History is First-Class:** State is just a view derived from events.
-2.  **Speculation is Default:** Risky work happens in overlays (SWS).
-3.  **Intent ≠ Plan ≠ Execution:** Explicit separation of concerns.
+> [!TIP]
+> Continuum is the reference implementation of the [AIΩN Computing](https://github.com/flyingrobots/aion) standard. Visit the AIΩN repo to read the Foundation Series papers.
 
----
+Continuum is the **Causal OS** engineered for the high-stakes future of autonomous agents and deterministic computing. It replaces "black box" execution with a "glass box" environment where causality is observable, immutable, and provable.
+
+It utilizes **WARP Graphs** (Worldline Algebra for Recursive Provenance) to treat time as the fundamental geometry of the computer. It doesn't write logs, it appends computational holograms to the causal graph. This immutable, append-only ledger _is_ the computation itself, stored. In Continuum, you do not overwrite data; you weave it into the history.
+
+## The Causal Promise
+
+* **Absolute Determinism:** `Input + History = Output`. Always.
+* **Perfect Recall:** Traverse the machine's entire state history as effortlessly as reading a variable.
+* **Zero Hallucinations:** The system cannot diverge from reality because it is mathematically tethered to its own causal chain.
+* **Multiverse-Native:** Time travel is built-in. Rewind execution to any point, fork the timeline, and explore a new worldline without losing the original context.
+
+## System Architecture
+
+Continuum coalesces a suite of deterministic tools into a unified kernel. It is not just a collection of libraries; it is a closed-loop environment managed by the `loom` daemon.
+
+| Component | Role | Description |
+| :--- | :--- | :--- |
+| **WARP Graphs** | Substrate | The immutable, content-addressed causal graph (History as Truth). |
+| **Loom** | Daemon | The kernel process that "weaves" intents into the graph. |
+| **Echo Engine** | Runtime | The deterministic rewrite execution loop. |
+| **TASKS/SLAPS** | Planning | The intent planning and agentic layer. |
+| **SWS** | Isolation | **Shadow Working Sets** for speculative process branching. |
+| **Wesley** | Compiler | The `GraphQL -> Everything` bridge. |
+| **Nine Lives** | Resilience | Fault tolerance and supervision library. |
 
 ## 🗺️ Roadmap
 
+> [!NOTE]
+> **Context:** Continuum is being developed alongside **Echo**.
+> * **Echo:** A high-performance deterministic game engine (driving feature velocity).
+> * **Continuum:** The pedantic, canonical reference implementation of the OS (driving architectural correctness).
+>
+> Track progress on the [AIΩN Project Board](https://github.com/users/flyingrobots/projects/13).
+
 We are currently executing **Phase 0: Kernel Skeleton**.
 
-*   **Phase 0:** `jitosd` daemon with in-memory WARP graph.
-*   **Phase 1:** Live visualization via GraphQL subscriptions.
-*   **Phase 2:** SWS overlays (branching/merging).
-*   **Phase 3:** Deterministic Planning (`jitos-planner`).
-*   **Phase 4:** End-to-End Execution (`submit_intent` -> Worker).
-*   **Phase 5:** Real Workers (Shell/LLM).
-
-See [NEXT-MOVES.md](./NEXT-MOVES.md) for the daily execution plan.
+- [ ] **Phase 0: The Loom** (`loom` daemon + in-memory WARP graph)
+- [ ] **Phase 1: Observation** (Live visualization via GraphQL subscriptions)
+- [ ] **Phase 2: Multiverse** (SWS overlays, branching, and merging)
+- [ ] **Phase 3: Agency** (Deterministic Planner & Intent Scheduling)
+- [ ] **Phase 4: Execution** (End-to-End `submit_intent` → Worker)
+- [ ] **Phase 5: Realization** (Shell/LLM Integration)
 
 ---
 
-## 📚 Documentation
-
-*   **[Docs Tour](docs/TOUR.md)** - Where things live (Theory → Arch → Specs → Roadmap).
-*   **[Docs Index (MOC)](docs/INDEX.md)** - High-signal map of content.
-*   **[Milestone Roadmap (MOC)](docs/ROADMAP/README.md)** - Approval-ready milestone plans + DAGs.
-*   **[ARCH-0001: Universal Job Fabric](docs/ARCH/ARCH-0001-universal-job-fabric.md)** - The Blueprint.
-*   **[ARCH-0002: Architectural Invariants](docs/ARCH/ARCH-0002-architectural-invariants.md)** - The Constitution.
-*   **[SPEC-NET-0001: GraphQL SDL](docs/SPECS/SPEC-NET-0001-graphql-sdl-v0.md)** - The API.
-*   **[Theory (WARP/Aion)](docs/THEORY.md)** - The Math.
-
----
-
-## 🧩 Modules (Crates)
-
-*   `crates/jitos-core`: Foundational types (Hash, Slap).
-*   `crates/jitos-planner`: Port of TASKS/SLAPS planning logic.
-*   *(Coming Soon)* `crates/jitos-warp-core`: Deterministic graph engine.
-*   *(Coming Soon)* `crates/jitos-kernel`: OS core (SWS/Process manager).
-*   *(Coming Soon)* `crates/jitos-net`: GraphQL API.
-
----
-
-## 🌐 The "Meta" Layer
-
-This project powers **[flyingrobots.dev](https://flyingrobots.dev)**, which is a live, recursive instance of a WARP graph rendering itself.
-
-> *"If an OS can’t tell you why something happened, it’s not a system — it’s a haunted house with logs."*
+> *"Things are only impossible until they're not."*
+> — Jean-Luc Picard
